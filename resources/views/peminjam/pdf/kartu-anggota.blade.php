@@ -171,12 +171,12 @@
                 <table class="header-table">
                     <tr>
                         <td class="header-logo">
-                            <img src="{{ public_path('image/smpn1balen.png') }}" alt="Logo SMPN 1 Balen">
+                            <img src="{{ public_path('image/smkn1cerme.png') }}" alt="Logo SMKN 1 CERME">
                         </td>
                         <td class="header-center">
                             <div class="title">Kartu Anggota Perpustakaan</div>
-                            <div class="subtitle">SMP Negeri 1 Balen</div>
-                            <div class="address">Jl. Raya Balen No. 46, Desa Balenrejo, Kecamatan Balen, Kabupaten Bojonegoro, Jawa Timur</div>
+                            <div class="subtitle">SMK NEGERI 1 CERME</div>
+                            <div class="address">JL. Jurit, Cerme Kidul,Kec.Cerme,Kabupaten Gresik, Jawa Timur</div>
                         </td>
                         <td class="header-logo">
                             <img src="{{ public_path('image/logoLanteraWhite.png') }}" alt="Logo Lantera">
@@ -187,7 +187,7 @@
 
             <div class="card-body">
                 <div class="body-watermark">
-                    <img src="{{ public_path('image/smpn1balen.png') }}" alt="Watermark SMPN 1 Balen">
+                    <img src="{{ public_path('image/smkn1cerme.png') }}" alt="Watermark SMKN 1 CERME">
                 </div>
 
                 <table class="body-table">

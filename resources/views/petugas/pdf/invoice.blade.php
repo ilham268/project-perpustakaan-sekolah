@@ -178,7 +178,7 @@
             </td>
             <td class="brand-text brand-cell">
                 <h1>Lantera</h1>
-                <p class="brand-subtitle">SMP NEGERI 1 BALEN</p>
+                <p class="brand-subtitle">SMKN 1 CERME</p>
             </td>
             <td class="invoice-label">
                 <div class="title">Nota</div>

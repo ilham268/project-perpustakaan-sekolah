@@ -71,7 +71,7 @@ class GuestBookExport implements FromCollection, WithMapping, WithEvents
 
                 // Set header text
                 $sheet->setCellValue('A1', 'LANTERA');
-                $sheet->setCellValue('A2', 'PERPUSTAKAAN SMP NEGERI 1 BALEN');
+                $sheet->setCellValue('A2', 'PERPUSTAKAAN SMK NEGERI 1 CERME');
                 $sheet->setCellValue('A3', 'LAPORAN DATA BUKU TAMU');
 
                 // Set periode

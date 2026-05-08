@@ -108,13 +108,13 @@ class DendaExport implements FromCollection, WithMapping, WithEvents
                 
                 // Merge cells for header (11 kolom: A-K)
                 $sheet->mergeCells('A1:K1'); // LANTERA
-                $sheet->mergeCells('A2:K2'); // PERPUSTAKAAN SMP NEGERI 1 BALEN
+                $sheet->mergeCells('A2:K2'); // 
                 $sheet->mergeCells('A3:K3'); // LAPORAN DATA REKAP DENDA
                 $sheet->mergeCells('A4:K4'); // Periode
 
                 // Set header text
                 $sheet->setCellValue('A1', 'LANTERA');
-                $sheet->setCellValue('A2', 'PERPUSTAKAAN SMP NEGERI 1 BALEN');
+                $sheet->setCellValue('A2', 'PERPUSTAKAAN SMKN 1 CERME');
                 $sheet->setCellValue('A3', 'LAPORAN DATA REKAP DENDA');
                 
                 // Set periode

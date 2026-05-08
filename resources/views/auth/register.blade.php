@@ -3,152 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Lantera</title>    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <title>Register - Lantera</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-50">
+
+<body class="bg-slate-50">
+
     <div class="min-h-screen flex">
+
         <!-- Left Side - Register Form -->
         <div class="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
+
             <div class="max-w-md w-full space-y-8">
-                <!-- Logo -->
-                {{-- <div>
-                    <h1 class="text-4xl font-bold text-cyan-500">Lantera</h1>
-                </div> --}}
 
                 <!-- Register Form -->
-                <div class="mt-0">
-                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Register</h2>
-                    <p class="text-gray-600 text-sm mb-6">Buat akun baru</p>
+                <div class="bg-white rounded-3xl shadow-xl border border-slate-100 p-8">
 
-                    <form class="space-y-3" action="{{ route('register') }}" method="POST">
+                    <h2 class="text-3xl font-bold text-slate-800 mb-2">
+                        Register
+                    </h2>
+
+                    <p class="text-slate-500 text-sm mb-6">
+                        Buat akun baru
+                    </p>
+
+                    <form class="space-y-4" action="{{ route('register') }}" method="POST">
                         @csrf
 
+                        <!-- Nama -->
                         <div>
-                            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-                                Nama<span class="text-red-500">*</span>
+                            <label for="name" class="block text-sm font-medium text-slate-700 mb-2">
+                                Nama
+                                <span class="text-red-500">*</span>
                             </label>
+
                             <input
                                 id="name"
                                 name="name"
                                 type="text"
                                 required
-                                class="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"
                                 placeholder="Masukkan nama lengkap"
                                 value="{{ old('name') }}"
+                                class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition"
                             >
+
                             @error('name')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <p class="mt-1 text-sm text-red-600">
+                                    {{ $message }}
+                                </p>
                             @enderror
                         </div>
 
+                        <!-- Nomor Identitas -->
                         <div>
-                            <label for="nomor_identitas" class="block text-sm font-medium text-gray-700 mb-2">
-                                Nomor identitas<span class="text-red-500">*</span>
+                            <label for="nomor_identitas" class="block text-sm font-medium text-slate-700 mb-2">
+                                Nomor Identitas
+                                <span class="text-red-500">*</span>
                             </label>
+
                             <input
                                 id="nomor_identitas"
                                 name="nomor_identitas"
                                 type="text"
                                 required
-                                class="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"
                                 placeholder="Masukkan nomor identitas"
                                 value="{{ old('nomor_identitas') }}"
+                                class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition"
                             >
+
                             @error('nomor_identitas')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <p class="mt-1 text-sm text-red-600">
+                                    {{ $message }}
+                                </p>
                             @enderror
                         </div>
 
+                        <!-- Password -->
                         <div>
-                            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-                                Kata Sandi<span class="text-red-500">*</span>
+                            <label for="password" class="block text-sm font-medium text-slate-700 mb-2">
+                                Kata Sandi
+                                <span class="text-red-500">*</span>
                             </label>
+
                             <div class="relative">
+
                                 <input
                                     id="password"
                                     name="password"
                                     type="password"
                                     required
-                                    class="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"
                                     placeholder="Masukkan kata sandi"
+                                    class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition"
                                 >
-                                <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                    <i id="eyeIcon" class="fas fa-eye h-5 w-5 text-gray-400"></i>
+
+                                <button
+                                    type="button"
+                                    onclick="togglePassword()"
+                                    class="absolute inset-y-0 right-0 pr-4 flex items-center"
+                                >
+                                    <i id="eyeIcon" class="fas fa-eye text-slate-400 hover:text-emerald-500 transition"></i>
                                 </button>
+
                             </div>
+
                             @error('password')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                <p class="mt-1 text-sm text-red-600">
+                                    {{ $message }}
+                                </p>
                             @enderror
                         </div>
 
+                        <!-- Confirm Password -->
                         <div>
-                            <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-2">
-                                Konfirmasi Kata Sandi<span class="text-red-500">*</span>
+                            <label for="password_confirmation" class="block text-sm font-medium text-slate-700 mb-2">
+                                Konfirmasi Kata Sandi
+                                <span class="text-red-500">*</span>
                             </label>
+
                             <div class="relative">
+
                                 <input
                                     id="password_confirmation"
                                     name="password_confirmation"
                                     type="password"
                                     required
-                                    class="appearance-none block w-full px-3 py-2.5 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"
                                     placeholder="Ulangi kata sandi"
+                                    class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition"
                                 >
-                                <button type="button" onclick="toggleConfirmPassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                    <i id="confirmEyeIcon" class="fas fa-eye h-5 w-5 text-gray-400"></i>
+
+                                <button
+                                    type="button"
+                                    onclick="toggleConfirmPassword()"
+                                    class="absolute inset-y-0 right-0 pr-4 flex items-center"
+                                >
+                                    <i id="confirmEyeIcon" class="fas fa-eye text-slate-400 hover:text-emerald-500 transition"></i>
                                 </button>
+
                             </div>
+
                         </div>
 
-                        <div>
+                        <!-- Button -->
+                        <div class="pt-2">
                             <button
                                 type="submit"
-                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 transition-colors"
+                                class="w-full flex justify-center py-3 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-400 transition-all duration-300"
                             >
                                 Daftar
                             </button>
                         </div>
 
-                        <div class="text-center">
-                            <p class="text-sm text-gray-600">
+                        <!-- Login -->
+                        <div class="text-center pt-2">
+                            <p class="text-sm text-slate-500">
                                 Sudah punya akun?
-                                <a href="{{ route('login') }}" class="font-medium text-cyan-500 hover:text-cyan-600">
+
+                                <a
+                                    href="{{ route('login') }}"
+                                    class="font-medium text-emerald-600 hover:text-emerald-700 transition"
+                                >
                                     Masuk Disini!
                                 </a>
                             </p>
                         </div>
+
                     </form>
+
                 </div>
+
             </div>
+
         </div>
 
-        <!-- Right Side - Welcome Section -->
-        <div class="hidden lg:flex lg:w-1/2 bg-linear-to-br from-cyan-500 to-cyan-800 items-center justify-center p-12">
-            <div class="max-w-lg text-white">
-                <h2 class="text-4xl font-bold mb-4">Selamat datang di Lantera</h2>
-                <p class="text-lg text-cyan-50 mb-8">
+        <!-- Right Side -->
+        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700 items-center justify-center p-12 relative overflow-hidden">
+
+            <!-- Glow -->
+            <div class="absolute top-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+
+            <div class="max-w-lg text-white relative z-10">
+
+                <h2 class="text-4xl font-bold mb-4">
+                    Selamat datang di Lantera
+                </h2>
+
+                <p class="text-lg text-emerald-50 mb-8 leading-relaxed">
                     Solusi pintar untuk komunikasi dan administrasi Perpustakaan.
                 </p>
 
-                <div class="rounded-2xl ">
+                <!-- Card -->
+                <div class="rounded-3xl bg-white/10 border border-white/20 p-8 backdrop-blur-md shadow-2xl">
+
                     <div class="mx-auto flex items-center justify-center">
-                        <img src="{{ asset('image/smpn1balen.png') }}" alt="Logo SMPN 1 Balen" class="h-44 w-52 object-contain">
+                        <img
+                            src="{{ asset('image/smkn1cerme.png') }}"
+                            alt="Logo SMKN 1 CERME"
+                            class="h-44 w-52 object-contain drop-shadow-2xl hover:scale-105 transition duration-300"
+                        >
                     </div>
+
                     <p class="mt-6 text-center text-lg font-semibold text-white">
-                        SMPN 1 Balen
+                        SMKN 1 CERME
                     </p>
-                    <p class="mt-2 text-center text-sm font-medium text-cyan-50">
-                        Platform Peminjaman Buku Perpustakaan
+
+                    <p class="mt-2 text-center text-sm font-medium text-emerald-50">
+                        Platform Sistem Informasi Perpustakaan
                     </p>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
 
     <script>
         function togglePassword() {
             const passwordInput = document.getElementById('password');
             const eyeIcon = document.getElementById('eyeIcon');
+
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 eyeIcon.classList.remove('fa-eye');
@@ -163,6 +241,7 @@
         function toggleConfirmPassword() {
             const passwordInput = document.getElementById('password_confirmation');
             const eyeIcon = document.getElementById('confirmEyeIcon');
+
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 eyeIcon.classList.remove('fa-eye');
@@ -174,5 +253,6 @@
             }
         }
     </script>
+
 </body>
 </html>
