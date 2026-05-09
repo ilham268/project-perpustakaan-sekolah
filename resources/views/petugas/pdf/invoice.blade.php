@@ -19,7 +19,7 @@
 
         .header {
             width: 100%;
-            border-bottom: 3px solid #111827;
+            border-bottom: 3px solid #059669;
             padding-bottom: 18px;
             margin-bottom: 24px;
         }
@@ -32,11 +32,6 @@
             padding-top: 29px;
         }
 
-        .brand-logo {
-            width: 100px;
-            margin-bottom: 10px;
-        }
-
         .brand-text {
             padding-left: 7px;
         }
@@ -45,12 +40,9 @@
             font-size: 44px;
             line-height: 1;
             margin: 0;
-            color: #0891b2;
-
+            color: #059669;
             letter-spacing: 0.5px;
         }
-
-
 
         .brand-subtitle {
             font-size: 18px;
@@ -66,7 +58,7 @@
         .invoice-label .title {
             font-size: 64px;
             font-weight: bold;
-            color: #0f172a;
+            color: #059669;
             text-transform: uppercase;
             margin: 0;
             letter-spacing: 1px;
@@ -75,7 +67,7 @@
         .intro {
             width: 100%;
             margin: 6px 0 24px;
-            border-left: 8px solid #06b6d4;
+            border-left: 8px solid #10b981;
             padding: 6px 0 6px 14px;
             font-size: 17px;
             color: #1f2937;
@@ -136,12 +128,11 @@
             border-collapse: collapse;
             margin-bottom: 20px;
             border: 1px solid #e2e8f0;
-            border-radius: 0px;
             overflow: hidden;
         }
 
         .main-table th {
-            background-color: #06b6d4;
+            background-color: #059669;
             color: #ffffff;
             text-align: left;
             padding: 19px 22px;
@@ -168,26 +159,32 @@
         .text-right {
             text-align: right;
         }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+        }
     </style>
 </head>
 <body>
     <table class="header">
         <tr>
-            <td width="78" class="brand-cell">
-                <img src="{{ public_path('image/logoLantera.png') }}" class="brand-logo">
-            </td>
             <td class="brand-text brand-cell">
                 <h1>Lantera</h1>
-                <p class="brand-subtitle">SMKN 1 CERME</p>
+                <p class="brand-subtitle">SMK NEGERI 1 CERME</p>
             </td>
             <td class="invoice-label">
-                <div class="title">Nota</div>
+                <div class="title">NOTA</div>
             </td>
         </tr>
     </table>
 
     <div class="intro">
-        Nota ini diterbitkan sebagai bukti resmi tagihan denda perpustakaan. Mohon simpan nota ini sebagai arsip pembayaran.
+        Nota ini diterbitkan sebagai bukti resmi pelunasan denda perpustakaan. Mohon simpan nota ini sebagai arsip pembayaran.
     </div>
 
     <table class="meta">
@@ -196,7 +193,7 @@
                 <table class="box">
                     <tr>
                         <td>
-                            <div class="label">Ditagihkan kepada</div>
+                            <div class="label">Diterbitkan untuk</div>
                             <div class="value-strong">{{ $user->name }}</div>
                             <table class="info-table">
                                 <tr>
@@ -205,11 +202,11 @@
                                 </tr>
                                 <tr>
                                     <td class="key">Nomor Nota</td>
-                                    <td>: NTP-{{ $invoiceNumber }}</td>
+                                    <td>: INV-{{ $invoiceNumber }}</td>
                                 </tr>
                                 <tr>
                                     <td class="key">Tanggal Terbit</td>
-                                    <td>: {{ \Carbon\Carbon::parse($return->tanggal_pengembalian)->format('d F Y') }}</td>
+                                    <td>: {{ \Carbon\Carbon::parse($return->tanggal_pengembalian)->translatedFormat('d F Y') }}</td>
                                 </tr>
                             </table>
                         </td>
@@ -222,11 +219,11 @@
     <table class="main-table">
         <thead>
             <tr>
-                <th>Buku</th>
+                <th>Judul Buku</th>
                 <th>Kode Buku</th>
                 <th>Jenis Tagihan</th>
-                <th width="180" class="text-right">Total Tagihan</th>
-                <th width="150">Status</th>
+                <th width="200" class="text-right">Total Tagihan</th>
+                <th width="120">Status</th>
             </tr>
         </thead>
         <tbody>
@@ -236,11 +233,15 @@
                 <td>{{ $return->loan->bookItem->kode_buku }}</td>
                 <td>{{ $item['label'] }}</td>
                 <td class="text-right">Rp {{ number_format($item['nominal'], 0, ',', '.') }}</td>
-                <td>Lunas</td>
+                <td><span style="background: #d1fae5; color: #065f46; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;">LUNAS</span></td>
             </tr>
             @endforeach
         </tbody>
     </table>
 
+    <div class="footer">
+        <p>Terima kasih telah menyelesaikan kewajiban Anda. Kartu anggota tetap aktif.</p>
+        <p>© {{ date('Y') }} Lantera Digital Library - SMK Negeri 1 Cerme</p>
+    </div>
 </body>
 </html>

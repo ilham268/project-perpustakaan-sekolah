@@ -12,10 +12,9 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-family: 'Times New Roman', Times, serif;
             background: #ffffff;
             color: #111827;
-
         }
 
         .page-wrap {
@@ -35,7 +34,7 @@
         }
 
         .card-header {
-            background: #2eaecf;
+            background: #10b981;
             color: #ffffff;
             padding: 12px 14px 10px;
         }
@@ -67,25 +66,28 @@
 
         .title {
             margin: 0;
-            font-size: 17pt;
+            font-size: 20pt;
             line-height: 1.08;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.02em;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .subtitle {
             margin: 2px 0 0;
-            font-size: 13.5pt;
+            font-size: 16pt;
             line-height: 1.05;
             font-weight: bold;
             text-transform: uppercase;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .address {
             margin: 5px 0 0;
-            font-size: 8pt;
+            font-size: 9pt;
             line-height: 1.3;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .card-body {
@@ -100,7 +102,7 @@
             right: 10mm;
             top: 10mm;
             width: 56mm;
-            opacity: 0.2;
+            opacity: 0.15;
             z-index: 1;
         }
 
@@ -121,7 +123,7 @@
         }
 
         .identity-box {
-            width: 64%;
+            width: 70%;
             padding-top: 10px;
             position: relative;
             z-index: 2;
@@ -133,25 +135,33 @@
         }
 
         .identity-table td {
-            font-size: 14.5pt;
-            padding: 5px 0;
+            font-size: 18pt;
+            padding: 8px 0;
             color: #111827;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .identity-label {
             width: 44mm;
             white-space: nowrap;
+            font-size: 18pt;
+            font-weight: bold;
+            text-align: left;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .identity-sep {
             width: 6mm;
             text-align: center;
+            font-size: 18pt;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .identity-value {
-            font-family: 'Times New Roman', serif;
-            font-size: 15.5pt;
+            font-size: 18pt;
             font-weight: normal;
+            text-align: left;
+            font-family: 'Times New Roman', Times, serif;
         }
 
         .footer-line {
@@ -176,11 +186,9 @@
                         <td class="header-center">
                             <div class="title">Kartu Anggota Perpustakaan</div>
                             <div class="subtitle">SMK NEGERI 1 CERME</div>
-                            <div class="address">JL. Jurit, Cerme Kidul,Kec.Cerme,Kabupaten Gresik, Jawa Timur</div>
+                            <div class="address">JL. Jurit, Cerme Kidul, Kec. Cerme, Kab. Gresik, Jawa Timur</div>
                         </td>
-                        <td class="header-logo">
-                            <img src="{{ public_path('image/logoLanteraWhite.png') }}" alt="Logo Lantera">
-                        </td>
+                        <!-- Logo Lantera dihapus -->
                     </tr>
                 </table>
             </div>
@@ -200,7 +208,7 @@
                                     <td class="identity-value">{{ $user->name }}</td>
                                 </tr>
                                 <tr>
-                                    <td class="identity-label">No Anggota</td>
+                                    <td class="identity-label">No NISN</td>
                                     <td class="identity-sep">:</td>
                                     <td class="identity-value">{{ $user->nomor_identitas }}</td>
                                 </tr>
