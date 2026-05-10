@@ -1,6 +1,7 @@
 @extends('layouts.admin')
 
 @section('title', 'Kelola User')
+@section('page-title', 'Kelola User')
 
 @section('content')
     <!-- Flash Messages -->
@@ -18,34 +19,34 @@
     @endif
 
     <!-- Page Header -->
-    <div class="flex items-center justify-between mb-5">
-        <h3 class="text-2xl font-bold text-gray-900">Kelola User</h3>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <h3 class="text-xl font-bold text-slate-800">Kelola User</h3>
         <button
             @click="$dispatch('open-modal', 'create-user')"
-            class="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors text-sm font-medium"
+            class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors text-sm font-medium shadow-sm"
         >
-            <i class="fas fa-plus"></i>
+            <i class="fas fa-plus text-xs"></i>
             <span>Tambah User</span>
         </button>
     </div>
 
     <!-- Search & Filter -->
-    <form method="GET" action="{{ route('users.index') }}" id="filter-form" class="flex items-center justify-between mb-5">
-        <div class="relative w-80">
-            <i class="fas fa-search text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 text-sm"></i>
+    <form method="GET" action="{{ route('users.index') }}" id="filter-form" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+        <div class="relative w-full sm:w-80">
+            <i class="fas fa-search text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 text-sm"></i>
             <input
                 type="text"
                 name="search"
                 id="search-input"
                 value="{{ request('search') }}"
-                placeholder="Search"
-                class="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-full text-sm focus:outline-none focus:border-gray-400"
+                placeholder="Cari nama atau nomor identitas..."
+                class="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition"
                 autocomplete="off"
             >
         </div>
         <div class="flex items-center gap-3">
-            <span class="text-sm font-medium text-gray-600">Role :</span>
-            <select name="role" id="role-select" class="gap-2 px-6 py-2 flex items-center bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
+            <span class="text-sm font-medium text-slate-600">Role :</span>
+            <select name="role" id="role-select" class="px-6 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition">
                 <option value="">Semua</option>
                 <option value="petugas" {{ request('role') == 'petugas' ? 'selected' : '' }}>Petugas</option>
                 <option value="peminjam" {{ request('role') == 'peminjam' ? 'selected' : '' }}>Peminjam</option>
@@ -74,11 +75,11 @@
     </script>
 
     <!-- Table Card -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead>
-                    <tr class="bg-cyan-500 text-white text-sm">
+                    <tr class="bg-emerald-600 text-white text-sm">
                         <th class="px-5 py-3 text-left font-semibold w-12">No</th>
                         <th class="px-5 py-3 text-left font-semibold">Nama</th>
                         <th class="px-5 py-3 text-left font-semibold">Nomor Identitas</th>
@@ -87,30 +88,31 @@
                         <th class="px-5 py-3 text-center font-semibold w-28">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
+                <tbody class="divide-y divide-slate-100">
                     @forelse($users as $index => $user)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-5 py-4 text-sm text-gray-500">{{ $users->firstItem() + $index }}</td>
-                        <td class="px-5 py-4 text-sm font-medium text-gray-900">{{ $user->name }}</td>
-                        <td class="px-5 py-4 text-sm text-gray-600">{{ $user->nomor_identitas }}</td>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-5 py-4 text-sm text-slate-500">{{ $users->firstItem() + $index }}</td>
+                        <td class="px-5 py-4 text-sm font-medium text-slate-800">{{ $user->name }}</td>
+                        <td class="px-5 py-4 text-sm text-slate-600">{{ $user->nomor_identitas }}</td>
                         <td class="px-5 py-4">
                             @php
                                 $roleColors = [
                                     'admin'     => 'bg-red-100 text-red-700',
-                                    'petugas'   => 'bg-green-100 text-green-700',
+                                    'petugas'   => 'bg-emerald-100 text-emerald-700',
                                     'peminjam'  => 'bg-blue-100 text-blue-700',
                                 ];
                             @endphp
-                            <span class="px-2.5 py-1 text-xs font-medium rounded-full {{ $roleColors[$user->role] ?? 'bg-gray-100 text-gray-700' }}">
+                            <span class="inline-block px-2.5 py-1 text-xs font-medium rounded-full {{ $roleColors[$user->role] ?? 'bg-slate-100 text-slate-700' }}">
                                 {{ ucfirst($user->role) }}
                             </span>
                         </td>
-                        <td class="px-5 py-4 text-sm text-gray-600">{{ $user->created_at ? $user->created_at->format('d/m/Y') : '-' }}</td>
+                        <td class="px-5 py-4 text-sm text-slate-500">{{ $user->created_at ? $user->created_at->format('d/m/Y') : '-' }}</td>
                         <td class="px-5 py-4">
-                            <div class="flex items-center justify-center gap-1.5">
+                            <div class="flex items-center justify-center gap-2">
                                 <button
                                     @click="$dispatch('open-modal', 'update-user-{{ $user->id }}')"
-                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-yellow-100 hover:bg-yellow-200 text-yellow-600 transition-colors"
+                                    class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-600 transition-colors"
+                                    title="Edit User"
                                 >
                                     <i class="fas fa-edit text-sm"></i>
                                 </button>
@@ -118,6 +120,7 @@
                                     type="button"
                                     @click="$dispatch('open-confirm-delete', { url: '{{ route('users.destroy', $user->id) }}' })"
                                     class="w-8 h-8 flex items-center justify-center rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
+                                    title="Hapus User"
                                 >
                                     <i class="fas fa-trash text-sm"></i>
                                 </button>
@@ -130,10 +133,10 @@
                     </x-modal>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-16 text-center text-gray-400">
-                            <i class="fas fa-users text-5xl mb-3 block"></i>
-                            <p class="text-base font-medium text-gray-500">Tidak ada data user</p>
-                            <p class="text-sm mt-1">Klik tombol "Tambah User" untuk menambahkan user baru</p>
+                        <td colspan="6" class="px-6 py-16 text-center">
+                            <i class="fas fa-users text-5xl mb-3 block text-slate-300"></i>
+                            <p class="text-base font-medium text-slate-500">Tidak ada data user</p>
+                            <p class="text-sm text-slate-400 mt-1">Klik tombol "Tambah User" untuk menambahkan user baru</p>
                         </td>
                     </tr>
                     @endforelse
@@ -142,17 +145,17 @@
         </div>
 
         <!-- Pagination -->
-        <div class="px-5 py-4 border-t border-gray-100 flex items-center justify-between">
-            <p class="text-sm text-gray-500">
+        <div class="px-5 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p class="text-sm text-slate-500">
                 Menampilkan {{ $users->firstItem() ?? 0 }}–{{ $users->lastItem() ?? 0 }} dari {{ $users->total() }} data
             </p>
             <div class="flex items-center gap-1">
                 @if ($users->onFirstPage())
-                    <span class="w-8 h-8 flex items-center justify-center text-gray-300 rounded-lg cursor-not-allowed">
+                    <span class="w-8 h-8 flex items-center justify-center text-slate-300 rounded-lg cursor-not-allowed">
                         <i class="fas fa-chevron-left text-xs"></i>
                     </span>
                 @else
-                    <a href="{{ $users->previousPageUrl() }}" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
+                    <a href="{{ $users->previousPageUrl() }}" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">
                         <i class="fas fa-chevron-left text-xs"></i>
                     </a>
                 @endif
@@ -163,33 +166,33 @@
                 @endphp
 
                 @if($start > 1)
-                    <a href="{{ $users->url(1) }}" class="w-8 h-8 flex items-center justify-center text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">1</a>
+                    <a href="{{ $users->url(1) }}" class="w-8 h-8 flex items-center justify-center text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">1</a>
                     @if($start > 2)
-                        <span class="w-8 h-8 flex items-center justify-center text-sm text-gray-400">...</span>
+                        <span class="w-8 h-8 flex items-center justify-center text-sm text-slate-400">...</span>
                     @endif
                 @endif
 
                 @for ($i = $start; $i <= $end; $i++)
                     @if ($i == $users->currentPage())
-                        <span class="w-8 h-8 flex items-center justify-center text-sm bg-cyan-500 text-white rounded-lg font-medium">{{ $i }}</span>
+                        <span class="w-8 h-8 flex items-center justify-center text-sm bg-emerald-600 text-white rounded-lg font-medium">{{ $i }}</span>
                     @else
-                        <a href="{{ $users->url($i) }}" class="w-8 h-8 flex items-center justify-center text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">{{ $i }}</a>
+                        <a href="{{ $users->url($i) }}" class="w-8 h-8 flex items-center justify-center text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">{{ $i }}</a>
                     @endif
                 @endfor
 
                 @if($end < $users->lastPage())
                     @if($end < $users->lastPage() - 1)
-                        <span class="w-8 h-8 flex items-center justify-center text-sm text-gray-400">...</span>
+                        <span class="w-8 h-8 flex items-center justify-center text-sm text-slate-400">...</span>
                     @endif
-                    <a href="{{ $users->url($users->lastPage()) }}" class="w-8 h-8 flex items-center justify-center text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">{{ $users->lastPage() }}</a>
+                    <a href="{{ $users->url($users->lastPage()) }}" class="w-8 h-8 flex items-center justify-center text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">{{ $users->lastPage() }}</a>
                 @endif
 
                 @if ($users->hasMorePages())
-                    <a href="{{ $users->nextPageUrl() }}" class="w-8 h-8 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
+                    <a href="{{ $users->nextPageUrl() }}" class="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">
                         <i class="fas fa-chevron-right text-xs"></i>
                     </a>
                 @else
-                    <span class="w-8 h-8 flex items-center justify-center text-gray-300 rounded-lg cursor-not-allowed">
+                    <span class="w-8 h-8 flex items-center justify-center text-slate-300 rounded-lg cursor-not-allowed">
                         <i class="fas fa-chevron-right text-xs"></i>
                     </span>
                 @endif
