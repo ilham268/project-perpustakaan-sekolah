@@ -12,13 +12,16 @@ class Loan extends Model
         'petugas_id',
         'tanggal_pinjam',
         'tanggal_kembali',
+        'tanggal_pengembalian',
         'status',
         'alasan_ditolak',
+        'denda',
     ];
 
     protected $casts = [
         'tanggal_pinjam' => 'date',
         'tanggal_kembali' => 'date',
+        'tanggal_pengembalian' => 'date',
     ];
 
     public function user()

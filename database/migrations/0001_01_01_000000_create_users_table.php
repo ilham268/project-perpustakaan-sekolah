@@ -6,17 +6,16 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('nomor_identitas')->unique();
+            $table->string('kelas')->nullable();              // TAMBAHKAN
+            $table->string('jurusan')->nullable();            // TAMBAHKAN
             $table->string('password');
-            $table->enum('role', ['admin', 'petugas', 'peminjam'])->default('peminjam');
+            $table->enum('role', ['admin', 'petugas', 'siswa'])->default('siswa'); // UBAH
             $table->rememberToken();
             $table->timestamps();
         });
@@ -37,9 +36,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

@@ -62,7 +62,6 @@
             backdrop-filter: blur(8px);
         }
         
-        /* Nav link style - icon dan teks sejajar */
         .nav-link {
             display: flex;
             align-items: center;
@@ -85,7 +84,6 @@
 
     <div class="flex h-screen overflow-hidden">
 
-        <!-- Overlay Mobile -->
         <div
             x-show="sidebarOpen"
             x-transition.opacity
@@ -93,25 +91,21 @@
             @click="sidebarOpen = false"
         ></div>
 
-        <!-- Sidebar -->
         <aside
             :class="sidebarOpen ? 'translate-x-0 lg:w-72' : '-translate-x-full lg:translate-x-0 lg:w-20'"
             class="fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-100 shadow-xl lg:shadow-sm flex flex-col transition-all duration-300 ease-in-out lg:static"
         >
 
-            <!-- Logo Section - Logo selalu terlihat -->
             <div class="h-20 flex items-center px-4 border-b border-slate-100">
                 <div
                     class="flex items-center w-full"
                     :class="sidebarOpen ? 'justify-start gap-3' : 'justify-center'"
                 >
-                    <!-- Logo SMKN 1 CERME - SELALU TERLIHAT -->
                     <img
                         src="{{ asset('image/smkn1cerme.png') }}"
                         alt="Logo SMKN 1 CERME"
                         class="h-8 w-auto"
                     >
-                    <!-- Teks - Hanya muncul saat sidebar terbuka -->
                     <div x-show="sidebarOpen" x-transition class="flex-1">
                         <h1 class="text-base font-bold bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent leading-tight">
                             Lantera
@@ -123,7 +117,6 @@
                 </div>
             </div>
 
-            <!-- Navigation Menu -->
             <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
                 <div x-show="sidebarOpen" class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
                     MENU UTAMA
@@ -144,7 +137,6 @@
                 </a>
 
                 @guest
-                <!-- Buku Tamu untuk Guest -->
                 <a
                     href="{{ route('guest-book.create') }}"
                     class="nav-link menu-item
@@ -160,19 +152,19 @@
                 @endguest
 
                 @auth
-                <!-- Peminjaman Dropdown untuk User Login -->
-                <div x-data="{ open: {{ request()->routeIs(['peminjam.loan.*', 'cart.*', 'loans.*']) ? 'true' : 'false' }} }">
+                <!-- Peminjaman Dropdown -->
+                <div x-data="{ open: {{ request()->routeIs(['peminjam.loan.*', 'cart.*', 'loans.*', 'siswa.denda.index']) ? 'true' : 'false' }} }">
                     <button
                         @click="open = !open"
                         class="nav-link w-full justify-between menu-item
-                        {{ request()->routeIs(['peminjam.loan.*', 'cart.*', 'loans.*'])
+                        {{ request()->routeIs(['peminjam.loan.*', 'cart.*', 'loans.*', 'siswa.denda.index'])
                             ? 'menu-active'
                             : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
                         }}"
                         :class="!sidebarOpen && 'justify-center'"
                     >
                         <div class="flex items-center gap-3">
-                            <i class="fas fa-book-open-reader {{ request()->routeIs(['peminjam.loan.*', 'cart.*', 'loans.*']) ? 'text-emerald-500' : 'text-slate-400' }}"></i>
+                            <i class="fas fa-book-open-reader {{ request()->routeIs(['peminjam.loan.*', 'cart.*', 'loans.*', 'siswa.denda.index']) ? 'text-emerald-500' : 'text-slate-400' }}"></i>
                             <span x-show="sidebarOpen">Peminjaman</span>
                         </div>
                         <i x-show="sidebarOpen" :class="open ? 'rotate-180' : ''" class="fas fa-chevron-down text-xs transition-transform duration-200 text-slate-400"></i>
@@ -204,15 +196,71 @@
                             <i class="fas fa-history w-4"></i>
                             <span>Riwayat Peminjaman</span>
                         </a>
+                        <a
+                            href="{{ route('siswa.denda.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+                            {{ request()->routeIs('siswa.denda.index')
+                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
+                                : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                            }}"
+                        >
+                            <i class="fas fa-money-bill-wave w-4"></i>
+                            <span>Denda Saya</span>
+                            @if(isset($dendaCount) && $dendaCount > 0)
+                            <span class="ml-auto text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full">{{ $dendaCount }}</span>
+                            @endif
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Peminjaman Kelas Dropdown (TERPISAH) -->
+                <div x-data="{ open: {{ request()->routeIs(['siswa.pinjamkelas.*']) ? 'true' : 'false' }} }">
+                    <button
+                        @click="open = !open"
+                        class="nav-link w-full justify-between menu-item
+                        {{ request()->routeIs(['siswa.pinjamkelas.*'])
+                            ? 'menu-active'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+                        }}"
+                        :class="!sidebarOpen && 'justify-center'"
+                    >
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-chalkboard-user {{ request()->routeIs(['siswa.pinjamkelas.*']) ? 'text-emerald-500' : 'text-slate-400' }}"></i>
+                            <span x-show="sidebarOpen">Peminjaman Kelas</span>
+                        </div>
+                        <i x-show="sidebarOpen" :class="open ? 'rotate-180' : ''" class="fas fa-chevron-down text-xs transition-transform duration-200 text-slate-400"></i>
+                    </button>
+                    
+                    <div x-show="open && sidebarOpen" x-collapse class="ml-7 mt-1 space-y-1">
+                        <a
+                            href="{{ route('siswa.pinjamkelas.input') }}"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+                            {{ request()->routeIs('siswa.pinjamkelas.input')
+                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
+                                : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                            }}"
+                        >
+                            <i class="fas fa-pen-alt w-4"></i>
+                            <span>Input Buku</span>
+                        </a>
+                        <a
+                            href="{{ route('siswa.pinjamkelas.index') }}"
+                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+                            {{ request()->routeIs('siswa.pinjamkelas.index')
+                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
+                                : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                            }}"
+                        >
+                            <i class="fas fa-book w-4"></i>
+                            <span>Buku Pinjaman</span>
+                        </a>
                     </div>
                 </div>
                 @endauth
 
             </nav>
 
-            <!-- Bottom Menu -->
             <div class="mt-auto border-t border-slate-100 p-3">
-                <!-- Panduan -->
                 <a
                     href="{{ route('peminjam.guides.index') }}"
                     class="nav-link menu-item
@@ -227,7 +275,6 @@
                 </a>
 
                 @auth
-                <!-- Logout Button -->
                 <form action="{{ route('logout') }}" method="POST" class="mt-2">
                     @csrf
                     <button type="submit" class="nav-link w-full text-red-600 hover:bg-red-50 menu-item" :class="!sidebarOpen && 'justify-center'">
@@ -239,10 +286,8 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
 
-            <!-- Top Navbar -->
             <header class="glass-nav border-b border-slate-200 h-16 flex items-center px-4 sm:px-6 shadow-sm sticky top-0 z-20">
                 <div class="flex items-center justify-between w-full">
                     <div class="flex items-center gap-3 sm:gap-4">
@@ -271,7 +316,6 @@
                                 @click="userOpen = !userOpen"
                                 class="flex items-center gap-2 focus:outline-none hover:bg-slate-100 p-1.5 rounded-xl transition-all duration-200"
                             >
-                                <!-- Avatar + Nama User -->
                                 <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
                                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                                 </div>
@@ -327,7 +371,6 @@
                 </div>
             </header>
 
-            <!-- Main Content -->
             <main class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gradient-to-br from-slate-50 via-white to-slate-100/20">
                 <div class="max-w-7xl mx-auto">
                     @yield('content')

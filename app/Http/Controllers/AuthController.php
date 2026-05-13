@@ -20,13 +20,22 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'nomor_identitas' => 'required|integer',
+            'nomor_identitas' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $user = User::where('nomor_identitas', $request->nomor_identitas)->first();
-        if ($user && Hash::check($request->password, $user->password)) {
-            Auth::login($user, $request->filled('remember'));
+        // Coba login dengan role siswa
+        if (Auth::attempt(['nomor_identitas' => $request->nomor_identitas, 'password' => $request->password, 'role' => 'siswa'])) {
+            return $this->redirectToDashboard();
+        }
+        
+        // Coba login dengan role petugas
+        if (Auth::attempt(['nomor_identitas' => $request->nomor_identitas, 'password' => $request->password, 'role' => 'petugas'])) {
+            return $this->redirectToDashboard();
+        }
+        
+        // Coba login dengan role admin
+        if (Auth::attempt(['nomor_identitas' => $request->nomor_identitas, 'password' => $request->password, 'role' => 'admin'])) {
             return $this->redirectToDashboard();
         }
 
@@ -45,17 +54,41 @@ class AuthController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'nomor_identitas' => 'required|string|unique:users,nomor_identitas',
+            'kelas' => 'required|string', // Ubah dari in:10,11,12 jadi string
+            'jurusan' => 'required|string',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
+        // Konversi kelas jika masih dalam format angka (10,11,12)
+        $kelas = $request->kelas;
+        $jurusan = $request->jurusan;
+        
+        // Map untuk konversi angka ke Romawi
+        $mapRomawi = [
+            '10' => 'X',
+            '11' => 'XI',
+            '12' => 'XII',
+        ];
+        
+        // Jika kelas masih angka, konversi ke format lengkap
+        if (isset($mapRomawi[$kelas])) {
+            // Ambil angka dari jurusan (misal: TKJ 1 -> TKJ)
+            $jurusanClean = preg_replace('/\s\d+$/', '', $jurusan);
+            $kelas = $mapRomawi[$kelas] . ' ' . $jurusanClean . ' 1';
+        }
+        
         $user = User::create([
             'name' => $request->name,
             'nomor_identitas' => $request->nomor_identitas,
+            'kelas' => $kelas,
+            'jurusan' => $request->jurusan,
             'password' => Hash::make($request->password),
-            'role' => 'peminjam',
+            'role' => 'siswa',
         ]);
 
-        return redirect()->route('login');
+        // Auto login setelah register
+        Auth::login($user);
+        return redirect()->route('peminjam.list-buku');
     }
 
     public function logout()
@@ -67,17 +100,19 @@ class AuthController extends Controller
     private function redirectToDashboard()
     {
         $role = Auth::user()->role;
+        
+        if ($role === 'siswa') {
+            return redirect()->route('peminjam.list-buku');
+        }
+        
         switch ($role) {
             case 'admin':
                 return redirect()->route('admin.dashboard');
             case 'petugas':
                 return redirect()->route('petugas.dashboard');
-            case 'peminjam':
-                return redirect()->route('peminjam.list-buku');
             default:
                 Auth::logout();
                 return redirect()->route('login');
         }
     }
-
 }

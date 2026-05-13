@@ -21,14 +21,14 @@
         </div>
     </div>
 
-    <!-- Total Anggota -->
+    <!-- Total Anggota (Siswa) -->
     <div class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all">
         <div class="flex items-start gap-3">
             <i class="fas fa-users text-emerald-600 text-2xl mt-1"></i>
             <div class="flex-1">
-                <p class="text-sm text-slate-500">Total Anggota</p>
+                <p class="text-sm text-slate-500">Total Siswa</p>
                 <p class="text-2xl font-bold text-slate-800">{{ $totalAnggota }}</p>
-                <a href="{{ route('users.index') }}" class="text-xs text-emerald-600 hover:text-emerald-700 transition inline-flex items-center gap-1 mt-1">
+                <a href="{{ route('users.index') }}?role=siswa" class="text-xs text-emerald-600 hover:text-emerald-700 transition inline-flex items-center gap-1 mt-1">
                     Lihat <i class="fas fa-arrow-right text-[10px]"></i>
                 </a>
             </div>
@@ -116,7 +116,7 @@
             @empty
             <div class="text-center py-10 text-slate-400">
                 <i class="fas fa-book-open text-3xl mb-2 block"></i>
-                <p class="text-sm">Belum ada data</p>
+                <p class="text-sm">Belum ada data peminjaman</p>
             </div>
             @endforelse
         </div>
@@ -135,7 +135,7 @@
             <thead>
                 <tr class="bg-slate-50 text-xs text-slate-500 border-b border-slate-100">
                     <th class="px-5 py-3 text-left w-12">No</th>
-                    <th class="px-5 py-3 text-left">Anggota</th>
+                    <th class="px-5 py-3 text-left">Nama Siswa</th>
                     <th class="px-5 py-3 text-left">Judul Buku</th>
                     <th class="px-5 py-3 text-center w-24">Kondisi</th>
                     <th class="px-5 py-3 text-center w-28">Denda</th>
@@ -149,9 +149,13 @@
                     <td class="px-5 py-3">
                         <p class="text-sm font-medium text-slate-800">{{ $return->loan->user->name }}</p>
                         <p class="text-xs text-slate-400">{{ $return->loan->user->nomor_identitas }}</p>
+                        @if($return->loan->user->kelas)
+                            <p class="text-xs text-emerald-600 mt-0.5">Kelas {{ $return->loan->user->kelas }} - {{ $return->loan->user->jurusan ?? '' }}</p>
+                        @endif
                     </td>
                     <td class="px-5 py-3">
                         <p class="text-sm text-slate-600 max-w-xs truncate">{{ $return->loan->bookItem->book->judul }}</p>
+                        <p class="text-xs text-slate-400">{{ $return->loan->bookItem->kode_buku ?? '' }}</p>
                     </td>
                     <td class="px-5 py-3 text-center">
                         @if($return->kondisi == 'baik')

@@ -38,7 +38,6 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        /* Ikon dan teks sejajar */
         .nav-link {
             display: flex;
             align-items: center;
@@ -61,13 +60,11 @@
 
     <div class="flex h-screen overflow-hidden">
 
-        <!-- Sidebar -->
         <aside
             :class="sidebarOpen ? 'w-64' : 'w-20'"
             class="bg-white border-r border-slate-200 shadow-sm flex flex-col transition-all duration-300 z-20"
         >
 
-            <!-- Logo Section -->
             <div class="h-20 flex items-center px-4 border-b border-slate-100">
                 <div
                     class="flex items-center w-full"
@@ -89,7 +86,6 @@
                 </div>
             </div>
 
-            <!-- Navigation Menu -->
             <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
                 <div x-show="sidebarOpen" class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
                     MENU UTAMA
@@ -155,18 +151,18 @@
                 </div>
 
                 <!-- Peminjaman Dropdown -->
-                <div x-data="{ open: {{ request()->routeIs(['admin.peminjaman.*']) ? 'true' : 'false' }} }">
+                <div x-data="{ open: {{ request()->routeIs(['admin.peminjaman.index', 'admin.peminjaman.riwayat']) ? 'true' : 'false' }} }">
                     <button
                         @click="open = !open"
                         class="nav-link w-full justify-between menu-transition
-                        {{ request()->routeIs(['admin.peminjaman.*'])
+                        {{ request()->routeIs(['admin.peminjaman.index', 'admin.peminjaman.riwayat'])
                             ? 'bg-emerald-50 text-emerald-700'
                             : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
                         }}"
                         :class="!sidebarOpen && 'justify-center'"
                     >
                         <div class="flex items-center gap-3">
-                            <i class="fas fa-book-open {{ request()->routeIs(['admin.peminjaman.*']) ? 'text-emerald-600' : 'text-slate-400' }}"></i>
+                            <i class="fas fa-book-open {{ request()->routeIs(['admin.peminjaman.index', 'admin.peminjaman.riwayat']) ? 'text-emerald-600' : 'text-slate-400' }}"></i>
                             <span x-show="sidebarOpen">Peminjaman</span>
                         </div>
                         <i x-show="sidebarOpen" :class="open ? 'rotate-180' : ''" class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
@@ -186,7 +182,44 @@
                                 : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
                             }}">
                             <i class="fas fa-history w-4 text-center"></i>
-                            <span>Riwayat</span>
+                            <span>Riwayat Peminjaman</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Peminjaman Kelas Dropdown -->
+                <div x-data="{ open: {{ request()->routeIs(['admin.pinjamkelas.*', 'admin.pinjamkelas.kategori', 'admin.pinjamkelas.buku', 'admin.pinjamkelas.kelas']) ? 'true' : 'false' }} }">
+                    <button
+                        @click="open = !open"
+                        class="nav-link w-full justify-between menu-transition
+                        {{ request()->routeIs(['admin.pinjamkelas.*', 'admin.pinjamkelas.kategori', 'admin.pinjamkelas.buku', 'admin.pinjamkelas.kelas'])
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+                        }}"
+                        :class="!sidebarOpen && 'justify-center'"
+                    >
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-users {{ request()->routeIs(['admin.pinjamkelas.*', 'admin.pinjamkelas.kategori', 'admin.pinjamkelas.buku', 'admin.pinjamkelas.kelas']) ? 'text-emerald-600' : 'text-slate-400' }}"></i>
+                            <span x-show="sidebarOpen">Peminjaman Kelas</span>
+                        </div>
+                        <i x-show="sidebarOpen" :class="open ? 'rotate-180' : ''" class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+                    </button>
+                    <div x-show="open && sidebarOpen" x-collapse class="ml-8 mt-1 space-y-1">
+                        <a href="{{ route('admin.pinjamkelas.kategori') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+                            {{ request()->routeIs('admin.pinjamkelas.kategori')
+                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
+                                : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                            }}">
+                            <i class="fas fa-tag w-4 text-center"></i>
+                            <span>Kategori Buku</span>
+                        </a>
+                        <a href="{{ route('admin.pinjamkelas.kelas') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+                            {{ request()->routeIs('admin.pinjamkelas.kelas')
+                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
+                                : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                            }}">
+                            <i class="fas fa-school w-4 text-center"></i>
+                            <span>Kelas Pinjam</span>
                         </a>
                     </div>
                 </div>
@@ -219,7 +252,6 @@
                     <span x-show="sidebarOpen">Buku Tamu</span>
                 </a>
 
-                <!-- Divider -->
                 <div x-show="sidebarOpen" class="my-3 border-t border-slate-100"></div>
 
                 <!-- Pengaturan -->
@@ -234,7 +266,6 @@
 
             </nav>
 
-            <!-- User Profile Summary -->
             <div class="p-3 border-t border-slate-100">
                 <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer" :class="!sidebarOpen && 'justify-center'">
                     <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-semibold text-sm">
@@ -252,10 +283,8 @@
             </div>
         </aside>
 
-        <!-- Main Content Area -->
         <div class="flex-1 flex flex-col overflow-hidden">
 
-            <!-- Top Navbar -->
             <header class="bg-white border-b border-slate-200 h-16 flex items-center px-6 sticky top-0 z-10 shadow-sm">
                 <div class="flex items-center justify-between w-full">
                     <div class="flex items-center gap-4">
@@ -305,7 +334,6 @@
                 </div>
             </header>
 
-            <!-- Main Content -->
             <main class="flex-1 overflow-y-auto bg-slate-50 p-6">
                 <div class="max-w-7xl mx-auto">
                     @yield('content')
