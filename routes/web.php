@@ -16,6 +16,7 @@ use App\Http\Controllers\GuideController;
 use App\Http\Controllers\KategoriPinjamController;
 use App\Http\Controllers\PinjamKelasSiswaController;
 use App\Http\Controllers\PetugasPinjamKelasController;
+use App\Http\Controllers\Admin\KelasController;
 
 // ============================================
 // PUBLIC ROUTES
@@ -34,6 +35,7 @@ Route::get('/panduan/{slug}', [GuideController::class, 'peminjamDetail'])->name(
 // ============================================
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
+
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 
@@ -47,11 +49,25 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
+    // ============================================
+    // USER - ADMIN
+    // ============================================
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
+    // ============================================
+    // KELAS - ADMIN
+    // Digabung di halaman Kelola User
+    // ============================================
+    Route::post('/kelas', [KelasController::class, 'store'])->name('kelas.store');
+    Route::put('/kelas/{kelas}', [KelasController::class, 'update'])->name('kelas.update');
+    Route::delete('/kelas/{kelas}', [KelasController::class, 'destroy'])->name('kelas.destroy');
+
+    // ============================================
+    // CATEGORY - ADMIN
+    // ============================================
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::get('/categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
@@ -59,6 +75,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 
+    // ============================================
+    // BOOKS - ADMIN
+    // ============================================
     Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
     Route::get('/books', [BookController::class, 'index'])->name('books.index');
     Route::post('/books', [BookController::class, 'store'])->name('books.store');

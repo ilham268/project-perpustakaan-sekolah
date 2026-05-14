@@ -6,25 +6,36 @@ use Illuminate\Http\Request;
 use App\Models\KategoriPinjam;
 use App\Models\User;
 use App\Models\Book;
-use App\Models\BookItem;
 use App\Models\PinjamKelas;
+use App\Models\Kelas;
 
 class KategoriPinjamController extends Controller
 {
     public function index()
     {
         $kategoris = KategoriPinjam::latest()->paginate(10);
-        return view('admin.pinjamkelas.kategori', compact('kategoris'));
+
+        $kelasList = Kelas::orderBy('nama_kelas')->get();
+
+        return view('admin.pinjamkelas.kategori', compact('kategoris', 'kelasList'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'nama_kategori' => 'required|string|max:100|unique:kategori_pinjams',
-            'kelas' => 'required|string|max:50',
+            'nama_kategori' => 'required|string|max:100|unique:kategori_pinjams,nama_kategori',
+            'kelas' => 'required|string|exists:kelas,nama_kelas',
+        ], [
+            'nama_kategori.required' => 'Nama kategori wajib diisi.',
+            'nama_kategori.unique' => 'Nama kategori sudah ada.',
+            'kelas.required' => 'Kelas wajib dipilih.',
+            'kelas.exists' => 'Kelas tidak ditemukan.',
         ]);
 
-        KategoriPinjam::create($request->all());
+        KategoriPinjam::create([
+            'nama_kategori' => $request->nama_kategori,
+            'kelas' => $request->kelas,
+        ]);
 
         return redirect()->route('admin.pinjamkelas.kategori')
             ->with('success', 'Kategori berhasil ditambahkan');
@@ -34,11 +45,20 @@ class KategoriPinjamController extends Controller
     {
         $request->validate([
             'nama_kategori' => 'required|string|max:100|unique:kategori_pinjams,nama_kategori,' . $id,
-            'kelas' => 'required|string|max:50',
+            'kelas' => 'required|string|exists:kelas,nama_kelas',
+        ], [
+            'nama_kategori.required' => 'Nama kategori wajib diisi.',
+            'nama_kategori.unique' => 'Nama kategori sudah ada.',
+            'kelas.required' => 'Kelas wajib dipilih.',
+            'kelas.exists' => 'Kelas tidak ditemukan.',
         ]);
 
         $kategori = KategoriPinjam::findOrFail($id);
-        $kategori->update($request->all());
+
+        $kategori->update([
+            'nama_kategori' => $request->nama_kategori,
+            'kelas' => $request->kelas,
+        ]);
 
         return redirect()->route('admin.pinjamkelas.kategori')
             ->with('success', 'Kategori berhasil diupdate');
@@ -72,7 +92,7 @@ class KategoriPinjamController extends Controller
             'kode_buku' => 'required|string',
         ]);
 
-        $kategori = KategoriPinjam::find($request->kategori_id);
+        $kategori = KategoriPinjam::findOrFail($request->kategori_id);
 
         $book = Book::where('judul', 'LIKE', '%' . $kategori->nama_kategori . '%')
             ->first();
@@ -121,13 +141,8 @@ class KategoriPinjamController extends Controller
 
         $pinjamKelas = $query->paginate(10)->withQueryString();
 
-        $kelasList = User::where('role', 'siswa')
-            ->whereNotNull('kelas')
-            ->where('kelas', '!=', '')
-            ->select('kelas')
-            ->distinct()
-            ->orderBy('kelas')
-            ->pluck('kelas');
+        $kelasList = Kelas::orderBy('nama_kelas')
+            ->pluck('nama_kelas');
 
         return view('admin.pinjamkelas.kelas', compact('pinjamKelas', 'kelasList'));
     }

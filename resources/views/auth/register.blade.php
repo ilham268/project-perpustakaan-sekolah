@@ -46,6 +46,7 @@
                                 Nama Lengkap
                                 <span class="text-red-500">*</span>
                             </label>
+
                             <input
                                 id="name"
                                 name="name"
@@ -55,17 +56,19 @@
                                 value="{{ old('name') }}"
                                 required
                             >
+
                             @error('name')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Nomor Identitas (NISN) -->
+                        <!-- Nomor Identitas -->
                         <div>
                             <label for="nomor_identitas" class="block text-sm font-medium text-slate-700 mb-2">
                                 Nomor Identitas (NISN)
                                 <span class="text-red-500">*</span>
                             </label>
+
                             <input
                                 id="nomor_identitas"
                                 name="nomor_identitas"
@@ -75,56 +78,44 @@
                                 value="{{ old('nomor_identitas') }}"
                                 required
                             >
+
                             @error('nomor_identitas')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <!-- Kelas (Dropdown Format Lengkap) -->
+                        <!-- Kelas dari Database -->
                         <div>
-                            <label for="kelas" class="block text-sm font-medium text-slate-700 mb-2">
+                            <label for="kelas_id" class="block text-sm font-medium text-slate-700 mb-2">
                                 Kelas
                                 <span class="text-red-500">*</span>
                             </label>
+
                             <select
-                                id="kelas"
-                                name="kelas"
+                                id="kelas_id"
+                                name="kelas_id"
                                 class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition bg-white"
                                 required
                             >
                                 <option value="">Pilih Kelas</option>
-                                <option value="X RPL 1" {{ old('kelas') == 'X RPL 1' ? 'selected' : '' }}>X RPL 1</option>
-                                <option value="X RPL 2" {{ old('kelas') == 'X RPL 2' ? 'selected' : '' }}>X RPL 2</option>
-                                <option value="XI RPL 1" {{ old('kelas') == 'XI RPL 1' ? 'selected' : '' }}>XI RPL 1</option>
-                                <option value="XI RPL 2" {{ old('kelas') == 'XI RPL 2' ? 'selected' : '' }}>XI RPL 2</option>
-                                <option value="XII RPL 1" {{ old('kelas') == 'XII RPL 1' ? 'selected' : '' }}>XII RPL 1</option>
-                                <option value="XII RPL 2" {{ old('kelas') == 'XII RPL 2' ? 'selected' : '' }}>XII RPL 2</option>
-                                <option value="X TKJ 1" {{ old('kelas') == 'X TKJ 1' ? 'selected' : '' }}>X TKJ 1</option>
-                                <option value="X TKJ 2" {{ old('kelas') == 'X TKJ 2' ? 'selected' : '' }}>X TKJ 2</option>
-                                <option value="XI TKJ 1" {{ old('kelas') == 'XI TKJ 1' ? 'selected' : '' }}>XI TKJ 1</option>
-                                <option value="XI TKJ 2" {{ old('kelas') == 'XI TKJ 2' ? 'selected' : '' }}>XI TKJ 2</option>
-                                <option value="XII TKJ 1" {{ old('kelas') == 'XII TKJ 1' ? 'selected' : '' }}>XII TKJ 1</option>
-                                <option value="XII TKJ 2" {{ old('kelas') == 'XII TKJ 2' ? 'selected' : '' }}>XII TKJ 2</option>
-                                <option value="X TITL 1" {{ old('kelas') == 'X TITL 1' ? 'selected' : '' }}>X TITL 1</option>
-                                <option value="X TITL 2" {{ old('kelas') == 'X TITL 2' ? 'selected' : '' }}>X TITL 2</option>
-                                <option value="XI TITL 1" {{ old('kelas') == 'XI TITL 1' ? 'selected' : '' }}>XI TITL 1</option>
-                                <option value="XI TITL 2" {{ old('kelas') == 'XI TITL 2' ? 'selected' : '' }}>XI TITL 2</option>
-                                <option value="XII TITL 1" {{ old('kelas') == 'XII TITL 1' ? 'selected' : '' }}>XII TITL 1</option>
-                                <option value="XII TITL 2" {{ old('kelas') == 'XII TITL 2' ? 'selected' : '' }}>XII TITL 2</option>
-                                <option value="X TKI 1" {{ old('kelas') == 'X TKI 1' ? 'selected' : '' }}>X TKI 1</option>
-                                <option value="X TKI 2" {{ old('kelas') == 'X TKI 2' ? 'selected' : '' }}>X TKI 2</option>
-                                <option value="XI TKI 1" {{ old('kelas') == 'XI TKI 1' ? 'selected' : '' }}>XI TKI 1</option>
-                                <option value="XI TKI 2" {{ old('kelas') == 'XI TKI 2' ? 'selected' : '' }}>XI TKI 2</option>
-                                <option value="XII TKI 1" {{ old('kelas') == 'XII TKI 1' ? 'selected' : '' }}>XII TKI 1</option>
-                                <option value="XII TKI 2" {{ old('kelas') == 'XII TKI 2' ? 'selected' : '' }}>XII TKI 2</option>
+
+                                @foreach(($kelasList ?? collect()) as $kelas)
+                                    <option value="{{ $kelas->id }}" {{ old('kelas_id') == $kelas->id ? 'selected' : '' }}>
+                                        {{ $kelas->nama_kelas }} - {{ $kelas->jurusan }}
+                                    </option>
+                                @endforeach
                             </select>
-                            @error('kelas')
+
+                            @error('kelas_id')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
-                        </div>
 
-                        <!-- Jurusan (Hidden karena sudah termasuk di kelas) -->
-                        <input type="hidden" name="jurusan" value="Otomatis">
+                            @if(($kelasList ?? collect())->isEmpty())
+                                <p class="mt-1 text-sm text-red-600">
+                                    Data kelas belum ada. Silakan tambah kelas dulu di admin.
+                                </p>
+                            @endif
+                        </div>
 
                         <!-- Password -->
                         <div>
@@ -132,6 +123,7 @@
                                 Kata Sandi
                                 <span class="text-red-500">*</span>
                             </label>
+
                             <div class="relative">
                                 <input
                                     id="password"
@@ -141,6 +133,7 @@
                                     placeholder="Minimal 8 karakter"
                                     required
                                 >
+
                                 <button
                                     type="button"
                                     onclick="togglePassword('password')"
@@ -149,6 +142,7 @@
                                     <i id="eyeIconPassword" class="fas fa-eye text-slate-400 hover:text-emerald-500 transition"></i>
                                 </button>
                             </div>
+
                             @error('password')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -160,6 +154,7 @@
                                 Konfirmasi Kata Sandi
                                 <span class="text-red-500">*</span>
                             </label>
+
                             <div class="relative">
                                 <input
                                     id="password_confirmation"
@@ -169,6 +164,7 @@
                                     placeholder="Ketik ulang kata sandi"
                                     required
                                 >
+
                                 <button
                                     type="button"
                                     onclick="togglePassword('password_confirmation')"
@@ -235,9 +231,11 @@
                             class="h-52 w-auto drop-shadow-2xl hover:scale-105 transition duration-300"
                         >
                     </div>
+
                     <p class="mt-6 text-center text-lg font-semibold text-white">
                         SMKN 1 CERME
                     </p>
+
                     <p class="mt-2 text-center text-sm font-medium text-emerald-50">
                         Platform Sistem Informasi Perpustakaan
                     </p>
