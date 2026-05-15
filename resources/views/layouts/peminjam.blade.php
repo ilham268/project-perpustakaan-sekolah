@@ -15,376 +15,437 @@
         [x-cloak] {
             display: none !important;
         }
-        
+
         ::-webkit-scrollbar {
             width: 5px;
             height: 5px;
         }
-        
+
         ::-webkit-scrollbar-track {
             background: #f1f5f9;
-            border-radius: 10px;
         }
-        
+
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 10px;
         }
-        
+
         ::-webkit-scrollbar-thumb:hover {
             background: #10b981;
         }
-        
-        .menu-item {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .menu-active {
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-            color: #059669;
-            position: relative;
-        }
-        
-        .menu-active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 3px;
-            height: 60%;
-            background: linear-gradient(135deg, #10b981, #059669);
-            border-radius: 0 4px 4px 0;
-        }
-        
-        .glass-nav {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(8px);
-        }
-        
+
         .nav-link {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 10px 12px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 500;
+            transition: all 0.2s ease;
         }
-        
+
         .nav-link i {
             width: 20px;
             text-align: center;
             font-size: 18px;
         }
+
+        .sub-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .sub-link i {
+            width: 16px;
+            text-align: center;
+            font-size: 14px;
+        }
     </style>
 </head>
 
-<body class="bg-gradient-to-br from-slate-50 via-white to-slate-100/30" x-data="{ sidebarOpen: window.innerWidth >= 1024, userOpen: false }" x-cloak>
-
+<body
+    class="bg-slate-50 text-slate-800"
+    x-data="{ sidebarOpen: false, userOpen: false }"
+    x-cloak
+>
     <div class="flex h-screen overflow-hidden">
 
+        {{-- Mobile Overlay --}}
         <div
             x-show="sidebarOpen"
             x-transition.opacity
-            class="fixed inset-0 z-30 bg-black/50 lg:hidden"
+            class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"
             @click="sidebarOpen = false"
         ></div>
 
+        {{-- Sidebar --}}
         <aside
-            :class="sidebarOpen ? 'translate-x-0 lg:w-72' : '-translate-x-full lg:translate-x-0 lg:w-20'"
-            class="fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-slate-100 shadow-xl lg:shadow-sm flex flex-col transition-all duration-300 ease-in-out lg:static"
+            class="fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ease-in-out"
+            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
         >
+            {{-- Logo --}}
+            <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-emerald-50 rounded-xl">
+                        <img
+                            src="{{ asset('image/smkn1cerme.png') }}"
+                            alt="Logo SMKN 1 CERME"
+                            class="w-7 h-7 object-contain"
+                        >
+                    </div>
 
-            <div class="h-20 flex items-center px-4 border-b border-slate-100">
-                <div
-                    class="flex items-center w-full"
-                    :class="sidebarOpen ? 'justify-start gap-3' : 'justify-center'"
-                >
-                    <img
-                        src="{{ asset('image/smkn1cerme.png') }}"
-                        alt="Logo SMKN 1 CERME"
-                        class="h-8 w-auto"
-                    >
-                    <div x-show="sidebarOpen" x-transition class="flex-1">
-                        <h1 class="text-base font-bold bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent leading-tight">
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-800 tracking-tight">
                             Lantera
                         </h1>
-                        <p class="text-[10px] font-semibold text-emerald-500 uppercase tracking-wider">
+                        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">
                             Digital Library
                         </p>
                     </div>
                 </div>
+
+                <button
+                    type="button"
+                    @click="sidebarOpen = false"
+                    class="lg:hidden text-slate-400 hover:text-slate-600 transition"
+                >
+                    <i class="fas fa-xmark text-xl"></i>
+                </button>
             </div>
 
-            <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-                <div x-show="sidebarOpen" class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
-                    MENU UTAMA
+            {{-- Navigation --}}
+            <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-3">
+                    Menu Utama
                 </div>
 
-                <!-- Daftar Buku -->
+                {{-- Daftar Buku --}}
                 <a
                     href="{{ route('peminjam.list-buku') }}"
-                    class="nav-link menu-item
+                    class="nav-link
                     {{ request()->routeIs('peminjam.list-buku')
-                        ? 'menu-active font-semibold'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }}"
-                    :class="!sidebarOpen && 'justify-center'"
                 >
-                    <i class="fas fa-book-open {{ request()->routeIs('peminjam.list-buku') ? 'text-emerald-500' : 'text-slate-400' }}"></i>
-                    <span x-show="sidebarOpen">Daftar Buku</span>
+                    <i class="fas fa-book-open {{ request()->routeIs('peminjam.list-buku') ? 'text-emerald-600' : 'text-slate-400' }}"></i>
+                    <span>Daftar Buku</span>
                 </a>
 
                 @guest
-                <a
-                    href="{{ route('guest-book.create') }}"
-                    class="nav-link menu-item
-                    {{ request()->routeIs('guest-book.*')
-                        ? 'menu-active font-semibold'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
-                    }}"
-                    :class="!sidebarOpen && 'justify-center'"
-                >
-                    <i class="fas fa-address-book {{ request()->routeIs('guest-book.*') ? 'text-emerald-500' : 'text-slate-400' }}"></i>
-                    <span x-show="sidebarOpen">Buku Tamu</span>
-                </a>
+                    {{-- Buku Tamu --}}
+                    <a
+                        href="{{ route('guest-book.create') }}"
+                        class="nav-link
+                        {{ request()->routeIs('guest-book.*')
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        }}"
+                    >
+                        <i class="fas fa-address-book {{ request()->routeIs('guest-book.*') ? 'text-emerald-600' : 'text-slate-400' }}"></i>
+                        <span>Buku Tamu</span>
+                    </a>
                 @endguest
 
                 @auth
-                <!-- Peminjaman Dropdown -->
-                <div x-data="{ open: {{ request()->routeIs(['peminjam.loan.*', 'cart.*', 'loans.*', 'siswa.denda.index']) ? 'true' : 'false' }} }">
-                    <button
-                        @click="open = !open"
-                        class="nav-link w-full justify-between menu-item
-                        {{ request()->routeIs(['peminjam.loan.*', 'cart.*', 'loans.*', 'siswa.denda.index'])
-                            ? 'menu-active'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
-                        }}"
-                        :class="!sidebarOpen && 'justify-center'"
-                    >
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-book-open-reader {{ request()->routeIs(['peminjam.loan.*', 'cart.*', 'loans.*', 'siswa.denda.index']) ? 'text-emerald-500' : 'text-slate-400' }}"></i>
-                            <span x-show="sidebarOpen">Peminjaman</span>
-                        </div>
-                        <i x-show="sidebarOpen" :class="open ? 'rotate-180' : ''" class="fas fa-chevron-down text-xs transition-transform duration-200 text-slate-400"></i>
-                    </button>
-                    
-                    <div x-show="open && sidebarOpen" x-collapse class="ml-7 mt-1 space-y-1">
-                        <a
-                            href="{{ route('cart.index') }}"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
-                            {{ request()->routeIs('cart.*')
-                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
-                                : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                    {{-- Peminjaman --}}
+                    <div x-data="{ open: {{ request()->routeIs(['peminjam.loan.*', 'cart.*', 'loans.*', 'siswa.denda.index']) ? 'true' : 'false' }} }">
+                        <button
+                            type="button"
+                            @click="open = !open"
+                            class="nav-link w-full justify-between
+                            {{ request()->routeIs(['peminjam.loan.*', 'cart.*', 'loans.*', 'siswa.denda.index'])
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                             }}"
                         >
-                            <i class="fas fa-shopping-cart w-4"></i>
-                            <span>Keranjang Peminjaman</span>
-                            @if(isset($cartCount) && $cartCount > 0)
-                            <span class="ml-auto text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">{{ $cartCount }}</span>
-                            @endif
-                        </a>
-                        <a
-                            href="{{ route('peminjam.loan.index') }}"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
-                            {{ request()->routeIs(['peminjam.loan.index', 'loans.*'])
-                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
-                                : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
-                            }}"
-                        >
-                            <i class="fas fa-history w-4"></i>
-                            <span>Riwayat Peminjaman</span>
-                        </a>
-                        <a
-                            href="{{ route('siswa.denda.index') }}"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
-                            {{ request()->routeIs('siswa.denda.index')
-                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
-                                : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
-                            }}"
-                        >
-                            <i class="fas fa-money-bill-wave w-4"></i>
-                            <span>Denda Saya</span>
-                            @if(isset($dendaCount) && $dendaCount > 0)
-                            <span class="ml-auto text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full">{{ $dendaCount }}</span>
-                            @endif
-                        </a>
-                    </div>
-                </div>
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-book-open-reader {{ request()->routeIs(['peminjam.loan.*', 'cart.*', 'loans.*', 'siswa.denda.index']) ? 'text-emerald-600' : 'text-slate-400' }}"></i>
+                                <span>Peminjaman</span>
+                            </div>
 
-                <!-- Peminjaman Kelas Dropdown (TERPISAH) -->
-                <div x-data="{ open: {{ request()->routeIs(['siswa.pinjamkelas.*']) ? 'true' : 'false' }} }">
-                    <button
-                        @click="open = !open"
-                        class="nav-link w-full justify-between menu-item
-                        {{ request()->routeIs(['siswa.pinjamkelas.*'])
-                            ? 'menu-active'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
-                        }}"
-                        :class="!sidebarOpen && 'justify-center'"
-                    >
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-chalkboard-user {{ request()->routeIs(['siswa.pinjamkelas.*']) ? 'text-emerald-500' : 'text-slate-400' }}"></i>
-                            <span x-show="sidebarOpen">Peminjaman Kelas</span>
+                            <i
+                                class="fas fa-chevron-down text-xs transition-transform duration-200"
+                                :class="open ? 'rotate-180' : ''"
+                            ></i>
+                        </button>
+
+                        <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                            <a
+                                href="{{ route('cart.index') }}"
+                                class="sub-link
+                                {{ request()->routeIs('cart.*')
+                                    ? 'text-emerald-700 bg-emerald-50/70 font-medium'
+                                    : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                                }}"
+                            >
+                                <i class="fas fa-shopping-cart"></i>
+                                <span>Keranjang Peminjaman</span>
+
+                                @if(isset($cartCount) && $cartCount > 0)
+                                    <span class="ml-auto text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">
+                                        {{ $cartCount }}
+                                    </span>
+                                @endif
+                            </a>
+
+                            <a
+                                href="{{ route('peminjam.loan.index') }}"
+                                class="sub-link
+                                {{ request()->routeIs(['peminjam.loan.index', 'loans.*'])
+                                    ? 'text-emerald-700 bg-emerald-50/70 font-medium'
+                                    : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                                }}"
+                            >
+                                <i class="fas fa-clock-rotate-left"></i>
+                                <span>Riwayat Peminjaman</span>
+                            </a>
+
+                            <a
+                                href="{{ route('siswa.denda.index') }}"
+                                class="sub-link
+                                {{ request()->routeIs('siswa.denda.index')
+                                    ? 'text-emerald-700 bg-emerald-50/70 font-medium'
+                                    : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                                }}"
+                            >
+                                <i class="fas fa-wallet"></i>
+                                <span>Denda Saya</span>
+
+                                @if(isset($dendaCount) && $dendaCount > 0)
+                                    <span class="ml-auto text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full">
+                                        {{ $dendaCount }}
+                                    </span>
+                                @endif
+                            </a>
                         </div>
-                        <i x-show="sidebarOpen" :class="open ? 'rotate-180' : ''" class="fas fa-chevron-down text-xs transition-transform duration-200 text-slate-400"></i>
-                    </button>
-                    
-                    <div x-show="open && sidebarOpen" x-collapse class="ml-7 mt-1 space-y-1">
-                        <a
-                            href="{{ route('siswa.pinjamkelas.input') }}"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
-                            {{ request()->routeIs('siswa.pinjamkelas.input')
-                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
-                                : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
-                            }}"
-                        >
-                            <i class="fas fa-pen-alt w-4"></i>
-                            <span>Input Buku</span>
-                        </a>
-                        <a
-                            href="{{ route('siswa.pinjamkelas.index') }}"
-                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
-                            {{ request()->routeIs('siswa.pinjamkelas.index')
-                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
-                                : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
-                            }}"
-                        >
-                            <i class="fas fa-book w-4"></i>
-                            <span>Buku Pinjaman</span>
-                        </a>
                     </div>
-                </div>
+
+                    {{-- Peminjaman Kelas --}}
+                    <div x-data="{ open: {{ request()->routeIs(['siswa.pinjamkelas.*']) ? 'true' : 'false' }} }">
+                        <button
+                            type="button"
+                            @click="open = !open"
+                            class="nav-link w-full justify-between
+                            {{ request()->routeIs(['siswa.pinjamkelas.*'])
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                            }}"
+                        >
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-chalkboard-user {{ request()->routeIs(['siswa.pinjamkelas.*']) ? 'text-emerald-600' : 'text-slate-400' }}"></i>
+                                <span>Peminjaman Kelas</span>
+                            </div>
+
+                            <i
+                                class="fas fa-chevron-down text-xs transition-transform duration-200"
+                                :class="open ? 'rotate-180' : ''"
+                            ></i>
+                        </button>
+
+                        <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                            <a
+                                href="{{ route('siswa.pinjamkelas.input') }}"
+                                class="sub-link
+                                {{ request()->routeIs('siswa.pinjamkelas.input')
+                                    ? 'text-emerald-700 bg-emerald-50/70 font-medium'
+                                    : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                                }}"
+                            >
+                                <i class="fas fa-pen"></i>
+                                <span>Input Buku</span>
+                            </a>
+
+                            <a
+                                href="{{ route('siswa.pinjamkelas.index') }}"
+                                class="sub-link
+                                {{ request()->routeIs('siswa.pinjamkelas.index')
+                                    ? 'text-emerald-700 bg-emerald-50/70 font-medium'
+                                    : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                                }}"
+                            >
+                                <i class="fas fa-book"></i>
+                                <span>Buku Pinjaman</span>
+                            </a>
+                        </div>
+                    </div>
                 @endauth
 
-            </nav>
+                {{-- Panduan --}}
+                <div class="my-4 border-t border-slate-100"></div>
 
-            <div class="mt-auto border-t border-slate-100 p-3">
                 <a
                     href="{{ route('peminjam.guides.index') }}"
-                    class="nav-link menu-item
+                    class="nav-link
                     {{ request()->routeIs('peminjam.guides.*')
-                        ? 'menu-active font-semibold'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }}"
-                    :class="!sidebarOpen && 'justify-center'"
                 >
-                    <i class="fas fa-circle-question {{ request()->routeIs('peminjam.guides.*') ? 'text-emerald-500' : 'text-slate-400' }}"></i>
-                    <span x-show="sidebarOpen">Panduan</span>
+                    <i class="fas fa-circle-question {{ request()->routeIs('peminjam.guides.*') ? 'text-emerald-600' : 'text-slate-400' }}"></i>
+                    <span>Panduan</span>
                 </a>
+            </nav>
 
-                @auth
-                <form action="{{ route('logout') }}" method="POST" class="mt-2">
-                    @csrf
-                    <button type="submit" class="nav-link w-full text-red-600 hover:bg-red-50 menu-item" :class="!sidebarOpen && 'justify-center'">
-                        <i class="fas fa-sign-out-alt text-red-400"></i>
-                        <span x-show="sidebarOpen">Logout</span>
-                    </button>
-                </form>
-                @endauth
-            </div>
+            {{-- User Summary --}}
+            @auth
+                <div class="p-4 border-t border-slate-100">
+                    <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
+                            {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-slate-800 truncate">
+                                {{ Auth::user()->name }}
+                            </p>
+                            <p class="text-xs text-slate-500 truncate">
+                                {{ Auth::user()->email }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endauth
         </aside>
 
+        {{-- Content Wrapper --}}
         <div class="flex-1 flex flex-col overflow-hidden">
 
-            <header class="glass-nav border-b border-slate-200 h-16 flex items-center px-4 sm:px-6 shadow-sm sticky top-0 z-20">
+            {{-- Header --}}
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 sticky top-0 z-30">
                 <div class="flex items-center justify-between w-full">
-                    <div class="flex items-center gap-3 sm:gap-4">
+
+                    <div class="flex items-center gap-4">
                         <button
-                            @click="sidebarOpen = !sidebarOpen"
-                            class="text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 p-2 rounded-xl transition-all duration-200"
+                            type="button"
+                            @click="sidebarOpen = true"
+                            class="lg:hidden text-slate-500 hover:text-emerald-600 hover:bg-slate-100 p-2 rounded-lg transition"
                         >
-                            <i class="fas fa-bars text-lg"></i>
+                            <i class="fas fa-bars text-xl"></i>
                         </button>
-                        <div class="hidden md:block">
-                            <h2 class="text-xl font-bold text-slate-800">
+
+                        <div>
+                            <h2 class="text-lg md:text-xl font-semibold text-slate-800">
                                 @yield('title', 'Dashboard')
                             </h2>
+
                             @auth
-                            <p class="text-xs text-slate-400 mt-0.5">
-                                Selamat datang kembali, {{ Auth::user()->name }}
-                            </p>
+                                <p class="hidden sm:block text-xs text-slate-500">
+                                    Selamat datang kembali, {{ Auth::user()->name }}
+                                </p>
+                            @else
+                                <p class="hidden sm:block text-xs text-slate-500">
+                                    Sistem Informasi Perpustakaan Digital
+                                </p>
                             @endauth
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="flex items-center gap-2">
+
                         @auth
-                        <div class="relative">
-                            <button
-                                @click="userOpen = !userOpen"
-                                class="flex items-center gap-2 focus:outline-none hover:bg-slate-100 p-1.5 rounded-xl transition-all duration-200"
-                            >
-                                <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                            {{-- User Dropdown --}}
+                            <div class="relative">
+                                <button
+                                    type="button"
+                                    @click="userOpen = !userOpen"
+                                    class="flex items-center gap-2 focus:outline-none hover:bg-slate-100 p-1.5 rounded-xl transition"
+                                >
+                                    <div class="w-9 h-9 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold text-sm">
+                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                    </div>
+
+                                    <div class="hidden md:block text-left">
+                                        <p class="text-sm font-semibold text-slate-700 leading-tight">
+                                            {{ Auth::user()->name }}
+                                        </p>
+                                        <p class="text-xs text-slate-400">
+                                            {{ Auth::user()->role }}
+                                        </p>
+                                    </div>
+
+                                    <i class="fas fa-chevron-down text-slate-400 text-xs hidden md:block"></i>
+                                </button>
+
+                                <div
+                                    x-show="userOpen"
+                                    @click.away="userOpen = false"
+                                    x-transition
+                                    class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50"
+                                >
+                                    <div class="px-4 py-3 border-b border-slate-100">
+                                        <p class="text-xs text-slate-500">Signed in as</p>
+                                        <p class="text-sm font-medium text-slate-700 truncate">
+                                            {{ Auth::user()->email }}
+                                        </p>
+                                    </div>
+
+                                    <a
+                                        href="{{ route('peminjam.kartu-anggota') }}"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                                    >
+                                        <i class="fas fa-id-card w-4 text-slate-400"></i>
+                                        Kartu Anggota
+                                    </a>
+
+                                    <div class="border-t border-slate-100 my-1"></div>
+
+                                    <form action="{{ route('logout') }}" method="POST">
+                                        @csrf
+                                        <button
+                                            type="submit"
+                                            class="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                                        >
+                                            <i class="fas fa-sign-out-alt w-4 text-red-400"></i>
+                                            Logout
+                                        </button>
+                                    </form>
                                 </div>
-                                <div class="hidden lg:block text-left">
-                                    <p class="text-sm font-semibold text-slate-700">
-                                        {{ Auth::user()->name }}
-                                    </p>
-                                    <p class="text-[10px] text-emerald-600 font-medium">
-                                        {{ Auth::user()->role }}
-                                    </p>
-                                </div>
-                                <i class="fas fa-chevron-down text-slate-400 text-xs hidden lg:block"></i>
-                            </button>
-                            <div
-                                x-show="userOpen"
-                                @click.away="userOpen = false"
-                                x-transition
-                                class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-50 overflow-hidden"
-                            >
-                                <div class="px-4 py-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-                                    <p class="text-[10px] text-slate-500 uppercase tracking-wide">Signed in as</p>
-                                    <p class="text-sm font-semibold text-slate-700 truncate">{{ Auth::user()->email }}</p>
-                                </div>
-                                <a href="{{ route('peminjam.kartu-anggota') }}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors duration-200">
-                                    <i class="fas fa-id-card w-4 text-emerald-400"></i>
-                                    <span>Kartu Anggota</span>
-                                </a>
-                                <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-colors duration-200">
-                                    <i class="fas fa-user-edit w-4 text-emerald-400"></i>
-                                    <span>Edit Profil</span>
-                                </a>
-                                <div class="border-t border-slate-100 my-1"></div>
-                                <form action="{{ route('logout') }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200">
-                                        <i class="fas fa-sign-out-alt w-4 text-red-400"></i>
-                                        <span>Logout</span>
-                                    </button>
-                                </form>
                             </div>
-                        </div>
                         @else
-                        <div class="flex items-center gap-2">
-                            <a href="{{ route('login') }}" class="px-4 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 rounded-xl transition">
-                                <i class="fas fa-sign-in-alt mr-2"></i>Login
-                            </a>
-                            <a href="{{ route('register') }}" class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 rounded-xl shadow-sm transition">
-                                <i class="fas fa-user-plus mr-2"></i>Register
-                            </a>
-                        </div>
+                            {{-- Guest Buttons --}}
+                            <div class="flex items-center gap-2">
+                                <a
+                                    href="{{ route('login') }}"
+                                    class="px-4 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 rounded-xl transition"
+                                >
+                                    <i class="fas fa-sign-in-alt mr-2"></i>
+                                    Login
+                                </a>
+
+                                <a
+                                    href="{{ route('register') }}"
+                                    class="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition"
+                                >
+                                    <i class="fas fa-user-plus mr-2"></i>
+                                    Register
+                                </a>
+                            </div>
                         @endauth
+
                     </div>
                 </div>
             </header>
 
-            <main class="flex-1 overflow-y-auto p-4 sm:p-6 bg-gradient-to-br from-slate-50 via-white to-slate-100/20">
+            {{-- Main Content --}}
+            <main class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-6">
                 <div class="max-w-7xl mx-auto">
                     @yield('content')
                 </div>
             </main>
-
         </div>
-
     </div>
 
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {{-- Alpine Plugin Collapse harus sebelum Alpine core --}}
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     @stack('scripts')
-
 </body>
 </html>

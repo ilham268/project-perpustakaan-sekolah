@@ -15,263 +15,323 @@
         [x-cloak] {
             display: none !important;
         }
-        
+
         ::-webkit-scrollbar {
             width: 5px;
             height: 5px;
         }
-        
+
         ::-webkit-scrollbar-track {
             background: #f1f5f9;
         }
-        
+
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 10px;
         }
-        
+
         ::-webkit-scrollbar-thumb:hover {
             background: #10b981;
         }
-        
-        .menu-transition {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
+
         .nav-link {
             display: flex;
             align-items: center;
             gap: 12px;
             padding: 10px 12px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 500;
+            transition: all 0.2s ease;
         }
-        
+
         .nav-link i {
             width: 20px;
             text-align: center;
             font-size: 18px;
         }
+
+        .sub-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .sub-link i {
+            width: 16px;
+            text-align: center;
+            font-size: 14px;
+        }
     </style>
 </head>
 
-<body class="bg-slate-50" x-data="{ sidebarOpen: true, dropdownOpen: false }" x-cloak>
-
+<body
+    class="bg-slate-50 text-slate-800"
+    x-data="{ sidebarOpen: false, dropdownOpen: false }"
+    x-cloak
+>
     <div class="flex h-screen overflow-hidden">
 
-        <aside
-            :class="sidebarOpen ? 'w-64' : 'w-20'"
-            class="bg-white border-r border-slate-200 shadow-sm flex flex-col transition-all duration-300 z-20"
-        >
+        {{-- Mobile Overlay --}}
+        <div
+            x-show="sidebarOpen"
+            x-transition.opacity
+            class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"
+            @click="sidebarOpen = false"
+        ></div>
 
-            <div class="h-20 flex items-center px-4 border-b border-slate-100">
-                <div
-                    class="flex items-center w-full"
-                    :class="sidebarOpen ? 'justify-start gap-3' : 'justify-center'"
-                >
-                    <img
-                        src="{{ asset('image/smkn1cerme.png') }}"
-                        alt="Logo SMKN 1 CERME"
-                        class="h-8 w-auto"
-                    >
-                    <div x-show="sidebarOpen" x-transition class="flex-1">
-                        <h1 class="text-base font-bold text-slate-800 leading-tight">
+        {{-- Sidebar --}}
+        <aside
+            class="fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ease-in-out"
+            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
+        >
+            {{-- Logo --}}
+            <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-emerald-50 rounded-xl">
+                        <img
+                            src="{{ asset('image/smkn1cerme.png') }}"
+                            alt="Logo SMKN 1 CERME"
+                            class="w-7 h-7 object-contain"
+                        >
+                    </div>
+
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-800 tracking-tight">
                             Lantera
                         </h1>
-                        <p class="text-[10px] font-medium text-emerald-600 uppercase tracking-wide">
+                        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">
                             SMKN 1 CERME
                         </p>
                     </div>
                 </div>
+
+                <button
+                    type="button"
+                    @click="sidebarOpen = false"
+                    class="lg:hidden text-slate-400 hover:text-slate-600 transition"
+                >
+                    <i class="fas fa-xmark text-xl"></i>
+                </button>
             </div>
 
-            <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-                <div x-show="sidebarOpen" class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
-                    MENU UTAMA
+            {{-- Navigation --}}
+            <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-3">
+                    Menu Utama
                 </div>
-                
-                <!-- Dashboard -->
+
+                {{-- Dashboard --}}
                 <a
                     href="{{ route('admin.dashboard') }}"
-                    class="nav-link menu-transition
+                    class="nav-link
                     {{ request()->routeIs('admin.dashboard')
                         ? 'bg-emerald-50 text-emerald-700'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }}"
-                    :class="!sidebarOpen && 'justify-center'"
                 >
-                    <i class="fas fa-home {{ request()->routeIs('admin.dashboard') ? 'text-emerald-600' : 'text-slate-400' }}"></i>
-                    <span x-show="sidebarOpen">Dashboard</span>
+                    <i class="fas fa-house {{ request()->routeIs('admin.dashboard') ? 'text-emerald-600' : 'text-slate-400' }}"></i>
+                    <span>Dashboard</span>
                 </a>
 
-                <!-- Manajemen Dropdown -->
+                {{-- Manajemen --}}
                 <div x-data="{ open: {{ request()->routeIs(['users.*', 'books.*', 'categories.*']) ? 'true' : 'false' }} }">
                     <button
+                        type="button"
                         @click="open = !open"
-                        class="nav-link w-full justify-between menu-transition
+                        class="nav-link w-full justify-between
                         {{ request()->routeIs(['users.*', 'books.*', 'categories.*'])
                             ? 'bg-emerald-50 text-emerald-700'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }}"
-                        :class="!sidebarOpen && 'justify-center'"
                     >
                         <div class="flex items-center gap-3">
                             <i class="fas fa-layer-group {{ request()->routeIs(['users.*', 'books.*', 'categories.*']) ? 'text-emerald-600' : 'text-slate-400' }}"></i>
-                            <span x-show="sidebarOpen">Manajemen</span>
+                            <span>Manajemen</span>
                         </div>
-                        <i x-show="sidebarOpen" :class="open ? 'rotate-180' : ''" class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+
+                        <i
+                            class="fas fa-chevron-down text-xs transition-transform duration-200"
+                            :class="open ? 'rotate-180' : ''"
+                        ></i>
                     </button>
-                    <div x-show="open && sidebarOpen" x-collapse class="ml-8 mt-1 space-y-1">
-                        <a href="{{ route('users.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+
+                    <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                        <a
+                            href="{{ route('users.index') }}"
+                            class="sub-link
                             {{ request()->routeIs('users.*')
-                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
+                                ? 'text-emerald-700 bg-emerald-50/70 font-medium'
                                 : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
-                            }}">
-                            <i class="fas fa-users w-4 text-center"></i>
+                            }}"
+                        >
+                            <i class="fas fa-users"></i>
                             <span>Kelola User</span>
                         </a>
-                        <a href="{{ route('categories.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+
+                        <a
+                            href="{{ route('categories.index') }}"
+                            class="sub-link
                             {{ request()->routeIs('categories.*')
-                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
+                                ? 'text-emerald-700 bg-emerald-50/70 font-medium'
                                 : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
-                            }}">
-                            <i class="fas fa-tag w-4 text-center"></i>
+                            }}"
+                        >
+                            <i class="fas fa-tag"></i>
                             <span>Kategori Buku</span>
                         </a>
-                        <a href="{{ route('books.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+
+                        <a
+                            href="{{ route('books.index') }}"
+                            class="sub-link
                             {{ request()->routeIs('books.*')
-                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
+                                ? 'text-emerald-700 bg-emerald-50/70 font-medium'
                                 : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
-                            }}">
-                            <i class="fas fa-book w-4 text-center"></i>
+                            }}"
+                        >
+                            <i class="fas fa-book"></i>
                             <span>Kelola Buku</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- Peminjaman Dropdown -->
+                {{-- Peminjaman --}}
                 <div x-data="{ open: {{ request()->routeIs(['admin.peminjaman.index', 'admin.peminjaman.riwayat']) ? 'true' : 'false' }} }">
                     <button
+                        type="button"
                         @click="open = !open"
-                        class="nav-link w-full justify-between menu-transition
+                        class="nav-link w-full justify-between
                         {{ request()->routeIs(['admin.peminjaman.index', 'admin.peminjaman.riwayat'])
                             ? 'bg-emerald-50 text-emerald-700'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }}"
-                        :class="!sidebarOpen && 'justify-center'"
                     >
                         <div class="flex items-center gap-3">
                             <i class="fas fa-book-open {{ request()->routeIs(['admin.peminjaman.index', 'admin.peminjaman.riwayat']) ? 'text-emerald-600' : 'text-slate-400' }}"></i>
-                            <span x-show="sidebarOpen">Peminjaman</span>
+                            <span>Peminjaman</span>
                         </div>
-                        <i x-show="sidebarOpen" :class="open ? 'rotate-180' : ''" class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+
+                        <i
+                            class="fas fa-chevron-down text-xs transition-transform duration-200"
+                            :class="open ? 'rotate-180' : ''"
+                        ></i>
                     </button>
-                    <div x-show="open && sidebarOpen" x-collapse class="ml-8 mt-1 space-y-1">
-                        <a href="{{ route('admin.peminjaman.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+
+                    <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                        <a
+                            href="{{ route('admin.peminjaman.index') }}"
+                            class="sub-link
                             {{ request()->routeIs('admin.peminjaman.index')
-                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
+                                ? 'text-emerald-700 bg-emerald-50/70 font-medium'
                                 : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
-                            }}">
-                            <i class="fas fa-list w-4 text-center"></i>
+                            }}"
+                        >
+                            <i class="fas fa-list"></i>
                             <span>Daftar Peminjaman</span>
                         </a>
-                        <a href="{{ route('admin.peminjaman.riwayat') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+
+                        <a
+                            href="{{ route('admin.peminjaman.riwayat') }}"
+                            class="sub-link
                             {{ request()->routeIs('admin.peminjaman.riwayat')
-                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
+                                ? 'text-emerald-700 bg-emerald-50/70 font-medium'
                                 : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
-                            }}">
-                            <i class="fas fa-history w-4 text-center"></i>
+                            }}"
+                        >
+                            <i class="fas fa-clock-rotate-left"></i>
                             <span>Riwayat Peminjaman</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- Peminjaman Kelas Dropdown -->
+                {{-- Peminjaman Kelas --}}
                 <div x-data="{ open: {{ request()->routeIs(['admin.pinjamkelas.*', 'admin.pinjamkelas.kategori', 'admin.pinjamkelas.buku', 'admin.pinjamkelas.kelas']) ? 'true' : 'false' }} }">
                     <button
+                        type="button"
                         @click="open = !open"
-                        class="nav-link w-full justify-between menu-transition
+                        class="nav-link w-full justify-between
                         {{ request()->routeIs(['admin.pinjamkelas.*', 'admin.pinjamkelas.kategori', 'admin.pinjamkelas.buku', 'admin.pinjamkelas.kelas'])
                             ? 'bg-emerald-50 text-emerald-700'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                         }}"
-                        :class="!sidebarOpen && 'justify-center'"
                     >
                         <div class="flex items-center gap-3">
-                            <i class="fas fa-users {{ request()->routeIs(['admin.pinjamkelas.*', 'admin.pinjamkelas.kategori', 'admin.pinjamkelas.buku', 'admin.pinjamkelas.kelas']) ? 'text-emerald-600' : 'text-slate-400' }}"></i>
-                            <span x-show="sidebarOpen">Peminjaman Kelas</span>
+                            <i class="fas fa-people-group {{ request()->routeIs(['admin.pinjamkelas.*', 'admin.pinjamkelas.kategori', 'admin.pinjamkelas.buku', 'admin.pinjamkelas.kelas']) ? 'text-emerald-600' : 'text-slate-400' }}"></i>
+                            <span>Peminjaman Kelas</span>
                         </div>
-                        <i x-show="sidebarOpen" :class="open ? 'rotate-180' : ''" class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+
+                        <i
+                            class="fas fa-chevron-down text-xs transition-transform duration-200"
+                            :class="open ? 'rotate-180' : ''"
+                        ></i>
                     </button>
-                    <div x-show="open && sidebarOpen" x-collapse class="ml-8 mt-1 space-y-1">
-                        <a href="{{ route('admin.pinjamkelas.kategori') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+
+                    <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1">
+                        <a
+                            href="{{ route('admin.pinjamkelas.kategori') }}"
+                            class="sub-link
                             {{ request()->routeIs('admin.pinjamkelas.kategori')
-                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
+                                ? 'text-emerald-700 bg-emerald-50/70 font-medium'
                                 : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
-                            }}">
-                            <i class="fas fa-tag w-4 text-center"></i>
+                            }}"
+                        >
+                            <i class="fas fa-tag"></i>
                             <span>Kategori Buku</span>
                         </a>
-                        <a href="{{ route('admin.pinjamkelas.kelas') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm
+
+                        <a
+                            href="{{ route('admin.pinjamkelas.kelas') }}"
+                            class="sub-link
                             {{ request()->routeIs('admin.pinjamkelas.kelas')
-                                ? 'text-emerald-700 bg-emerald-50/50 font-medium'
+                                ? 'text-emerald-700 bg-emerald-50/70 font-medium'
                                 : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
-                            }}">
-                            <i class="fas fa-school w-4 text-center"></i>
+                            }}"
+                        >
+                            <i class="fas fa-school"></i>
                             <span>Kelas Pinjam</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- Denda -->
+                {{-- Denda --}}
                 <a
                     href="{{ route('admin.denda.index') }}"
-                    class="nav-link menu-transition
+                    class="nav-link
                     {{ request()->routeIs('admin.denda.*')
                         ? 'bg-emerald-50 text-emerald-700'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }}"
-                    :class="!sidebarOpen && 'justify-center'"
                 >
-                    <i class="fas fa-money-bill-wave {{ request()->routeIs('admin.denda.*') ? 'text-emerald-600' : 'text-slate-400' }}"></i>
-                    <span x-show="sidebarOpen">Denda</span>
+                    <i class="fas fa-wallet {{ request()->routeIs('admin.denda.*') ? 'text-emerald-600' : 'text-slate-400' }}"></i>
+                    <span>Denda</span>
                 </a>
 
-                <!-- Buku Tamu -->
+                {{-- Buku Tamu --}}
                 <a
                     href="{{ route('admin.guest-book.index') }}"
-                    class="nav-link menu-transition
+                    class="nav-link
                     {{ request()->routeIs('admin.guest-book.*')
                         ? 'bg-emerald-50 text-emerald-700'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-emerald-600'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }}"
-                    :class="!sidebarOpen && 'justify-center'"
                 >
-                    <i class="fas fa-address-book {{ request()->routeIs('admin.guest-book.*') ? 'text-emerald-600' : 'text-slate-400' }}"></i>
-                    <span x-show="sidebarOpen">Buku Tamu</span>
+                    <i class="fas fa-door-open {{ request()->routeIs('admin.guest-book.*') ? 'text-emerald-600' : 'text-slate-400' }}"></i>
+                    <span>Buku Tamu</span>
                 </a>
-
-                <div x-show="sidebarOpen" class="my-3 border-t border-slate-100"></div>
-
-                <!-- Pengaturan -->
-                <a
-                    href="#"
-                    class="nav-link menu-transition text-slate-600 hover:bg-slate-50 hover:text-emerald-600"
-                    :class="!sidebarOpen && 'justify-center'"
-                >
-                    <i class="fas fa-cog text-slate-400"></i>
-                    <span x-show="sidebarOpen">Pengaturan</span>
-                </a>
-
             </nav>
 
-            <div class="p-3 border-t border-slate-100">
-                <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer" :class="!sidebarOpen && 'justify-center'">
-                    <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-semibold text-sm">
+            {{-- User Profile Summary --}}
+            <div class="p-4 border-t border-slate-100">
+                <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
                         {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                     </div>
-                    <div x-show="sidebarOpen" class="flex-1 min-w-0">
+
+                    <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-slate-800 truncate">
                             {{ Auth::user()->name }}
                         </p>
@@ -283,71 +343,96 @@
             </div>
         </aside>
 
+        {{-- Content Wrapper --}}
         <div class="flex-1 flex flex-col overflow-hidden">
 
-            <header class="bg-white border-b border-slate-200 h-16 flex items-center px-6 sticky top-0 z-10 shadow-sm">
+            {{-- Header --}}
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 sticky top-0 z-30">
                 <div class="flex items-center justify-between w-full">
+
                     <div class="flex items-center gap-4">
-                        <button @click="sidebarOpen = !sidebarOpen" class="text-slate-500 hover:text-emerald-600 hover:bg-slate-100 p-2 rounded-lg transition">
+                        <button
+                            type="button"
+                            @click="sidebarOpen = true"
+                            class="lg:hidden text-slate-500 hover:text-emerald-600 hover:bg-slate-100 p-2 rounded-lg transition"
+                        >
                             <i class="fas fa-bars text-xl"></i>
                         </button>
+
                         <div>
-                            <h2 class="text-xl font-semibold text-slate-800">
+                            <h2 class="text-lg md:text-xl font-semibold text-slate-800">
                                 @yield('title', 'Dashboard')
                             </h2>
+                            <p class="hidden sm:block text-xs text-slate-500">
+                                Sistem Administrasi Perpustakaan
+                            </p>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3">
-                        <div class="relative">
-                            <button @click="dropdownOpen = !dropdownOpen" class="flex items-center gap-2 focus:outline-none hover:bg-slate-100 p-1.5 rounded-lg transition">
-                                <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm shadow-sm">
-                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                                </div>
-                                <div class="hidden md:block text-left">
-                                    <p class="text-sm font-medium text-slate-700">{{ Auth::user()->name }}</p>
-                                    <p class="text-xs text-slate-400">{{ Auth::user()->role }}</p>
-                                </div>
-                                <i class="fas fa-chevron-down text-slate-400 text-xs hidden md:block"></i>
-                            </button>
-                            <div x-show="dropdownOpen" @click.away="dropdownOpen = false" x-transition class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50">
-                                <div class="px-4 py-3 border-b border-slate-100">
-                                    <p class="text-xs text-slate-500">Signed in as</p>
-                                    <p class="text-sm font-medium text-slate-700 truncate">{{ Auth::user()->email }}</p>
-                                </div>
-                                <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition">
-                                    <i class="fas fa-user-circle w-4 text-slate-400"></i> Profile
-                                </a>
-                                <a href="#" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition">
-                                    <i class="fas fa-cog w-4 text-slate-400"></i> Settings
-                                </a>
-                                <div class="border-t border-slate-100 my-1"></div>
-                                <form action="{{ route('logout') }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">
-                                        <i class="fas fa-sign-out-alt w-4 text-red-400"></i> Logout
-                                    </button>
-                                </form>
+                    {{-- User Dropdown --}}
+                    <div class="relative">
+                        <button
+                            type="button"
+                            @click="dropdownOpen = !dropdownOpen"
+                            class="flex items-center gap-2 focus:outline-none hover:bg-slate-100 p-1.5 rounded-xl transition"
+                        >
+                            <div class="w-9 h-9 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold text-sm">
+                                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                             </div>
+
+                            <div class="hidden md:block text-left">
+                                <p class="text-sm font-semibold text-slate-700 leading-tight">
+                                    {{ Auth::user()->name }}
+                                </p>
+                                <p class="text-xs text-slate-400">
+                                    {{ Auth::user()->role }}
+                                </p>
+                            </div>
+
+                            <i class="fas fa-chevron-down text-slate-400 text-xs hidden md:block"></i>
+                        </button>
+
+                        <div
+                            x-show="dropdownOpen"
+                            @click.away="dropdownOpen = false"
+                            x-transition
+                            class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50"
+                        >
+                            <div class="px-4 py-3 border-b border-slate-100">
+                                <p class="text-xs text-slate-500">Signed in as</p>
+                                <p class="text-sm font-medium text-slate-700 truncate">
+                                    {{ Auth::user()->email }}
+                                </p>
+                            </div>
+
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button
+                                    type="submit"
+                                    class="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                                >
+                                    <i class="fas fa-sign-out-alt w-4 text-red-400"></i>
+                                    Logout
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <main class="flex-1 overflow-y-auto bg-slate-50 p-6">
+            {{-- Main Content --}}
+            <main class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-6">
                 <div class="max-w-7xl mx-auto">
                     @yield('content')
                 </div>
             </main>
-
         </div>
-
     </div>
 
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    {{-- Alpine Plugin Collapse harus sebelum Alpine core --}}
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     @stack('scripts')
-
 </body>
 </html>

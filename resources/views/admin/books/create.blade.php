@@ -1,227 +1,376 @@
 @extends('layouts.admin')
 
 @section('title', 'Tambah Buku')
+@section('page-title', 'Tambah Buku')
 
 @section('content')
-    <!-- Flash Messages -->
-    @if(session('error'))
-        <x-flash-message type="error" message="{{ session('error') }}" />
-    @endif
+    <div class="space-y-6">
 
-    <!-- Breadcrumb -->
-    <div class="mb-4">
-        <nav class="flex items-center text-sm text-gray-700">
-            <a href="{{ route('books.index') }}" class="font-semibold hover:text-cyan-600 transition-colors">Kelola Buku</a>
-            <span class="mx-2 font-semibold">/</span>
-            <span class="text-cyan-600 font-semibold">Tambah Buku</span>
-        </nav>
-    </div>
+        {{-- Flash Messages --}}
+        @if(session('error'))
+            <x-flash-message type="error" message="{{ session('error') }}" />
+        @endif
 
-    <!-- Page Title -->
-    <div class="mb-6">
-        <h3 class="text-2xl font-bold text-gray-900">Tambah Buku</h3>
-    </div>
+        {{-- Page Hero --}}
+        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-5 py-5 md:px-7 md:py-6 shadow-md shadow-emerald-100/60">
+            <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
+            <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <form method="POST" action="{{ route('books.store') }}" enctype="multipart/form-data" class="space-y-5">
-            @csrf
-
-            <!-- Judul Buku -->
-            <div>
-                <label for="judul" class="block text-sm text-gray-700 mb-1.5">
-                    Judul Buku <span class="text-red-500">*</span>
-                </label>
-                <input
-                    type="text"
-                    name="judul"
-                    id="judul"
-                    value="{{ old('judul') }}"
-                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-sm"
-                    placeholder="Masukkan judul buku"
-                    required
-                >
-                @error('judul')
-                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <!-- Kategori & Lokasi Rak -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                    <label for="category_id" class="block text-sm text-gray-700 mb-1.5">
-                        Kategori <span class="text-red-500">*</span>
-                    </label>
-                    <select
-                        name="category_id"
-                        id="category_id"
-                        class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-sm"
-                        required
-                    >
-                        <option value="">Pilih Kategori</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
-                                {{ $category->nama_kategori }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('category_id')
-                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="nomor_rak" class="block text-sm text-gray-700 mb-1.5">
-                        Lokasi Rak <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        name="nomor_rak"
-                        id="nomor_rak"
-                        value="{{ old('nomor_rak') }}"
-                        class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-sm"
-                        placeholder="Contoh: A1, B2"
-                        required
-                    >
-                    @error('nomor_rak')
-                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-
-            <!-- Penulis & Penerbit -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <label for="penulis" class="block text-sm text-gray-700 mb-1.5">
-                        Penulis <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        name="penulis"
-                        id="penulis"
-                        value="{{ old('penulis') }}"
-                        class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-sm"
-                        placeholder="Nama penulis"
-                        required
-                    >
-                    @error('penulis')
-                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div>
-                    <label for="penerbit" class="block text-sm text-gray-700 mb-1.5">
-                        Penerbit <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        name="penerbit"
-                        id="penerbit"
-                        value="{{ old('penerbit') }}"
-                        class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-sm"
-                        placeholder="Nama penerbit"
-                        required
-                    >
-                    @error('penerbit')
-                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-
-            <!-- Tahun Terbit -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                    <label for="tahun" class="block text-sm text-gray-700 mb-1.5">
-                        Tahun Terbit <span class="text-red-500">*</span>
-                    </label>
-                    <div class="relative">
-                        <input
-                            type="number"
-                            name="tahun"
-                            id="tahun"
-                            value="{{ old('tahun', date('Y')) }}"
-                            min="1900"
-                            max="{{ date('Y') + 1 }}"
-                            class="w-full px-3 py-2.5 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all text-sm"
-                            required
-                        >
-                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <i class="fas fa-calendar-alt text-gray-400 text-sm"></i>
-                        </div>
+                    <div class="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-50">
+                        <a href="{{ route('books.index') }}" class="transition hover:text-white">
+                            Kelola Buku
+                        </a>
+                        <i class="fas fa-chevron-right text-[10px] text-emerald-100"></i>
+                        <span class="text-white">Tambah Buku</span>
                     </div>
-                    @error('tahun')
-                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
 
-            <!-- Sinopsis -->
-            <div>
-                <label for="synopsis" class="block text-sm text-gray-700 mb-1.5">
-                    Sinopsis <span class="text-gray-400 text-xs">(Opsional)</span>
-                </label>
-                <textarea
-                    name="synopsis"
-                    id="synopsis"
-                    rows="5"
-                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all resize-none text-sm"
-                    placeholder="Masukkan deskripsi atau sinopsis buku..."
-                >{{ old('synopsis') }}</textarea>
-                @error('synopsis')
-                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
+                    <h1 class="text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+                        Tambah Buku Baru
+                    </h1>
 
-            <!-- Foto -->
-            <div>
-                <label class="block text-sm text-gray-700 mb-1.5">
-                    Foto <span class="text-gray-400 text-xs">(Opsional)</span>
-                </label>
-
-                <input type="file" name="foto" id="foto" accept="image/jpeg,image/png,image/jpg" class="hidden">
-
-                <div id="preview-container" class="hidden mb-3">
-                    <div class="flex items-start gap-4">
-                        <div class="relative w-40 h-40 shrink-0">
-                            <img id="preview-image" src="" alt="Preview" class="w-full h-full object-cover rounded-lg border border-gray-300">
-                            <button type="button" id="btn-clear-image" class="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow transition-colors">
-                                <i class="fas fa-times text-xs"></i>
-                            </button>
-                        </div>
-                        <div class="flex flex-col gap-1.5 pt-1">
-                            <span class="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
-                                <i class="fas fa-check-circle"></i>
-                                Foto berhasil diunggah
-                            </span>
-                            <p id="file-name" class="text-xs text-gray-500 break-all max-w-xs"></p>
-                        </div>
-                    </div>
+                    <p class="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50">
+                        Lengkapi informasi buku, kategori, lokasi rak, dan foto sampul agar data koleksi perpustakaan terlihat rapi.
+                    </p>
                 </div>
 
-                <div id="upload-area" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer transition-colors hover:border-cyan-400">
-                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
-                    <p class="text-sm text-gray-500 mb-3">Seret dan Lepas di sini atau</p>
-                    <span class="px-5 py-2 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">Pilih File</span>
-                </div>
-
-                @error('foto')
-                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <!-- Buttons -->
-            <div class="flex items-center justify-center gap-3 pt-4">
                 <a
                     href="{{ route('books.index') }}"
-                    class="px-8 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors text-sm font-medium"
+                    class="inline-flex items-center justify-center gap-2 rounded-2xl bg-white/15 px-4 py-3 text-sm font-bold text-white ring-1 ring-white/25 backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/20"
                 >
-                    Kembali
+                    <i class="fas fa-arrow-left text-xs"></i>
+                    <span>Kembali</span>
                 </a>
-                <button
-                    type="submit"
-                    class="px-8 py-2.5 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors text-sm font-medium"
-                >
-                    Simpan
-                </button>
+            </div>
+        </div>
+
+        {{-- Main Form --}}
+        <form method="POST" action="{{ route('books.store') }}" enctype="multipart/form-data">
+            @csrf
+
+            <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+
+                {{-- Left Form --}}
+                <div class="xl:col-span-2">
+                    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-sm">
+
+                        {{-- Card Header --}}
+                        <div class="border-b border-slate-100 bg-white/80 p-5 md:p-6">
+                            <div class="flex items-start gap-3">
+                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                                    <i class="fas fa-book-open text-lg"></i>
+                                </div>
+
+                                <div>
+                                    <h2 class="text-lg font-bold text-slate-900 md:text-xl">
+                                        Informasi Buku
+                                    </h2>
+                                    <p class="mt-1 text-sm text-slate-500">
+                                        Isi data utama buku dengan lengkap dan benar.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Fields --}}
+                        <div class="space-y-6 p-5 md:p-6">
+
+                            {{-- Judul Buku --}}
+                            <div>
+                                <label for="judul" class="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                    <i class="fas fa-book text-xs text-slate-400"></i>
+                                    Judul Buku
+                                    <span class="text-red-500">*</span>
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="judul"
+                                    id="judul"
+                                    value="{{ old('judul') }}"
+                                    class="block w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                    placeholder="Masukkan judul buku"
+                                    required
+                                >
+
+                                @error('judul')
+                                    <p class="mt-1.5 text-sm font-medium text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Kategori & Lokasi Rak --}}
+                            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                                <div>
+                                    <label for="category_id" class="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                        <i class="fas fa-tags text-xs text-slate-400"></i>
+                                        Kategori
+                                        <span class="text-red-500">*</span>
+                                    </label>
+
+                                    <select
+                                        name="category_id"
+                                        id="category_id"
+                                        class="block w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700 shadow-sm transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                        required
+                                    >
+                                        <option value="">Pilih Kategori</option>
+
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
+                                                {{ $category->nama_kategori }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    @error('category_id')
+                                        <p class="mt-1.5 text-sm font-medium text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label for="nomor_rak" class="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                        <i class="fas fa-location-dot text-xs text-slate-400"></i>
+                                        Lokasi Rak
+                                        <span class="text-red-500">*</span>
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="nomor_rak"
+                                        id="nomor_rak"
+                                        value="{{ old('nomor_rak') }}"
+                                        class="block w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                        placeholder="Contoh: A1, B2"
+                                        required
+                                    >
+
+                                    @error('nomor_rak')
+                                        <p class="mt-1.5 text-sm font-medium text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            {{-- Penulis & Penerbit --}}
+                            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                                <div>
+                                    <label for="penulis" class="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                        <i class="fas fa-user-pen text-xs text-slate-400"></i>
+                                        Penulis
+                                        <span class="text-red-500">*</span>
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="penulis"
+                                        id="penulis"
+                                        value="{{ old('penulis') }}"
+                                        class="block w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                        placeholder="Nama penulis"
+                                        required
+                                    >
+
+                                    @error('penulis')
+                                        <p class="mt-1.5 text-sm font-medium text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label for="penerbit" class="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                        <i class="fas fa-building text-xs text-slate-400"></i>
+                                        Penerbit
+                                        <span class="text-red-500">*</span>
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="penerbit"
+                                        id="penerbit"
+                                        value="{{ old('penerbit') }}"
+                                        class="block w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                        placeholder="Nama penerbit"
+                                        required
+                                    >
+
+                                    @error('penerbit')
+                                        <p class="mt-1.5 text-sm font-medium text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            {{-- Tahun --}}
+                            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                                <div>
+                                    <label for="tahun" class="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                        <i class="fas fa-calendar-alt text-xs text-slate-400"></i>
+                                        Tahun Terbit
+                                        <span class="text-red-500">*</span>
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        name="tahun"
+                                        id="tahun"
+                                        value="{{ old('tahun', date('Y')) }}"
+                                        min="1900"
+                                        max="{{ date('Y') + 1 }}"
+                                        class="block w-full rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700 shadow-sm transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                        required
+                                    >
+
+                                    @error('tahun')
+                                        <p class="mt-1.5 text-sm font-medium text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            {{-- Sinopsis --}}
+                            <div>
+                                <label for="synopsis" class="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                                    <i class="fas fa-align-left text-xs text-slate-400"></i>
+                                    Sinopsis
+                                    <span class="text-xs font-medium text-slate-400">(Opsional)</span>
+                                </label>
+
+                                <textarea
+                                    name="synopsis"
+                                    id="synopsis"
+                                    rows="6"
+                                    class="block w-full resize-none rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700 shadow-sm placeholder:text-slate-400 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                    placeholder="Masukkan deskripsi atau sinopsis buku..."
+                                >{{ old('synopsis') }}</textarea>
+
+                                @error('synopsis')
+                                    <p class="mt-1.5 text-sm font-medium text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Right Upload Card --}}
+                <div class="xl:col-span-1">
+                    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-sm xl:sticky xl:top-6">
+
+                        {{-- Upload Header --}}
+                        <div class="border-b border-slate-100 bg-white/80 p-5">
+                            <div class="flex items-start gap-3">
+                                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                                    <i class="fas fa-image"></i>
+                                </div>
+
+                                <div>
+                                    <h3 class="text-base font-bold text-slate-900">
+                                        Foto Sampul
+                                    </h3>
+                                    <p class="mt-1 text-xs leading-relaxed text-slate-500">
+                                        Upload gambar sampul buku. Format JPG, JPEG, atau PNG.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-5">
+                            <input type="file" name="foto" id="foto" accept="image/jpeg,image/png,image/jpg" class="hidden">
+
+                            {{-- Preview --}}
+                            <div id="preview-container" class="hidden">
+                                <div class="rounded-3xl border border-emerald-100 bg-emerald-50/60 p-4">
+                                    <div class="relative mx-auto h-64 w-full max-w-[220px] overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-emerald-100">
+                                        <img
+                                            id="preview-image"
+                                            src=""
+                                            alt="Preview"
+                                            class="h-full w-full object-cover"
+                                        >
+
+                                        <button
+                                            type="button"
+                                            id="btn-clear-image"
+                                            class="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white shadow-md transition hover:bg-red-600"
+                                        >
+                                            <i class="fas fa-times text-xs"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="mt-4 text-center">
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
+                                            <i class="fas fa-check-circle"></i>
+                                            Foto berhasil dipilih
+                                        </span>
+
+                                        <p id="file-name" class="mx-auto mt-2 max-w-xs break-all text-xs text-slate-500"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Upload Area --}}
+                            <div
+                                id="upload-area"
+                                class="group cursor-pointer rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/80 px-5 py-10 text-center transition hover:border-emerald-300 hover:bg-emerald-50/50"
+                            >
+                                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-white text-emerald-600 shadow-sm ring-1 ring-emerald-100 transition group-hover:scale-105">
+                                    <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                                </div>
+
+                                <p class="mt-4 text-sm font-bold text-slate-700">
+                                    Upload Foto Buku
+                                </p>
+
+                                <p class="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-slate-400">
+                                    Klik area ini atau seret file gambar ke sini.
+                                </p>
+
+                                <span class="mt-4 inline-flex items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition group-hover:bg-emerald-700">
+                                    Pilih File
+                                </span>
+                            </div>
+
+                            @error('foto')
+                                <p class="mt-2 text-sm font-medium text-red-600">{{ $message }}</p>
+                            @enderror
+
+                            {{-- Info Box --}}
+                            <div class="mt-5 rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 ring-1 ring-emerald-100">
+                                        <i class="fas fa-circle-info text-xs"></i>
+                                    </div>
+
+                                    <div>
+                                        <p class="text-sm font-bold text-slate-700">
+                                            Catatan
+                                        </p>
+                                        <p class="mt-1 text-xs leading-relaxed text-slate-500">
+                                            Gunakan foto vertikal agar tampilan sampul buku terlihat lebih rapi di halaman daftar buku.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Actions --}}
+                        <div class="border-t border-slate-100 bg-slate-50/80 p-5">
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-sm shadow-emerald-100 transition hover:-translate-y-0.5 hover:bg-emerald-700"
+                                >
+                                    <i class="fas fa-save text-xs"></i>
+                                    Simpan Buku
+                                </button>
+
+                                <a
+                                    href="{{ route('books.index') }}"
+                                    class="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100"
+                                >
+                                    <i class="fas fa-arrow-left text-xs"></i>
+                                    Kembali
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </form>
     </div>
@@ -232,56 +381,62 @@
         const previewCont = document.getElementById('preview-container');
         const previewImg  = document.getElementById('preview-image');
         const fileNameEl  = document.getElementById('file-name');
+        const clearBtn    = document.getElementById('btn-clear-image');
 
         function showPreview(file) {
             const reader = new FileReader();
+
             reader.onload = function (e) {
-                previewImg.src         = e.target.result;
+                previewImg.src = e.target.result;
                 fileNameEl.textContent = file.name;
                 previewCont.classList.remove('hidden');
                 uploadArea.classList.add('hidden');
             };
+
             reader.readAsDataURL(file);
         }
 
         function clearImage() {
-            fileInput.value        = '';
-            previewImg.src         = '';
+            fileInput.value = '';
+            previewImg.src = '';
             fileNameEl.textContent = '';
             previewCont.classList.add('hidden');
             uploadArea.classList.remove('hidden');
         }
 
-        // Klik area → buka dialog file
         uploadArea.addEventListener('click', function () {
             fileInput.click();
         });
 
-        // File dipilih via dialog
         fileInput.addEventListener('change', function () {
-            if (this.files.length > 0) showPreview(this.files[0]);
+            if (this.files.length > 0) {
+                showPreview(this.files[0]);
+            }
         });
 
-        // Tombol hapus preview
-        document.getElementById('btn-clear-image').addEventListener('click', clearImage);
+        if (clearBtn) {
+            clearBtn.addEventListener('click', clearImage);
+        }
 
-        // Cegah browser buka file di tab baru saat di-drop ke halaman mana pun
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function (evt) {
-            document.addEventListener(evt, function (e) { e.preventDefault(); }, false);
+            document.addEventListener(evt, function (e) {
+                e.preventDefault();
+            }, false);
         });
 
-        // Highlight upload area saat drag masuk
         uploadArea.addEventListener('dragover', function () {
-            uploadArea.classList.add('border-cyan-500', 'bg-cyan-50');
-        });
-        uploadArea.addEventListener('dragleave', function () {
-            uploadArea.classList.remove('border-cyan-500', 'bg-cyan-50');
+            uploadArea.classList.add('border-emerald-400', 'bg-emerald-50');
         });
 
-        // Handle drop
+        uploadArea.addEventListener('dragleave', function () {
+            uploadArea.classList.remove('border-emerald-400', 'bg-emerald-50');
+        });
+
         uploadArea.addEventListener('drop', function (e) {
-            uploadArea.classList.remove('border-cyan-500', 'bg-cyan-50');
+            uploadArea.classList.remove('border-emerald-400', 'bg-emerald-50');
+
             const files = e.dataTransfer.files;
+
             if (files.length > 0) {
                 const dt = new DataTransfer();
                 dt.items.add(files[0]);

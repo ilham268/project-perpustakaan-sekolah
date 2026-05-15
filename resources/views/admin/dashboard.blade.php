@@ -5,192 +5,430 @@
 
 @section('content')
 
-<!-- Stat Cards - Tanpa Background Icon -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-    <!-- Total Buku -->
-    <div class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all">
-        <div class="flex items-start gap-3">
-            <i class="fas fa-book text-emerald-600 text-2xl mt-1"></i>
-            <div class="flex-1">
-                <p class="text-sm text-slate-500">Total Buku</p>
-                <p class="text-2xl font-bold text-slate-800">{{ $totalBooks }}</p>
-                <a href="{{ route('books.index') }}" class="text-xs text-emerald-600 hover:text-emerald-700 transition inline-flex items-center gap-1 mt-1">
-                    Lihat <i class="fas fa-arrow-right text-[10px]"></i>
-                </a>
-            </div>
-        </div>
-    </div>
+<div class="space-y-6">
 
-    <!-- Total Anggota (Siswa) -->
-    <div class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all">
-        <div class="flex items-start gap-3">
-            <i class="fas fa-users text-emerald-600 text-2xl mt-1"></i>
-            <div class="flex-1">
-                <p class="text-sm text-slate-500">Total Siswa</p>
-                <p class="text-2xl font-bold text-slate-800">{{ $totalAnggota }}</p>
-                <a href="{{ route('users.index') }}?role=siswa" class="text-xs text-emerald-600 hover:text-emerald-700 transition inline-flex items-center gap-1 mt-1">
-                    Lihat <i class="fas fa-arrow-right text-[10px]"></i>
-                </a>
-            </div>
-        </div>
-    </div>
+    {{-- Hero Header --}}
+<div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-5 py-5 md:px-7 md:py-6 shadow-md shadow-emerald-100/70">
 
-    <!-- Denda Terkumpul -->
-    <div class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all">
-        <div class="flex items-start gap-3">
-            <i class="fas fa-money-bill-wave text-emerald-600 text-2xl mt-1"></i>
-            <div class="flex-1">
-                <p class="text-sm text-slate-500">Denda Terkumpul</p>
-                <p class="text-xl font-bold text-slate-800">Rp {{ number_format($totalDendaSudahBayar, 0, ',', '.') }}</p>
-                <a href="{{ route('admin.denda.index') }}?status=paid" class="text-xs text-emerald-600 hover:text-emerald-700 transition inline-flex items-center gap-1 mt-1">
-                    Lihat <i class="fas fa-arrow-right text-[10px]"></i>
-                </a>
-            </div>
-        </div>
-    </div>
+    {{-- Decorative Shape --}}
+    <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
+    <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
 
-    <!-- Total Kunjungan -->
-    <div class="stat-card bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition-all">
-        <div class="flex items-start gap-3">
-            <i class="fas fa-door-open text-emerald-600 text-2xl mt-1"></i>
-            <div class="flex-1">
-                <p class="text-sm text-slate-500">Total Kunjungan</p>
-                <p class="text-2xl font-bold text-slate-800">{{ $totalKunjungan }}</p>
-                <a href="{{ route('admin.guest-book.index') }}" class="text-xs text-emerald-600 hover:text-emerald-700 transition inline-flex items-center gap-1 mt-1">
-                    Lihat <i class="fas fa-arrow-right text-[10px]"></i>
-                </a>
+    <div class="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+
+        {{-- Text --}}
+        <div class="max-w-2xl">
+            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
+                Dashboard Admin
+            </h1>
+
+            <p class="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50">
+                Pantau data buku, siswa, peminjaman, kunjungan, dan denda perpustakaan.
+            </p>
+        </div>
+
+        {{-- Small Summary Cards --}}
+        <div class="grid grid-cols-2 gap-3 w-full lg:w-[360px]">
+            <div class="rounded-2xl bg-white/15 px-4 py-3 ring-1 ring-white/20 backdrop-blur-md transition hover:bg-white/20">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-semibold text-emerald-50">
+                            Total Buku
+                        </p>
+
+                        <p class="mt-1 text-2xl font-extrabold tracking-tight text-white">
+                            {{ $totalBooks }}
+                        </p>
+                    </div>
+
+                    <div class="hidden sm:flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white ring-1 ring-white/20">
+                        <i class="fas fa-book text-sm"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-2xl bg-white/15 px-4 py-3 ring-1 ring-white/20 backdrop-blur-md transition hover:bg-white/20">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-semibold text-emerald-50">
+                            Total Siswa
+                        </p>
+
+                        <p class="mt-1 text-2xl font-extrabold tracking-tight text-white">
+                            {{ $totalAnggota }}
+                        </p>
+                    </div>
+
+                    <div class="hidden sm:flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white ring-1 ring-white/20">
+                        <i class="fas fa-users text-sm"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+    {{-- Stat Cards --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-5">
 
-<!-- Middle Row: Chart + Popular Books -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
-    <!-- Chart Peminjaman -->
-    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-2">
-            <h3 class="text-base font-semibold text-slate-800">Statistik Peminjaman</h3>
-            <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">12 Bulan Terakhir</span>
-        </div>
-        <div class="h-64">
-            <canvas id="loanChart"></canvas>
-        </div>
-    </div>
+        {{-- Total Buku --}}
+        <a
+            href="{{ route('books.index') }}"
+            class="group relative overflow-hidden rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60"
+        >
+            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-emerald-50 transition group-hover:bg-emerald-100"></div>
 
-    <!-- Buku Terpopuler -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-semibold text-slate-800">Buku Terpopuler</h3>
-            <a href="{{ route('books.index') }}" class="text-xs text-emerald-600 hover:text-emerald-700 transition">Lihat Semua →</a>
-        </div>
-        <div class="space-y-3 max-h-80 overflow-y-auto">
-            @forelse($popularBooks as $i => $book)
-            @php
-                $barMax = $popularBooks->first()->total_pinjam ?? 1;
-                $barPct = $barMax > 0 ? round(($book->total_pinjam / $barMax) * 100) : 0;
-            @endphp
-            <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors">
-                <!-- Cover Buku -->
-                @if($book->foto)
-                    <img src="{{ asset('storage/' . $book->foto) }}"
-                         class="w-10 h-14 object-cover rounded-md border border-slate-200 shrink-0 shadow-sm">
-                @else
-                    <div class="w-10 h-14 bg-slate-100 rounded-md border border-slate-200 shrink-0 flex items-center justify-center">
-                        <i class="fas fa-book text-slate-300 text-sm"></i>
-                    </div>
-                @endif
-                
-                <div class="min-w-0 flex-1">
-                    <p class="text-sm font-semibold text-slate-800 truncate">{{ $book->judul }}</p>
-                    <p class="text-xs text-slate-400 truncate mb-1">{{ $book->penulis }}</p>
-                    <div class="w-full bg-slate-100 rounded-full h-1">
-                        <div class="h-1 rounded-full bg-emerald-500 transition-all" style="width: {{ $barPct }}%"></div>
+            <div class="relative flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Total Buku</p>
+                    <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                        {{ $totalBooks }}
+                    </p>
+                    <div class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-600">
+                        Lihat data
+                        <i class="fas fa-arrow-right text-[10px] transition group-hover:translate-x-1"></i>
                     </div>
                 </div>
-                
-                <div class="shrink-0 text-center min-w-[45px]">
-                    <span class="text-base font-bold text-emerald-600">{{ $book->total_pinjam }}</span>
-                    <p class="text-[10px] text-slate-400">kali</p>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                    <i class="fas fa-book text-xl"></i>
                 </div>
             </div>
-            @empty
-            <div class="text-center py-10 text-slate-400">
-                <i class="fas fa-book-open text-3xl mb-2 block"></i>
-                <p class="text-sm">Belum ada data peminjaman</p>
-            </div>
-            @endforelse
-        </div>
-    </div>
-</div>
+        </a>
 
-<!-- Denda Belum Dibayar -->
-<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-    <div class="px-5 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 gap-2">
-        <h3 class="text-base font-semibold text-slate-800">Denda Belum Dibayar</h3>
-        <a href="{{ route('admin.denda.index') }}?status=pending" class="text-xs text-emerald-600 hover:text-emerald-700 transition">Lihat Semua →</a>
+        {{-- Total Siswa --}}
+        <a
+            href="{{ route('users.index') }}?role=siswa"
+            class="group relative overflow-hidden rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60"
+        >
+            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-blue-50 transition group-hover:bg-blue-100"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Total Siswa</p>
+                    <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                        {{ $totalAnggota }}
+                    </p>
+                    <div class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-600">
+                        Lihat data
+                        <i class="fas fa-arrow-right text-[10px] transition group-hover:translate-x-1"></i>
+                    </div>
+                </div>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                    <i class="fas fa-users text-xl"></i>
+                </div>
+            </div>
+        </a>
+
+        {{-- Denda Terkumpul --}}
+        <a
+            href="{{ route('admin.denda.index') }}?status=paid"
+            class="group relative overflow-hidden rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60"
+        >
+            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-amber-50 transition group-hover:bg-amber-100"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-slate-500">Denda Terkumpul</p>
+                    <p class="mt-2 text-2xl font-bold tracking-tight text-slate-900 truncate">
+                        Rp {{ number_format($totalDendaSudahBayar, 0, ',', '.') }}
+                    </p>
+                    <div class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-600">
+                        Lihat data
+                        <i class="fas fa-arrow-right text-[10px] transition group-hover:translate-x-1"></i>
+                    </div>
+                </div>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-amber-100">
+                    <i class="fas fa-wallet text-xl"></i>
+                </div>
+            </div>
+        </a>
+
+        {{-- Total Kunjungan --}}
+        <a
+            href="{{ route('admin.guest-book.index') }}"
+            class="group relative overflow-hidden rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60"
+        >
+            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-violet-50 transition group-hover:bg-violet-100"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm font-medium text-slate-500">Total Kunjungan</p>
+                    <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                        {{ $totalKunjungan }}
+                    </p>
+                    <div class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-600">
+                        Lihat data
+                        <i class="fas fa-arrow-right text-[10px] transition group-hover:translate-x-1"></i>
+                    </div>
+                </div>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 ring-1 ring-violet-100">
+                    <i class="fas fa-door-open text-xl"></i>
+                </div>
+            </div>
+        </a>
     </div>
-    
-    <div class="overflow-x-auto">
-        <table class="w-full min-w-[750px]">
-            <thead>
-                <tr class="bg-slate-50 text-xs text-slate-500 border-b border-slate-100">
-                    <th class="px-5 py-3 text-left w-12">No</th>
-                    <th class="px-5 py-3 text-left">Nama Siswa</th>
-                    <th class="px-5 py-3 text-left">Judul Buku</th>
-                    <th class="px-5 py-3 text-center w-24">Kondisi</th>
-                    <th class="px-5 py-3 text-center w-28">Denda</th>
-                    <th class="px-5 py-3 text-center w-32">Tgl Kembali</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-                @forelse($unpaidDenda as $i => $return)
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-5 py-3 text-sm text-slate-400">{{ $i + 1 }}.76td
-                    <td class="px-5 py-3">
-                        <p class="text-sm font-medium text-slate-800">{{ $return->loan->user->name }}</p>
-                        <p class="text-xs text-slate-400">{{ $return->loan->user->nomor_identitas }}</p>
-                        @if($return->loan->user->kelas)
-                            <p class="text-xs text-emerald-600 mt-0.5">Kelas {{ $return->loan->user->kelas }} - {{ $return->loan->user->jurusan ?? '' }}</p>
+
+    {{-- Chart + Popular Books --}}
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+
+        {{-- Chart Peminjaman --}}
+        <div class="xl:col-span-2 rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 px-5 py-4 md:px-6">
+                <div>
+                    <h3 class="text-base md:text-lg font-bold text-slate-900">
+                        Statistik Peminjaman
+                    </h3>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Perkembangan jumlah peminjaman selama 12 bulan terakhir.
+                    </p>
+                </div>
+
+                <div class="inline-flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
+                    <i class="fas fa-calendar-days"></i>
+                    12 Bulan Terakhir
+                </div>
+            </div>
+
+            <div class="p-4 md:p-6">
+                <div class="h-[280px] sm:h-[320px]">
+                    <canvas id="loanChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {{-- Buku Terpopuler --}}
+        <div class="rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+                <div>
+                    <h3 class="text-base md:text-lg font-bold text-slate-900">
+                        Buku Terpopuler
+                    </h3>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Buku paling sering dipinjam.
+                    </p>
+                </div>
+
+                <a
+                    href="{{ route('books.index') }}"
+                    class="shrink-0 text-xs font-semibold text-emerald-600 hover:text-emerald-700"
+                >
+                    Lihat Semua
+                </a>
+            </div>
+
+            <div class="max-h-[390px] overflow-y-auto p-4 space-y-3">
+                @forelse($popularBooks as $i => $book)
+                    @php
+                        $barMax = $popularBooks->first()->total_pinjam ?? 1;
+                        $barPct = $barMax > 0 ? round(($book->total_pinjam / $barMax) * 100) : 0;
+                    @endphp
+
+                    <div class="group flex items-center gap-3 rounded-2xl border border-transparent p-3 transition-all hover:border-slate-200 hover:bg-slate-50">
+                        <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
+                            {{ $i + 1 }}
+                        </div>
+
+                        @if($book->foto)
+                            <img
+                                src="{{ asset('storage/' . $book->foto) }}"
+                                alt="{{ $book->judul }}"
+                                class="h-16 w-11 shrink-0 rounded-xl border border-slate-200 object-cover shadow-sm"
+                            >
+                        @else
+                            <div class="flex h-16 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 text-slate-300">
+                                <i class="fas fa-book text-sm"></i>
+                            </div>
                         @endif
-                    </td>
-                    <td class="px-5 py-3">
-                        <p class="text-sm text-slate-600 max-w-xs truncate">{{ $return->loan->bookItem->book->judul }}</p>
-                        <p class="text-xs text-slate-400">{{ $return->loan->bookItem->kode_buku ?? '' }}</p>
-                    </td>
-                    <td class="px-5 py-3 text-center">
-                        @if($return->kondisi == 'baik')
-                            <span class="inline-block px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Baik</span>
-                        @elseif($return->kondisi == 'rusak')
-                            <span class="inline-block px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-700">Rusak</span>
-                        @elseif($return->kondisi == 'hilang')
-                            <span class="inline-block px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">Hilang</span>
-                        @endif
-                    </td>
-                    <td class="px-5 py-3 text-center">
-                        <span class="text-sm font-semibold text-red-600">Rp {{ number_format($return->denda, 0, ',', '.') }}</span>
-                    </td>
-                    <td class="px-5 py-3 text-center text-sm text-slate-500">
-                        {{ \Carbon\Carbon::parse($return->tanggal_pengembalian)->translatedFormat('d M Y') }}
-                    </td>
-                </tr>
+
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm font-bold text-slate-800">
+                                {{ $book->judul }}
+                            </p>
+                            <p class="mt-0.5 truncate text-xs text-slate-400">
+                                {{ $book->penulis }}
+                            </p>
+
+                            <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+                                <div
+                                    class="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                                    style="width: {{ $barPct }}%"
+                                ></div>
+                            </div>
+                        </div>
+
+                        <div class="shrink-0 text-right">
+                            <p class="text-lg font-bold text-emerald-600">
+                                {{ $book->total_pinjam }}
+                            </p>
+                            <p class="text-[10px] font-medium text-slate-400">
+                                kali
+                            </p>
+                        </div>
+                    </div>
                 @empty
-                <tr>
-                    <td colspan="6" class="px-5 py-12 text-center text-slate-400">
-                        <i class="fas fa-check-circle text-4xl mb-2 block text-emerald-400"></i>
-                        <p class="text-sm">Semua denda sudah dibayar</p>
-                    </td>
-                </tr>
+                    <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                            <i class="fas fa-book-open text-xl"></i>
+                        </div>
+                        <p class="mt-3 text-sm font-semibold text-slate-600">
+                            Belum ada data peminjaman
+                        </p>
+                        <p class="mt-1 text-xs text-slate-400">
+                            Data buku populer akan muncul setelah ada transaksi.
+                        </p>
+                    </div>
                 @endforelse
-            </tbody>
-        </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Denda Belum Dibayar --}}
+    <div class="rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 px-5 py-4 md:px-6">
+            <div>
+                <h3 class="text-base md:text-lg font-bold text-slate-900">
+                    Denda Belum Dibayar
+                </h3>
+                <p class="mt-1 text-xs text-slate-500">
+                    Daftar pengembalian buku yang masih memiliki tagihan denda.
+                </p>
+            </div>
+
+            <a
+                href="{{ route('admin.denda.index') }}?status=pending"
+                class="inline-flex w-fit items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
+            >
+                Lihat Semua
+                <i class="fas fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[850px]">
+                <thead>
+                    <tr class="border-b border-slate-100 bg-slate-50/80 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th class="px-5 py-4 text-left w-16">No</th>
+                        <th class="px-5 py-4 text-left">Nama Siswa</th>
+                        <th class="px-5 py-4 text-left">Judul Buku</th>
+                        <th class="px-5 py-4 text-center w-28">Kondisi</th>
+                        <th class="px-5 py-4 text-center w-36">Denda</th>
+                        <th class="px-5 py-4 text-center w-36">Tgl Kembali</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($unpaidDenda as $i => $return)
+                        <tr class="transition-colors hover:bg-slate-50">
+                            <td class="px-5 py-4">
+                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
+                                    {{ $i + 1 }}
+                                </span>
+                            </td>
+
+                            <td class="px-5 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-sm font-bold text-emerald-700">
+                                        {{ strtoupper(substr($return->loan->user->name, 0, 2)) }}
+                                    </div>
+
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-bold text-slate-800">
+                                            {{ $return->loan->user->name }}
+                                        </p>
+                                        <p class="text-xs text-slate-400">
+                                            {{ $return->loan->user->nomor_identitas }}
+                                        </p>
+
+                                        @if($return->loan->user->kelas)
+                                            <p class="mt-0.5 text-xs font-medium text-emerald-600">
+                                                Kelas {{ $return->loan->user->kelas }} - {{ $return->loan->user->jurusan ?? '' }}
+                                            </p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="px-5 py-4">
+                                <p class="max-w-xs truncate text-sm font-medium text-slate-700">
+                                    {{ $return->loan->bookItem->book->judul }}
+                                </p>
+                                <p class="mt-0.5 text-xs text-slate-400">
+                                    {{ $return->loan->bookItem->kode_buku ?? '-' }}
+                                </p>
+                            </td>
+
+                            <td class="px-5 py-4 text-center">
+                                @if($return->kondisi == 'baik')
+                                    <span class="inline-flex items-center justify-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-100">
+                                        Baik
+                                    </span>
+                                @elseif($return->kondisi == 'rusak')
+                                    <span class="inline-flex items-center justify-center rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700 ring-1 ring-orange-100">
+                                        Rusak
+                                    </span>
+                                @elseif($return->kondisi == 'hilang')
+                                    <span class="inline-flex items-center justify-center rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-red-100">
+                                        Hilang
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center justify-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
+                                        -
+                                    </span>
+                                @endif
+                            </td>
+
+                            <td class="px-5 py-4 text-center">
+                                <span class="inline-flex items-center justify-center rounded-xl bg-red-50 px-3 py-1.5 text-sm font-bold text-red-600">
+                                    Rp {{ number_format($return->denda, 0, ',', '.') }}
+                                </span>
+                            </td>
+
+                            <td class="px-5 py-4 text-center">
+                                <span class="text-sm font-medium text-slate-500">
+                                    {{ \Carbon\Carbon::parse($return->tanggal_pengembalian)->translatedFormat('d M Y') }}
+                                </span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-5 py-14 text-center">
+                                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500">
+                                    <i class="fas fa-circle-check text-2xl"></i>
+                                </div>
+                                <p class="mt-4 text-sm font-bold text-slate-700">
+                                    Semua denda sudah dibayar
+                                </p>
+                                <p class="mt-1 text-xs text-slate-400">
+                                    Tidak ada tagihan denda yang tertunda saat ini.
+                                </p>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<!-- Chart.js -->
+{{-- Chart.js --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const ctx = document.getElementById('loanChart').getContext('2d');
+    document.addEventListener('DOMContentLoaded', function () {
+        const chartElement = document.getElementById('loanChart');
+
+        if (!chartElement) {
+            return;
+        }
+
+        const ctx = chartElement.getContext('2d');
+
+        const gradient = ctx.createLinearGradient(0, 0, 0, 320);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
         new Chart(ctx, {
             type: 'line',
             data: {
@@ -199,38 +437,81 @@
                     label: 'Peminjaman',
                     data: {!! json_encode($chartData) !!},
                     borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.05)',
-                    tension: 0.3,
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    tension: 0.42,
                     fill: true,
-                    pointBackgroundColor: '#10b981',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#10b981',
+                    pointBorderWidth: 3,
                     pointRadius: 4,
-                    pointHoverRadius: 6
+                    pointHoverRadius: 7,
+                    pointHoverBackgroundColor: '#10b981',
+                    pointHoverBorderColor: '#ffffff'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
                 plugins: {
-                    legend: { display: false },
-                    tooltip: { 
-                        mode: 'index', 
-                        intersect: false,
-                        backgroundColor: '#1e293b',
-                        titleColor: '#f1f5f9',
-                        bodyColor: '#cbd5e1'
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#cbd5e1',
+                        padding: 12,
+                        cornerRadius: 12,
+                        displayColors: false,
+                        titleFont: {
+                            size: 12,
+                            weight: '600'
+                        },
+                        bodyFont: {
+                            size: 12
+                        },
+                        callbacks: {
+                            label: function (context) {
+                                return 'Peminjaman: ' + context.parsed.y;
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: { stepSize: 1, color: '#94a3b8', font: { size: 11 } },
-                        grid: { color: '#f1f5f9' }
+                        border: {
+                            display: false
+                        },
+                        ticks: {
+                            stepSize: 1,
+                            color: '#94a3b8',
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            color: '#f1f5f9'
+                        }
                     },
                     x: {
-                        ticks: { color: '#94a3b8', font: { size: 11 } },
-                        grid: { display: false }
+                        border: {
+                            display: false
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            font: {
+                                size: 11
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
                     }
                 }
             }

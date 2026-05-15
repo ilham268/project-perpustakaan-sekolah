@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\DendaExport;
 
 class ReturnBookController extends Controller
 {
@@ -728,8 +730,14 @@ class ReturnBookController extends Controller
 
     public function exportDenda(Request $request)
     {
-        return redirect()->back()
-            ->with('error', 'Fitur export sedang dalam pengembangan');
+        return Excel::download(
+            new DendaExport(
+                $request->start_date ?? null,
+                $request->end_date ?? null,
+                $request->status ?? 'all'
+            ),
+            'rekap-denda-' . now()->format('Y-m-d') . '.xlsx'
+        );
     }
 
     // ======================================================

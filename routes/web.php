@@ -136,30 +136,51 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // ROUTE PEMINJAMAN KELAS - ADMIN
     // ============================================
     Route::prefix('pinjamkelas')->group(function () {
-        Route::get('/kategori', [KategoriPinjamController::class, 'index'])->name('admin.pinjamkelas.kategori');
-        Route::post('/kategori', [KategoriPinjamController::class, 'store'])->name('admin.pinjamkelas.kategori.store');
-        Route::put('/kategori/{id}', [KategoriPinjamController::class, 'update'])->name('admin.pinjamkelas.kategori.update');
-        Route::delete('/kategori/{id}', [KategoriPinjamController::class, 'destroy'])->name('admin.pinjamkelas.kategori.destroy');
-        Route::get('/kategori/{id}/show', [KategoriPinjamController::class, 'show'])->name('admin.pinjamkelas.kategori.show');
-        Route::post('/kategori/proses', [KategoriPinjamController::class, 'prosesPinjam'])->name('admin.pinjamkelas.kategori.proses');
+    Route::get('/kategori', [KategoriPinjamController::class, 'index'])
+        ->name('admin.pinjamkelas.kategori');
 
-        Route::get('/kelas', [KategoriPinjamController::class, 'kelasPinjam'])
-            ->name('admin.pinjamkelas.kelas');
+    Route::post('/kategori', [KategoriPinjamController::class, 'store'])
+        ->name('admin.pinjamkelas.kategori.store');
 
-        Route::post('/kelas/{id}/setujui', [KategoriPinjamController::class, 'setujuiKelas'])
-            ->name('admin.pinjamkelas.kelas.setujui');
+    Route::put('/kategori/{id}', [KategoriPinjamController::class, 'update'])
+        ->name('admin.pinjamkelas.kategori.update');
 
-        Route::get('/kelas/{id}/denda', [KategoriPinjamController::class, 'formDendaKelas'])
-            ->name('admin.pinjamkelas.kelas.denda');
+    Route::delete('/kategori/{id}', [KategoriPinjamController::class, 'destroy'])
+        ->name('admin.pinjamkelas.kategori.destroy');
 
-        Route::post('/kelas/{id}/denda', [KategoriPinjamController::class, 'simpanDendaKelas'])
-            ->name('admin.pinjamkelas.kelas.denda.store');
+    Route::get('/kategori/{id}/show', [KategoriPinjamController::class, 'show'])
+        ->name('admin.pinjamkelas.kategori.show');
 
-        Route::view('/', 'admin.pinjamkelas.index')->name('admin.pinjamkelas.index');
-        Route::view('/create', 'admin.pinjamkelas.create-kelas')->name('admin.pinjamkelas.create');
-        Route::view('/edit', 'admin.pinjamkelas.edit-kelas')->name('admin.pinjamkelas.edit');
-        Route::view('/buku', 'admin.pinjamkelas.buku')->name('admin.pinjamkelas.buku');
-    });
+    Route::post('/kategori/proses', [KategoriPinjamController::class, 'prosesPinjam'])
+        ->name('admin.pinjamkelas.kategori.proses');
+
+    Route::get('/kelas', [KategoriPinjamController::class, 'kelasPinjam'])
+        ->name('admin.pinjamkelas.kelas');
+
+    Route::get('/kelas/export', [KategoriPinjamController::class, 'exportKelasPinjam'])
+        ->name('admin.pinjamkelas.kelas.export');
+
+    Route::post('/kelas/{id}/setujui', [KategoriPinjamController::class, 'setujuiKelas'])
+        ->name('admin.pinjamkelas.kelas.setujui');
+
+    Route::get('/kelas/{id}/denda', [KategoriPinjamController::class, 'formDendaKelas'])
+        ->name('admin.pinjamkelas.kelas.denda');
+
+    Route::post('/kelas/{id}/denda', [KategoriPinjamController::class, 'simpanDendaKelas'])
+        ->name('admin.pinjamkelas.kelas.denda.store');
+
+    Route::view('/', 'admin.pinjamkelas.index')
+        ->name('admin.pinjamkelas.index');
+
+    Route::view('/create', 'admin.pinjamkelas.create-kelas')
+        ->name('admin.pinjamkelas.create');
+
+    Route::view('/edit', 'admin.pinjamkelas.edit-kelas')
+        ->name('admin.pinjamkelas.edit');
+
+    Route::view('/buku', 'admin.pinjamkelas.buku')
+        ->name('admin.pinjamkelas.buku');
+});
 });
 
 // ============================================

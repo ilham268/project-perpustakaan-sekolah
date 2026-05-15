@@ -10,12 +10,41 @@ return new class extends Migration
     {
         Schema::create('pinjam_kelas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('kategori_pinjam_id')->constrained('kategori_pinjams')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('book_id')->constrained('books')->onDelete('cascade');
+
+            $table->foreignId('kategori_pinjam_id')
+                ->constrained('kategori_pinjams')
+                ->onDelete('cascade');
+
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->onDelete('cascade');
+
+            // Dibuat nullable karena peminjaman kelas sekarang pakai kode_buku
+            $table->foreignId('book_id')
+                ->nullable()
+                ->constrained('books')
+                ->nullOnDelete();
+
+            $table->string('kode_buku')->nullable();
+
             $table->date('tanggal_pinjam');
             $table->date('tanggal_kembali');
-            $table->enum('status', ['pending', 'disetujui', 'dikembalikan'])->default('pending');
+
+            $table->enum('status', [
+                'pending',
+                'disetujui',
+                'dikembalikan',
+                'denda',
+            ])->default('pending');
+
+            $table->enum('kondisi', [
+                'baik',
+                'rusak',
+                'hilang',
+            ])->nullable();
+
+            $table->integer('denda')->default(0);
+
             $table->timestamps();
         });
     }

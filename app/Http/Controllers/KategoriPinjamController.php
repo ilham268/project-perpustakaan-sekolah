@@ -8,16 +8,67 @@ use App\Models\User;
 use App\Models\Book;
 use App\Models\PinjamKelas;
 use App\Models\Kelas;
+use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PinjamKelasExport;
 
 class KategoriPinjamController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $kategoris = KategoriPinjam::latest()->paginate(10);
+        $query = KategoriPinjam::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $kelasDariJurusanSearch = Kelas::where('jurusan', 'like', '%' . $search . '%')
+                ->pluck('nama_kelas')
+                ->toArray();
+
+            $query->where(function ($q) use ($search, $kelasDariJurusanSearch) {
+                $q->where('nama_kategori', 'like', '%' . $search . '%')
+                    ->orWhere('kelas', 'like', '%' . $search . '%');
+
+                if (!empty($kelasDariJurusanSearch)) {
+                    $q->orWhereIn('kelas', $kelasDariJurusanSearch);
+                }
+            });
+        }
+
+        if ($request->filled('kelas')) {
+            $query->where('kelas', $request->kelas);
+        }
+
+        if ($request->filled('jurusan')) {
+            $kelasDariJurusan = Kelas::where('jurusan', $request->jurusan)
+                ->pluck('nama_kelas')
+                ->toArray();
+
+            if (!empty($kelasDariJurusan)) {
+                $query->whereIn('kelas', $kelasDariJurusan);
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        $kategoris = $query
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         $kelasList = Kelas::orderBy('nama_kelas')->get();
 
-        return view('admin.pinjamkelas.kategori', compact('kategoris', 'kelasList'));
+        $jurusanList = Kelas::whereNotNull('jurusan')
+            ->where('jurusan', '!=', '')
+            ->distinct()
+            ->orderBy('jurusan')
+            ->pluck('jurusan');
+
+        return view('admin.pinjamkelas.kategori', compact(
+            'kategoris',
+            'kelasList',
+            'jurusanList'
+        ));
     }
 
     public function store(Request $request)
@@ -37,7 +88,8 @@ class KategoriPinjamController extends Controller
             'kelas' => $request->kelas,
         ]);
 
-        return redirect()->route('admin.pinjamkelas.kategori')
+        return redirect()
+            ->route('admin.pinjamkelas.kategori')
             ->with('success', 'Kategori berhasil ditambahkan');
     }
 
@@ -60,7 +112,8 @@ class KategoriPinjamController extends Controller
             'kelas' => $request->kelas,
         ]);
 
-        return redirect()->route('admin.pinjamkelas.kategori')
+        return redirect()
+            ->route('admin.pinjamkelas.kategori')
             ->with('success', 'Kategori berhasil diupdate');
     }
 
@@ -69,7 +122,8 @@ class KategoriPinjamController extends Controller
         $kategori = KategoriPinjam::findOrFail($id);
         $kategori->delete();
 
-        return redirect()->route('admin.pinjamkelas.kategori')
+        return redirect()
+            ->route('admin.pinjamkelas.kategori')
             ->with('success', 'Kategori berhasil dihapus');
     }
 
@@ -79,6 +133,7 @@ class KategoriPinjamController extends Controller
 
         $siswas = User::where('role', 'siswa')
             ->where('kelas', $kategori->kelas)
+            ->orderBy('name')
             ->get();
 
         return view('admin.pinjamkelas.show', compact('kategori', 'siswas'));
@@ -89,7 +144,7 @@ class KategoriPinjamController extends Controller
         $request->validate([
             'kategori_id' => 'required|exists:kategori_pinjams,id',
             'user_id' => 'required|exists:users,id',
-            'kode_buku' => 'required|string',
+            'kode_buku' => 'required|string|max:100',
         ]);
 
         $kategori = KategoriPinjam::findOrFail($request->kategori_id);
@@ -101,50 +156,118 @@ class KategoriPinjamController extends Controller
             'kategori_pinjam_id' => $request->kategori_id,
             'user_id' => $request->user_id,
             'book_id' => $book ? $book->id : null,
-            'kode_buku' => $request->kode_buku,
+            'kode_buku' => strtoupper($request->kode_buku),
             'tanggal_pinjam' => now(),
             'tanggal_kembali' => now()->addDays(7),
             'status' => 'pending',
         ]);
 
-        return redirect()->route('admin.pinjamkelas.kategori')
+        return redirect()
+            ->route('admin.pinjamkelas.kategori')
             ->with('success', 'Peminjaman berhasil ditambahkan');
     }
 
     public function kelasPinjam(Request $request)
     {
-        $query = PinjamKelas::with(['user', 'kategori'])
-            ->latest();
+        $query = PinjamKelas::with(['user', 'kategori']);
 
         if ($request->filled('search')) {
             $search = $request->search;
 
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('user', function ($q) use ($search) {
-                    $q->where('name', 'like', '%' . $search . '%')
-                      ->orWhere('nomor_identitas', 'like', '%' . $search . '%');
-                })
-                ->orWhereHas('kategori', function ($q) use ($search) {
-                    $q->where('nama_kategori', 'like', '%' . $search . '%');
-                })
-                ->orWhere('kode_buku', 'like', '%' . $search . '%');
+            $kelasDariJurusanSearch = Kelas::where('jurusan', 'like', '%' . $search . '%')
+                ->pluck('nama_kelas')
+                ->toArray();
+
+            $query->where(function ($q) use ($search, $kelasDariJurusanSearch) {
+                $q->where('kode_buku', 'like', '%' . $search . '%')
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('nomor_identitas', 'like', '%' . $search . '%')
+                            ->orWhere('kelas', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('kategori', function ($kategoriQuery) use ($search) {
+                        $kategoriQuery->where('nama_kategori', 'like', '%' . $search . '%')
+                            ->orWhere('kelas', 'like', '%' . $search . '%');
+                    });
+
+                if (!empty($kelasDariJurusanSearch)) {
+                    $q->orWhereHas('user', function ($userQuery) use ($kelasDariJurusanSearch) {
+                        $userQuery->whereIn('kelas', $kelasDariJurusanSearch);
+                    })
+                    ->orWhereHas('kategori', function ($kategoriQuery) use ($kelasDariJurusanSearch) {
+                        $kategoriQuery->whereIn('kelas', $kelasDariJurusanSearch);
+                    });
+                }
             });
         }
 
         if ($request->filled('kelas')) {
-            $kelas = $request->kelas;
-
-            $query->whereHas('user', function ($q) use ($kelas) {
-                $q->where('kelas', $kelas);
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('user', function ($userQuery) use ($request) {
+                    $userQuery->where('kelas', $request->kelas);
+                })
+                ->orWhereHas('kategori', function ($kategoriQuery) use ($request) {
+                    $kategoriQuery->where('kelas', $request->kelas);
+                });
             });
         }
 
-        $pinjamKelas = $query->paginate(10)->withQueryString();
+        if ($request->filled('jurusan')) {
+            $kelasDariJurusan = Kelas::where('jurusan', $request->jurusan)
+                ->pluck('nama_kelas')
+                ->toArray();
 
-        $kelasList = Kelas::orderBy('nama_kelas')
+            if (!empty($kelasDariJurusan)) {
+                $query->where(function ($q) use ($kelasDariJurusan) {
+                    $q->whereHas('user', function ($userQuery) use ($kelasDariJurusan) {
+                        $userQuery->whereIn('kelas', $kelasDariJurusan);
+                    })
+                    ->orWhereHas('kategori', function ($kategoriQuery) use ($kelasDariJurusan) {
+                        $kategoriQuery->whereIn('kelas', $kelasDariJurusan);
+                    });
+                });
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        $pinjamKelas = $query
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        $kelasList = Kelas::whereNotNull('nama_kelas')
+            ->where('nama_kelas', '!=', '')
+            ->distinct()
+            ->orderBy('nama_kelas')
             ->pluck('nama_kelas');
 
-        return view('admin.pinjamkelas.kelas', compact('pinjamKelas', 'kelasList'));
+        $jurusanList = Kelas::whereNotNull('jurusan')
+            ->where('jurusan', '!=', '')
+            ->distinct()
+            ->orderBy('jurusan')
+            ->pluck('jurusan');
+
+        $kelasJurusanMap = Kelas::pluck('jurusan', 'nama_kelas');
+
+        return view('admin.pinjamkelas.kelas', compact(
+            'pinjamKelas',
+            'kelasList',
+            'jurusanList',
+            'kelasJurusanMap'
+        ));
+    }
+
+    public function exportKelasPinjam(Request $request)
+    {
+        return Excel::download(
+            new PinjamKelasExport(
+                $request->search,
+                $request->kelas,
+                $request->jurusan
+            ),
+            'kelas-pinjam-' . now()->format('Y-m-d') . '.xlsx'
+        );
     }
 
     public function setujuiKelas($id)
@@ -152,17 +275,20 @@ class KategoriPinjamController extends Controller
         $pinjam = PinjamKelas::findOrFail($id);
 
         if ($pinjam->status == 'disetujui') {
-            return redirect()->back()
+            return redirect()
+                ->back()
                 ->with('error', 'Peminjaman kelas ini sudah disetujui.');
         }
 
         if ($pinjam->status == 'dikembalikan') {
-            return redirect()->back()
+            return redirect()
+                ->back()
                 ->with('error', 'Peminjaman kelas ini sudah dikembalikan.');
         }
 
         if ($pinjam->status == 'denda') {
-            return redirect()->back()
+            return redirect()
+                ->back()
                 ->with('error', 'Peminjaman kelas ini sudah masuk denda.');
         }
 
@@ -170,7 +296,8 @@ class KategoriPinjamController extends Controller
             'status' => 'disetujui',
         ]);
 
-        return redirect()->back()
+        return redirect()
+            ->back()
             ->with('success', 'Peminjaman kelas berhasil disetujui.');
     }
 
@@ -180,7 +307,8 @@ class KategoriPinjamController extends Controller
             ->findOrFail($id);
 
         if ($pinjam->status == 'dikembalikan') {
-            return redirect()->route('admin.pinjamkelas.kelas')
+            return redirect()
+                ->route('admin.pinjamkelas.kelas')
                 ->with('error', 'Peminjaman ini sudah dikembalikan.');
         }
 
@@ -199,7 +327,8 @@ class KategoriPinjamController extends Controller
         $pinjam = PinjamKelas::findOrFail($id);
 
         if ($pinjam->status == 'dikembalikan') {
-            return redirect()->route('admin.pinjamkelas.kelas')
+            return redirect()
+                ->route('admin.pinjamkelas.kelas')
                 ->with('error', 'Peminjaman ini sudah dikembalikan.');
         }
 
@@ -211,8 +340,8 @@ class KategoriPinjamController extends Controller
             $dendaKondisi = (int) $request->input('denda_hilang', 100000);
         }
 
-        $tanggalJatuhTempo = \Carbon\Carbon::parse($pinjam->tanggal_kembali)->startOfDay();
-        $tanggalSekarang = \Carbon\Carbon::now()->startOfDay();
+        $tanggalJatuhTempo = Carbon::parse($pinjam->tanggal_kembali)->startOfDay();
+        $tanggalSekarang = Carbon::now()->startOfDay();
 
         $dendaKeterlambatan = 0;
 
@@ -230,7 +359,8 @@ class KategoriPinjamController extends Controller
             'tanggal_denda' => now(),
         ]);
 
-        return redirect()->route('admin.pinjamkelas.kelas')
+        return redirect()
+            ->route('admin.pinjamkelas.kelas')
             ->with('success', 'Denda peminjaman kelas berhasil diproses.');
     }
 }

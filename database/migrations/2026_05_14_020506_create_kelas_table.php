@@ -10,11 +10,12 @@ return new class extends Migration
     {
         Schema::create('kelas', function (Blueprint $table) {
             $table->id();
-            $table->string('nama_kelas'); // contoh: X RPL 1
-            $table->string('jurusan');    // contoh: RPL
+            $table->string('nama_kelas');
+            $table->string('jurusan');
             $table->timestamps();
 
-            $table->unique('nama_kelas');
+            // Yang unik adalah kombinasi kelas + jurusan
+            $table->unique(['nama_kelas', 'jurusan'], 'kelas_nama_kelas_jurusan_unique');
         });
     }
 
