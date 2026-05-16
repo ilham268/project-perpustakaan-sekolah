@@ -5,47 +5,380 @@
 
 @section('content')
 
-@if(session('success'))
-    <div class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
-        <i class="fas fa-check-circle text-green-500"></i>
-        <span>{{ session('success') }}</span>
-    </div>
-@endif
+<div class="space-y-5">
 
-@if(session('error'))
-    <div class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
-        <i class="fas fa-times-circle text-red-500"></i>
-        <span>{{ session('error') }}</span>
-    </div>
-@endif
+    {{-- Alert Success --}}
+    @if(session('success'))
+        <div class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-800 shadow-sm">
+            <div class="flex items-center gap-3 text-sm font-medium">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600">
+                    <i class="fas fa-check-circle"></i>
+                </div>
 
-<div class="flex items-center justify-between mb-5">
-    <h3 class="text-2xl font-bold text-gray-900">Kelola Denda</h3>
+                <span>{{ session('success') }}</span>
+            </div>
+        </div>
+    @endif
+
+    {{-- Alert Error --}}
+    @if(session('error'))
+        <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
+            <div class="flex items-center gap-3 text-sm font-medium">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+
+                <span>{{ session('error') }}</span>
+            </div>
+        </div>
+    @endif
+
+    {{-- Page Header --}}
+    <div class="flex flex-col gap-1">
+        <h3 class="text-2xl font-extrabold tracking-tight text-slate-900">
+            Kelola Denda
+        </h3>
+
+        <p class="text-sm text-slate-500">
+            Kelola data denda peminjaman buku dan kelas.
+        </p>
+    </div>
+
+    {{-- Search & Filter --}}
+    <form
+        method="GET"
+        action="{{ route('denda.index') }}"
+        id="filter-form"
+        class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm"
+    >
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+            <div class="relative w-full lg:max-w-md">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400"></i>
+
+                <input
+                    type="text"
+                    name="search"
+                    id="search-input"
+                    value="{{ request('search') }}"
+                    placeholder="Cari peminjam, judul, kode buku..."
+                    autocomplete="off"
+                    class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                >
+            </div>
+
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <span class="text-sm font-semibold text-slate-600">
+                    Status:
+                </span>
+
+                <select
+                    name="status"
+                    id="status-select"
+                    class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                >
+                    <option value="" {{ !request('status') || request('status') == 'all' ? 'selected' : '' }}>Semua</option>
+                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Lunas</option>
+                </select>
+            </div>
+
+        </div>
+    </form>
+
+    {{-- Stat Cards --}}
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+
+        {{-- Total Denda --}}
+        <div class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60">
+            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-emerald-50 transition group-hover:bg-emerald-100"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-slate-500">
+                        Total Denda
+                    </p>
+
+                    <p class="mt-2 truncate text-2xl font-bold tracking-tight text-slate-900">
+                        Rp {{ number_format($totalDenda, 0, ',', '.') }}
+                    </p>
+                </div>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                    <i class="fas fa-sack-dollar text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Belum Dibayar --}}
+        <div class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60">
+            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-amber-50 transition group-hover:bg-amber-100"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-slate-500">
+                        Belum Dibayar
+                    </p>
+
+                    <p class="mt-2 truncate text-2xl font-bold tracking-tight text-slate-900">
+                        Rp {{ number_format($totalPending, 0, ',', '.') }}
+                    </p>
+                </div>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-amber-100">
+                    <i class="fas fa-wallet text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Sudah Dibayar --}}
+        <div class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60">
+            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-blue-50 transition group-hover:bg-blue-100"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-slate-500">
+                        Sudah Dibayar
+                    </p>
+
+                    <p class="mt-2 truncate text-2xl font-bold tracking-tight text-slate-900">
+                        Rp {{ number_format($totalPaid, 0, ',', '.') }}
+                    </p>
+                </div>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                    <i class="fas fa-money-check-dollar text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {{-- Table Card --}}
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[1320px] border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th class="w-16 border border-slate-200 px-5 py-4 text-left">No</th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">Judul / Kategori</th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">Kode Buku</th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">Peminjam</th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">Nomor Identitas</th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">Sumber</th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">Kondisi</th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">Denda</th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">Status</th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">Tanggal</th>
+                        <th class="w-24 border border-slate-200 px-5 py-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @forelse($denda as $item)
+                        @php
+                            $tipe = $item->tipe ?? '';
+                            $status = $item->status ?? 'pending';
+                            $notaRoute = $item->invoice_route ?? null;
+                            $tanggal = $item->tanggal_pengembalian ?? $item->tanggal_kembali ?? null;
+                        @endphp
+
+                        <tr class="transition-colors hover:bg-slate-50">
+
+                            <td class="border border-slate-200 px-5 py-4 font-medium text-slate-600">
+                                {{ $denda->firstItem() + $loop->index }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4">
+                                <span class="font-semibold text-slate-800">
+                                    {{ $item->judul ?? '-' }}
+                                </span>
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                {{ $item->kode_buku ?? '-' }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4">
+                                <span class="font-semibold text-slate-800">
+                                    {{ $item->nama_peminjam ?? '-' }}
+                                </span>
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                {{ $item->nomor_identitas ?? '-' }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-center">
+                                @if($tipe == 'kelas')
+                                    <span class="inline-flex items-center justify-center rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700 ring-1 ring-purple-100">
+                                        Pinjam Kelas
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center justify-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-100">
+                                        Pinjam Buku
+                                    </span>
+                                @endif
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-center">
+                                @if(($item->kondisi ?? '') == 'baik')
+                                    <span class="inline-flex items-center justify-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-100">
+                                        Baik
+                                    </span>
+                                @elseif(($item->kondisi ?? '') == 'rusak')
+                                    <span class="inline-flex items-center justify-center rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700 ring-1 ring-orange-100">
+                                        Rusak
+                                    </span>
+                                @elseif(($item->kondisi ?? '') == 'hilang')
+                                    <span class="inline-flex items-center justify-center rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-red-100">
+                                        Hilang
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center justify-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
+                                        -
+                                    </span>
+                                @endif
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-center">
+                                <span class="inline-flex items-center justify-center rounded-xl bg-red-50 px-3 py-1.5 text-sm font-bold text-red-600">
+                                    Rp {{ number_format($item->denda ?? 0, 0, ',', '.') }}
+                                </span>
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-center">
+                                @if($status == 'paid')
+                                    <span class="inline-flex items-center justify-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-100">
+                                        Lunas
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center justify-center rounded-full bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700 ring-1 ring-yellow-100">
+                                        Pending
+                                    </span>
+                                @endif
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-center text-slate-500">
+                                {{ !empty($tanggal) ? \Carbon\Carbon::parse($tanggal)->format('d M Y') : '-' }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-center">
+                                <div class="flex items-center justify-center gap-1.5">
+
+                                    @if($status == 'paid')
+                                        @if(!empty($notaRoute))
+                                            <a
+                                                href="{{ $notaRoute }}"
+                                                title="Unduh Nota Pembayaran"
+                                                class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 ring-1 ring-cyan-100 transition hover:bg-cyan-100"
+                                            >
+                                                <i class="fas fa-file-invoice-dollar text-sm"></i>
+                                            </a>
+                                        @else
+                                            <span
+                                                title="Nota belum tersedia"
+                                                class="inline-flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-xl bg-slate-50 text-slate-300 ring-1 ring-slate-100"
+                                            >
+                                                <i class="fas fa-file-invoice-dollar text-sm"></i>
+                                            </span>
+                                        @endif
+                                    @else
+                                        <form action="{{ route('denda.paid', [$tipe, $item->id]) }}" method="POST">
+                                            @csrf
+
+                                            <button
+                                                type="submit"
+                                                onclick="return confirm('Tandai denda ini sebagai lunas?')"
+                                                title="Tandai Lunas"
+                                                class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-green-50 text-green-600 ring-1 ring-green-100 transition hover:bg-green-100"
+                                            >
+                                                <i class="fas fa-check text-sm"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+
+                                </div>
+                            </td>
+
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="11" class="border border-slate-200 px-6 py-16 text-center">
+                                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                                    <i class="fas fa-money-bill-wave text-2xl"></i>
+                                </div>
+
+                                <p class="mt-4 text-sm font-bold text-slate-700">
+                                    Tidak ada data denda
+                                </p>
+
+                                <p class="mt-1 text-xs text-slate-400">
+                                    Data denda akan muncul setelah ada pengembalian bermasalah.
+                                </p>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Pagination --}}
+    @if($denda->total() > 0)
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-sm text-slate-500">
+                Menampilkan {{ $denda->firstItem() }}&ndash;{{ $denda->lastItem() }} dari {{ $denda->total() }} data
+            </p>
+
+            <div class="flex flex-wrap items-center gap-1">
+
+                @if($denda->onFirstPage())
+                    <span class="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-300">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </span>
+                @else
+                    <a
+                        href="{{ $denda->previousPageUrl() }}"
+                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50"
+                    >
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </a>
+                @endif
+
+                @foreach($denda->getUrlRange(1, $denda->lastPage()) as $page => $url)
+                    @if($page == $denda->currentPage())
+                        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-sm font-semibold text-white">
+                            {{ $page }}
+                        </span>
+                    @else
+                        <a
+                            href="{{ $url }}"
+                            class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50"
+                        >
+                            {{ $page }}
+                        </a>
+                    @endif
+                @endforeach
+
+                @if($denda->hasMorePages())
+                    <a
+                        href="{{ $denda->nextPageUrl() }}"
+                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50"
+                    >
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </a>
+                @else
+                    <span class="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-300">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </span>
+                @endif
+
+            </div>
+        </div>
+    @endif
+
 </div>
-
-<form method="GET" action="{{ route('denda.index') }}" id="filter-form" class="flex items-center justify-between mb-5 gap-4">
-    <div class="relative w-80">
-        <i class="fas fa-search text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 text-sm"></i>
-        <input
-            type="text"
-            name="search"
-            id="search-input"
-            value="{{ request('search') }}"
-            placeholder="Cari peminjam, judul, kode buku..."
-            class="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-full text-sm focus:outline-none focus:border-gray-400"
-            autocomplete="off"
-        >
-    </div>
-
-    <div class="flex items-center gap-3">
-        <span class="text-sm font-medium text-gray-600">Status :</span>
-        <select name="status" id="status-select" class="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
-            <option value="" {{ !request('status') || request('status') == 'all' ? 'selected' : '' }}>Semua</option>
-            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-            <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Lunas</option>
-        </select>
-    </div>
-</form>
 
 <script>
     (function () {
@@ -54,262 +387,21 @@
         var statusSelect = document.getElementById('status-select');
         var debounceTimer;
 
-        searchInput.addEventListener('input', function () {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(function () {
-                form.submit();
-            }, 400);
-        });
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () {
+                    form.submit();
+                }, 400);
+            });
+        }
 
-        statusSelect.addEventListener('change', function () {
-            form.submit();
-        });
+        if (statusSelect) {
+            statusSelect.addEventListener('change', function () {
+                form.submit();
+            });
+        }
     })();
 </script>
-
-<div class="grid grid-cols-1 gap-5 mb-5 md:grid-cols-3">
-    <div class="relative overflow-hidden px-7 py-5 text-white shadow-sm" style="border-radius: 22px; min-height: 96px; background: linear-gradient(90deg, #1fa5d5 0%, #25b3e1 58%, #58c5ed 100%);">
-        <div class="absolute rounded-full" style="right: -56px; top: -60px; width: 216px; height: 216px; background: rgba(176, 235, 251, 0.24);"></div>
-        <div class="absolute rounded-full" style="right: -30px; top: -34px; width: 164px; height: 164px; background: rgba(193, 240, 252, 0.28);"></div>
-        <div class="absolute rounded-full" style="right: 4px; top: 0; width: 96px; height: 96px; background: rgba(214, 246, 254, 0.38);"></div>
-
-        <div class="relative z-10 flex h-full items-center justify-between gap-5">
-            <div class="pr-4">
-                <p class="mb-1 text-[14px] font-medium leading-none text-white/95">Total Denda</p>
-                <p class="text-[18px] font-bold leading-tight text-white">
-                    Rp {{ number_format($totalDenda, 0, ',', '.') }}
-                </p>
-            </div>
-
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl" style="background: rgba(244, 252, 255, 0.88);">
-                <i class="fas fa-sack-dollar text-[18px]" style="color: #1799c9;"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="relative overflow-hidden px-7 py-5 text-white shadow-sm" style="border-radius: 22px; min-height: 96px; background: linear-gradient(90deg, #1fa5d5 0%, #25b3e1 58%, #58c5ed 100%);">
-        <div class="absolute rounded-full" style="right: -56px; top: -60px; width: 216px; height: 216px; background: rgba(176, 235, 251, 0.24);"></div>
-        <div class="absolute rounded-full" style="right: -30px; top: -34px; width: 164px; height: 164px; background: rgba(193, 240, 252, 0.28);"></div>
-        <div class="absolute rounded-full" style="right: 4px; top: 0; width: 96px; height: 96px; background: rgba(214, 246, 254, 0.38);"></div>
-
-        <div class="relative z-10 flex h-full items-center justify-between gap-5">
-            <div class="pr-4">
-                <p class="mb-1 text-[14px] font-medium leading-none text-white/95">Belum Dibayar</p>
-                <p class="text-[18px] font-bold leading-tight text-white">
-                    Rp {{ number_format($totalPending, 0, ',', '.') }}
-                </p>
-            </div>
-
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl" style="background: rgba(244, 252, 255, 0.88);">
-                <i class="fas fa-wallet text-[18px]" style="color: #1799c9;"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="relative overflow-hidden px-7 py-5 text-white shadow-sm" style="border-radius: 22px; min-height: 96px; background: linear-gradient(90deg, #1fa5d5 0%, #25b3e1 58%, #58c5ed 100%);">
-        <div class="absolute rounded-full" style="right: -56px; top: -60px; width: 216px; height: 216px; background: rgba(176, 235, 251, 0.24);"></div>
-        <div class="absolute rounded-full" style="right: -30px; top: -34px; width: 164px; height: 164px; background: rgba(193, 240, 252, 0.28);"></div>
-        <div class="absolute rounded-full" style="right: 4px; top: 0; width: 96px; height: 96px; background: rgba(214, 246, 254, 0.38);"></div>
-
-        <div class="relative z-10 flex h-full items-center justify-between gap-5">
-            <div class="pr-4">
-                <p class="mb-1 text-[14px] font-medium leading-none text-white/95">Sudah Dibayar</p>
-                <p class="text-[18px] font-bold leading-tight text-white">
-                    Rp {{ number_format($totalPaid, 0, ',', '.') }}
-                </p>
-            </div>
-
-            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl" style="background: rgba(244, 252, 255, 0.88);">
-                <i class="fas fa-money-check-dollar text-[18px]" style="color: #1799c9;"></i>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="w-full min-w-[1000px]">
-            <thead>
-                <tr class="bg-cyan-500 text-white text-sm">
-                    <th class="px-5 py-3 text-left font-semibold w-12">No</th>
-                    <th class="px-5 py-3 text-left font-semibold">Judul / Kategori</th>
-                    <th class="px-5 py-3 text-left font-semibold">Peminjam</th>
-                    <th class="px-5 py-3 text-center font-semibold">Sumber</th>
-                    <th class="px-5 py-3 text-center font-semibold">Kondisi</th>
-                    <th class="px-5 py-3 text-center font-semibold">Denda</th>
-                    <th class="px-5 py-3 text-center font-semibold">Status</th>
-                    <th class="px-5 py-3 text-center font-semibold">Tanggal</th>
-                    <th class="px-5 py-3 text-center font-semibold w-20">Aksi</th>
-                </tr>
-            </thead>
-
-            <tbody class="divide-y divide-gray-100">
-                @forelse($denda as $item)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-5 py-4 text-sm text-gray-500">
-                            {{ $denda->firstItem() + $loop->index }}
-                        </td>
-
-                        <td class="px-5 py-4">
-                            <div class="flex items-center gap-3">
-                                @if(($item->tipe ?? '') == 'buku' && !empty($item->foto))
-                                    <img src="{{ asset('storage/' . $item->foto) }}"
-                                         class="w-9 h-12 object-cover rounded shrink-0 border border-gray-200">
-                                @else
-                                    <div class="w-9 h-12 bg-gray-100 rounded shrink-0 border border-gray-200 flex items-center justify-center">
-                                        @if(($item->tipe ?? '') == 'kelas')
-                                            <i class="fas fa-users text-gray-300 text-xs"></i>
-                                        @else
-                                            <i class="fas fa-book text-gray-300 text-xs"></i>
-                                        @endif
-                                    </div>
-                                @endif
-
-                                <div class="min-w-0">
-                                    <p class="text-sm font-medium text-gray-900 truncate max-w-48">
-                                        {{ $item->judul ?? '-' }}
-                                    </p>
-                                    <p class="text-xs text-gray-400">
-                                        {{ $item->kode_buku ?? '-' }}
-                                    </p>
-                                </div>
-                            </div>
-                        </td>
-
-                        <td class="px-5 py-4">
-                            <p class="text-sm font-medium text-gray-900">
-                                {{ $item->nama_peminjam ?? '-' }}
-                            </p>
-                            <p class="text-xs text-gray-400">
-                                {{ $item->nomor_identitas ?? '-' }}
-                            </p>
-                        </td>
-
-                        <td class="px-5 py-4 text-center">
-                            @if(($item->tipe ?? '') == 'kelas')
-                                <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
-                                    Pinjam Kelas
-                                </span>
-                            @else
-                                <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
-                                    Pinjam Buku
-                                </span>
-                            @endif
-                        </td>
-
-                        <td class="px-5 py-4 text-center">
-                            @if(($item->kondisi ?? '') == 'baik')
-                                <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">Baik</span>
-                            @elseif(($item->kondisi ?? '') == 'rusak')
-                                <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-700">Rusak</span>
-                            @elseif(($item->kondisi ?? '') == 'hilang')
-                                <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">Hilang</span>
-                            @else
-                                <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700">-</span>
-                            @endif
-                        </td>
-
-                        <td class="px-5 py-4 text-center">
-                            <span class="text-sm font-semibold text-red-600">
-                                Rp {{ number_format($item->denda ?? 0, 0, ',', '.') }}
-                            </span>
-                        </td>
-
-                        <td class="px-5 py-4 text-center">
-                            @if(($item->status ?? 'pending') == 'paid')
-                                <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
-                                    Lunas
-                                </span>
-                            @else
-                                <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
-                                    Pending
-                                </span>
-                            @endif
-                        </td>
-
-                        <td class="px-5 py-4 text-center text-sm text-gray-600">
-                            {{ !empty($item->tanggal_pengembalian) ? \Carbon\Carbon::parse($item->tanggal_pengembalian)->format('d M Y') : '-' }}
-                        </td>
-
-                        <td class="px-5 py-4 text-center">
-                            <div class="flex items-center justify-center gap-1.5">
-                                @if(($item->tipe ?? '') == 'buku')
-                                    @if(($item->status ?? 'pending') == 'paid')
-                                        <a href="{{ $item->invoice_route }}"
-                                           class="w-8 h-8 inline-flex items-center justify-center bg-cyan-100 hover:bg-cyan-200 text-cyan-600 rounded-lg transition-colors"
-                                           title="Unduh Nota Pembayaran">
-                                            <i class="fas fa-file-download text-sm"></i>
-                                        </a>
-                                    @else
-                                        <form action="{{ route('denda.paid', $item->id) }}" method="POST">
-                                            @csrf
-                                            <button type="submit"
-                                                onclick="return confirm('Tandai denda ini sebagai lunas?')"
-                                                class="w-8 h-8 inline-flex items-center justify-center bg-green-100 hover:bg-green-200 text-green-600 rounded-lg transition-colors"
-                                                title="Tandai Lunas">
-                                                <i class="fas fa-check text-sm"></i>
-                                            </button>
-                                        </form>
-                                    @endif
-                                @else
-                                    <span class="text-xs text-gray-300">—</span>
-                                @endif
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="9" class="px-6 py-16 text-center text-gray-400">
-                            <i class="fas fa-money-bill-wave text-5xl mb-3 block"></i>
-                            <p class="text-base font-medium text-gray-500">Tidak ada data denda</p>
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-</div>
-
-@if($denda->total() > 0)
-    <div class="flex items-center justify-between mt-4">
-        <p class="text-sm text-gray-500">
-            Menampilkan {{ $denda->firstItem() }}&ndash;{{ $denda->lastItem() }} dari {{ $denda->total() }} data
-        </p>
-
-        <div class="flex items-center gap-1">
-            @if($denda->onFirstPage())
-                <span class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 bg-white border border-gray-200 text-sm cursor-not-allowed">
-                    <i class="fas fa-chevron-left text-xs"></i>
-                </span>
-            @else
-                <a href="{{ $denda->previousPageUrl() }}" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 text-sm">
-                    <i class="fas fa-chevron-left text-xs"></i>
-                </a>
-            @endif
-
-            @foreach($denda->getUrlRange(1, $denda->lastPage()) as $page => $url)
-                @if($page == $denda->currentPage())
-                    <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-cyan-500 text-white text-sm font-medium">
-                        {{ $page }}
-                    </span>
-                @else
-                    <a href="{{ $url }}" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 text-sm">
-                        {{ $page }}
-                    </a>
-                @endif
-            @endforeach
-
-            @if($denda->hasMorePages())
-                <a href="{{ $denda->nextPageUrl() }}" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 text-sm">
-                    <i class="fas fa-chevron-right text-xs"></i>
-                </a>
-            @else
-                <span class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-300 bg-white border border-gray-200 text-sm cursor-not-allowed">
-                    <i class="fas fa-chevron-right text-xs"></i>
-                </span>
-            @endif
-        </div>
-    </div>
-@endif
 
 @endsection

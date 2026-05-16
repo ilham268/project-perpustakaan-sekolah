@@ -59,7 +59,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
     // ============================================
     // KELAS - ADMIN
-    // Digabung di halaman Kelola User
     // ============================================
     Route::post('/kelas', [KelasController::class, 'store'])->name('kelas.store');
     Route::put('/kelas/{kelas}', [KelasController::class, 'update'])->name('kelas.update');
@@ -123,6 +122,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // DENDA - ADMIN
     // ============================================
     Route::get('/denda', [ReturnBookController::class, 'adminDendaIndex'])->name('admin.denda.index');
+
+    Route::post('/denda/{tipe}/{id}/paid', [ReturnBookController::class, 'adminDendaPaid'])
+        ->name('admin.denda.paid');
+
+    Route::get('/denda/kelas/{id}/invoice', [ReturnBookController::class, 'downloadInvoiceKelasAdmin'])
+        ->name('admin.denda.kelas.invoice');
+
     Route::get('/denda/export', [ReturnBookController::class, 'exportDenda'])->name('admin.denda.export');
 
     // ============================================
@@ -136,51 +142,51 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // ROUTE PEMINJAMAN KELAS - ADMIN
     // ============================================
     Route::prefix('pinjamkelas')->group(function () {
-    Route::get('/kategori', [KategoriPinjamController::class, 'index'])
-        ->name('admin.pinjamkelas.kategori');
+        Route::get('/kategori', [KategoriPinjamController::class, 'index'])
+            ->name('admin.pinjamkelas.kategori');
 
-    Route::post('/kategori', [KategoriPinjamController::class, 'store'])
-        ->name('admin.pinjamkelas.kategori.store');
+        Route::post('/kategori', [KategoriPinjamController::class, 'store'])
+            ->name('admin.pinjamkelas.kategori.store');
 
-    Route::put('/kategori/{id}', [KategoriPinjamController::class, 'update'])
-        ->name('admin.pinjamkelas.kategori.update');
+        Route::put('/kategori/{id}', [KategoriPinjamController::class, 'update'])
+            ->name('admin.pinjamkelas.kategori.update');
 
-    Route::delete('/kategori/{id}', [KategoriPinjamController::class, 'destroy'])
-        ->name('admin.pinjamkelas.kategori.destroy');
+        Route::delete('/kategori/{id}', [KategoriPinjamController::class, 'destroy'])
+            ->name('admin.pinjamkelas.kategori.destroy');
 
-    Route::get('/kategori/{id}/show', [KategoriPinjamController::class, 'show'])
-        ->name('admin.pinjamkelas.kategori.show');
+        Route::get('/kategori/{id}/show', [KategoriPinjamController::class, 'show'])
+            ->name('admin.pinjamkelas.kategori.show');
 
-    Route::post('/kategori/proses', [KategoriPinjamController::class, 'prosesPinjam'])
-        ->name('admin.pinjamkelas.kategori.proses');
+        Route::post('/kategori/proses', [KategoriPinjamController::class, 'prosesPinjam'])
+            ->name('admin.pinjamkelas.kategori.proses');
 
-    Route::get('/kelas', [KategoriPinjamController::class, 'kelasPinjam'])
-        ->name('admin.pinjamkelas.kelas');
+        Route::get('/kelas', [KategoriPinjamController::class, 'kelasPinjam'])
+            ->name('admin.pinjamkelas.kelas');
 
-    Route::get('/kelas/export', [KategoriPinjamController::class, 'exportKelasPinjam'])
-        ->name('admin.pinjamkelas.kelas.export');
+        Route::get('/kelas/export', [KategoriPinjamController::class, 'exportKelasPinjam'])
+            ->name('admin.pinjamkelas.kelas.export');
 
-    Route::post('/kelas/{id}/setujui', [KategoriPinjamController::class, 'setujuiKelas'])
-        ->name('admin.pinjamkelas.kelas.setujui');
+        Route::post('/kelas/{id}/setujui', [KategoriPinjamController::class, 'setujuiKelas'])
+            ->name('admin.pinjamkelas.kelas.setujui');
 
-    Route::get('/kelas/{id}/denda', [KategoriPinjamController::class, 'formDendaKelas'])
-        ->name('admin.pinjamkelas.kelas.denda');
+        Route::get('/kelas/{id}/denda', [KategoriPinjamController::class, 'formDendaKelas'])
+            ->name('admin.pinjamkelas.kelas.denda');
 
-    Route::post('/kelas/{id}/denda', [KategoriPinjamController::class, 'simpanDendaKelas'])
-        ->name('admin.pinjamkelas.kelas.denda.store');
+        Route::post('/kelas/{id}/denda', [KategoriPinjamController::class, 'simpanDendaKelas'])
+            ->name('admin.pinjamkelas.kelas.denda.store');
 
-    Route::view('/', 'admin.pinjamkelas.index')
-        ->name('admin.pinjamkelas.index');
+        Route::view('/', 'admin.pinjamkelas.index')
+            ->name('admin.pinjamkelas.index');
 
-    Route::view('/create', 'admin.pinjamkelas.create-kelas')
-        ->name('admin.pinjamkelas.create');
+        Route::view('/create', 'admin.pinjamkelas.create-kelas')
+            ->name('admin.pinjamkelas.create');
 
-    Route::view('/edit', 'admin.pinjamkelas.edit-kelas')
-        ->name('admin.pinjamkelas.edit');
+        Route::view('/edit', 'admin.pinjamkelas.edit-kelas')
+            ->name('admin.pinjamkelas.edit');
 
-    Route::view('/buku', 'admin.pinjamkelas.buku')
-        ->name('admin.pinjamkelas.buku');
-});
+        Route::view('/buku', 'admin.pinjamkelas.buku')
+            ->name('admin.pinjamkelas.buku');
+    });
 });
 
 // ============================================
@@ -206,8 +212,16 @@ Route::middleware(['auth', 'role:petugas'])->group(function () {
     Route::post('/pengembalian', [ReturnBookController::class, 'store'])->name('pengembalian.store');
     Route::get('/pengembalian/{id}/invoice', [ReturnBookController::class, 'downloadInvoice'])->name('pengembalian.invoice');
 
+    // ============================================
+    // DENDA - PETUGAS
+    // ============================================
     Route::get('/denda', [ReturnBookController::class, 'dendaIndex'])->name('denda.index');
-    Route::post('/denda/{id}/paid', [ReturnBookController::class, 'markAsPaid'])->name('denda.paid');
+
+    Route::post('/denda/{tipe}/{id}/paid', [ReturnBookController::class, 'markAsPaid'])
+        ->name('denda.paid');
+
+    Route::get('/denda/kelas/{id}/invoice', [ReturnBookController::class, 'downloadInvoiceKelasPetugas'])
+        ->name('denda.kelas.invoice');
 
     // ============================================
     // PEMINJAMAN KELAS UNTUK PETUGAS

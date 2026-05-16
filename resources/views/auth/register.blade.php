@@ -8,249 +8,463 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <style>
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes floatSoft {
+            0%, 100% {
+                transform: translateY(0) translateX(0) scale(1);
+            }
+            50% {
+                transform: translateY(-14px) translateX(8px) scale(1.04);
+            }
+        }
+
+        @keyframes shine {
+            0% {
+                transform: translateX(-130%) rotate(20deg);
+            }
+            100% {
+                transform: translateX(190%) rotate(20deg);
+            }
+        }
+
+        @keyframes pulseRing {
+            0% {
+                transform: scale(.94);
+                opacity: .65;
+            }
+            70% {
+                transform: scale(1.12);
+                opacity: 0;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes blinkCaret {
+            0%, 45% {
+                opacity: 1;
+            }
+            46%, 100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes borderGlow {
+            0%, 100% {
+                box-shadow: 0 0 0 rgba(52, 211, 153, 0);
+            }
+            50% {
+                box-shadow: 0 0 32px rgba(52, 211, 153, .22);
+            }
+        }
+
+        .fade-up {
+            animation: fadeUp .75s ease both;
+        }
+
+        .delay-100 { animation-delay: .1s; }
+        .delay-200 { animation-delay: .2s; }
+        .delay-300 { animation-delay: .3s; }
+        .delay-400 { animation-delay: .4s; }
+        .delay-500 { animation-delay: .5s; }
+
+        .floating-orb {
+            animation: floatSoft 7s ease-in-out infinite;
+        }
+
+        .floating-orb-2 {
+            animation-delay: -2s;
+        }
+
+        .floating-orb-3 {
+            animation-delay: -4s;
+        }
+
+        .register-glass {
+            background: linear-gradient(145deg, rgba(255, 255, 255, .94), rgba(255, 255, 255, .80));
+            backdrop-filter: blur(18px);
+            box-shadow:
+                0 28px 80px rgba(15, 118, 110, .15),
+                inset 0 1px 0 rgba(255, 255, 255, .9);
+        }
+
+        .hero-glass {
+            background: linear-gradient(145deg, rgba(255, 255, 255, .14), rgba(255, 255, 255, .08));
+            backdrop-filter: blur(20px);
+            animation: borderGlow 4s ease-in-out infinite;
+        }
+
+        .button-shine::before {
+            content: "";
+            position: absolute;
+            top: -60%;
+            left: -45%;
+            width: 42%;
+            height: 220%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent);
+            animation: shine 3.4s ease-in-out infinite;
+        }
+
+        .logo-ring::before,
+        .logo-ring::after {
+            content: "";
+            position: absolute;
+            inset: -12px;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, .45);
+            animation: pulseRing 2.7s ease-out infinite;
+        }
+
+        .logo-ring::after {
+            animation-delay: 1.25s;
+        }
+
+        .typing-caret::after {
+            content: "|";
+            margin-left: 4px;
+            color: #bbf7d0;
+            animation: blinkCaret .85s infinite;
+        }
+
+        .input-focus-shadow:focus {
+            box-shadow:
+                0 0 0 4px rgba(16, 185, 129, .12),
+                0 10px 28px rgba(16, 185, 129, .10);
+        }
+    </style>
 </head>
 
-<body class="bg-slate-50">
+<body class="min-h-screen bg-emerald-50 selection:bg-emerald-200 selection:text-emerald-950">
 
-    <div class="min-h-screen flex">
+    <main class="relative min-h-screen overflow-hidden">
 
-        <!-- Left Side - Register Form -->
-        <div class="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
+        <!-- Background -->
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#bbf7d0_0,transparent_32%),radial-gradient(circle_at_bottom_right,#99f6e4_0,transparent_34%)]"></div>
 
-            <div class="max-w-md w-full space-y-8">
+        <div class="floating-orb absolute -left-24 -top-24 h-64 w-64 rounded-full bg-emerald-300/35 blur-3xl"></div>
+        <div class="floating-orb floating-orb-2 absolute -right-24 top-1/3 h-72 w-72 rounded-full bg-teal-300/35 blur-3xl"></div>
+        <div class="floating-orb floating-orb-3 absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-lime-300/25 blur-3xl"></div>
 
-                <!-- Logo -->
-                <div>
-                    <h1 class="text-4xl font-bold text-emerald-600 tracking-tight">
-                        Lantera
-                    </h1>
-                </div>
+        <div class="relative z-10 grid min-h-screen lg:grid-cols-2">
 
-                <!-- Register Form -->
-                <div class="mt-8 bg-white p-8 rounded-2xl shadow-lg border border-slate-100">
+            <!-- Left Side -->
+            <section class="flex items-center justify-center px-5 py-8 sm:px-8 lg:px-12">
 
-                    <h2 class="text-3xl font-bold text-slate-800 mb-2">
-                        Daftar
-                    </h2>
+                <div class="w-full max-w-md">
 
-                    <p class="text-slate-500 text-sm mb-6">
-                        Silakan isi data diri Anda
-                    </p>
-
-                    <form class="space-y-6" action="{{ route('register') }}" method="POST">
-                        @csrf
-
-                        <!-- Nama Lengkap -->
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-slate-700 mb-2">
-                                Nama Lengkap
-                                <span class="text-red-500">*</span>
-                            </label>
-
-                            <input
-                                id="name"
-                                name="name"
-                                type="text"
-                                class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition"
-                                placeholder="Masukkan nama lengkap"
-                                value="{{ old('name') }}"
-                                required
+                    <!-- Mobile Logo -->
+                    <div class="mb-5 flex justify-center lg:hidden fade-up">
+                        <div class="flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-xl shadow-emerald-500/15 ring-1 ring-emerald-100">
+                            <img
+                                src="{{ asset('image/smkn1cerme.png') }}"
+                                alt="Logo SMKN 1 Cerme"
+                                class="h-14 w-auto"
                             >
-
-                            @error('name')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
                         </div>
+                    </div>
 
-                        <!-- Nomor Identitas -->
-                        <div>
-                            <label for="nomor_identitas" class="block text-sm font-medium text-slate-700 mb-2">
-                                Nomor Identitas (NISN)
-                                <span class="text-red-500">*</span>
-                            </label>
+                    <!-- Register Card -->
+                    <div class="register-glass fade-up rounded-[1.7rem] border border-white/70 p-6 sm:p-7">
 
-                            <input
-                                id="nomor_identitas"
-                                name="nomor_identitas"
-                                type="text"
-                                class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition"
-                                placeholder="Masukkan NISN"
-                                value="{{ old('nomor_identitas') }}"
-                                required
-                            >
+                        <div class="mb-5 text-center sm:text-left">
+                            <h1 class="text-3xl font-black tracking-tight text-slate-900">
+                                Buat Akun
+                            </h1>
 
-                            @error('nomor_identitas')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Kelas dari Database -->
-                        <div>
-                            <label for="kelas_id" class="block text-sm font-medium text-slate-700 mb-2">
-                                Kelas
-                                <span class="text-red-500">*</span>
-                            </label>
-
-                            <select
-                                id="kelas_id"
-                                name="kelas_id"
-                                class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition bg-white"
-                                required
-                            >
-                                <option value="">Pilih Kelas</option>
-
-                                @foreach(($kelasList ?? collect()) as $kelas)
-                                    <option value="{{ $kelas->id }}" {{ old('kelas_id') == $kelas->id ? 'selected' : '' }}>
-                                        {{ $kelas->nama_kelas }} - {{ $kelas->jurusan }}
-                                    </option>
-                                @endforeach
-                            </select>
-
-                            @error('kelas_id')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-
-                            @if(($kelasList ?? collect())->isEmpty())
-                                <p class="mt-1 text-sm text-red-600">
-                                    Data kelas belum ada. Silakan tambah kelas dulu di admin.
-                                </p>
-                            @endif
-                        </div>
-
-                        <!-- Password -->
-                        <div>
-                            <label for="password" class="block text-sm font-medium text-slate-700 mb-2">
-                                Kata Sandi
-                                <span class="text-red-500">*</span>
-                            </label>
-
-                            <div class="relative">
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition"
-                                    placeholder="Minimal 8 karakter"
-                                    required
-                                >
-
-                                <button
-                                    type="button"
-                                    onclick="togglePassword('password')"
-                                    class="absolute inset-y-0 right-0 pr-4 flex items-center"
-                                >
-                                    <i id="eyeIconPassword" class="fas fa-eye text-slate-400 hover:text-emerald-500 transition"></i>
-                                </button>
-                            </div>
-
-                            @error('password')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <!-- Konfirmasi Password -->
-                        <div>
-                            <label for="password_confirmation" class="block text-sm font-medium text-slate-700 mb-2">
-                                Konfirmasi Kata Sandi
-                                <span class="text-red-500">*</span>
-                            </label>
-
-                            <div class="relative">
-                                <input
-                                    id="password_confirmation"
-                                    name="password_confirmation"
-                                    type="password"
-                                    class="appearance-none block w-full px-4 py-3 border border-slate-200 rounded-xl shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 transition"
-                                    placeholder="Ketik ulang kata sandi"
-                                    required
-                                >
-
-                                <button
-                                    type="button"
-                                    onclick="togglePassword('password_confirmation')"
-                                    class="absolute inset-y-0 right-0 pr-4 flex items-center"
-                                >
-                                    <i id="eyeIconConfirm" class="fas fa-eye text-slate-400 hover:text-emerald-500 transition"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div>
-                            <button
-                                type="submit"
-                                class="w-full flex justify-center py-3 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-400 transition-all duration-300"
-                            >
-                                Daftar
-                            </button>
-                        </div>
-
-                        <!-- Login Link -->
-                        <div class="text-center">
-                            <p class="text-sm text-slate-500">
-                                Sudah punya akun?
-
-                                <a
-                                    href="{{ route('login') }}"
-                                    class="font-medium text-emerald-600 hover:text-emerald-700 transition"
-                                >
-                                    Masuk Disini!
-                                </a>
+                            <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                                Isi data dengan benar untuk mulai menggunakan Lantera.
                             </p>
                         </div>
 
-                    </form>
+                        <form class="space-y-4" action="{{ route('register') }}" method="POST">
+                            @csrf
 
-                </div>
+                            <!-- Nama Lengkap -->
+                            <div class="fade-up delay-100">
+                                <label for="name" class="mb-2 block text-sm font-bold text-slate-700">
+                                    Nama Lengkap <span class="text-red-500">*</span>
+                                </label>
 
-            </div>
+                                <div class="group relative">
+                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition duration-300 group-focus-within:text-emerald-500">
+                                        <i class="fa-solid fa-user"></i>
+                                    </span>
 
-        </div>
+                                    <input
+                                        id="name"
+                                        name="name"
+                                        type="text"
+                                        class="input-focus-shadow block w-full rounded-2xl border border-emerald-100 bg-white/85 py-3 pl-11 pr-4 text-sm text-slate-800 shadow-sm outline-none transition duration-300 placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white"
+                                        placeholder="Masukkan nama lengkap"
+                                        value="{{ old('name') }}"
+                                        required
+                                    >
+                                </div>
 
-        <!-- Right Side -->
-        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-500 via-green-600 to-teal-700 items-center justify-center p-12 relative overflow-hidden">
+                                @error('name')
+                                    <p class="mt-2 text-sm font-medium text-red-600">
+                                        <i class="fa-solid fa-circle-exclamation mr-1"></i>{{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
 
-            <div class="absolute top-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
-            <div class="absolute bottom-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
+                            <!-- Nomor Identitas -->
+                            <div class="fade-up delay-200">
+                                <label for="nomor_identitas" class="mb-2 block text-sm font-bold text-slate-700">
+                                    Nomor Identitas / NISN <span class="text-red-500">*</span>
+                                </label>
 
-            <div class="max-w-lg text-white relative z-10">
+                                <div class="group relative">
+                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition duration-300 group-focus-within:text-emerald-500">
+                                        <i class="fa-solid fa-id-card"></i>
+                                    </span>
 
-                <h2 class="text-4xl font-bold mb-4">
-                    Bergabunglah dengan Lantera
-                </h2>
+                                    <input
+                                        id="nomor_identitas"
+                                        name="nomor_identitas"
+                                        type="text"
+                                        class="input-focus-shadow block w-full rounded-2xl border border-emerald-100 bg-white/85 py-3 pl-11 pr-4 text-sm text-slate-800 shadow-sm outline-none transition duration-300 placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white"
+                                        placeholder="Masukkan NISN"
+                                        value="{{ old('nomor_identitas') }}"
+                                        required
+                                    >
+                                </div>
 
-                <p class="text-lg text-emerald-50 mb-8 leading-relaxed">
-                    Daftar sekarang dan nikmati kemudahan mengakses perpustakaan digital.
-                </p>
+                                @error('nomor_identitas')
+                                    <p class="mt-2 text-sm font-medium text-red-600">
+                                        <i class="fa-solid fa-circle-exclamation mr-1"></i>{{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
 
-                <div class="rounded-3xl bg-white/10 border border-white/20 p-8 backdrop-blur-md shadow-2xl">
-                    <div class="mx-auto flex items-center justify-center">
-                        <img
-                            src="{{ asset('image/smkn1cerme.png') }}"
-                            alt="Logo SMKN 1"
-                            class="h-52 w-auto drop-shadow-2xl hover:scale-105 transition duration-300"
-                        >
+                            <!-- Kelas -->
+                            <div class="fade-up delay-300">
+                                <label for="kelas_id" class="mb-2 block text-sm font-bold text-slate-700">
+                                    Kelas <span class="text-red-500">*</span>
+                                </label>
+
+                                <div class="group relative">
+                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition duration-300 group-focus-within:text-emerald-500">
+                                        <i class="fa-solid fa-school"></i>
+                                    </span>
+
+                                    <select
+                                        id="kelas_id"
+                                        name="kelas_id"
+                                        class="input-focus-shadow block w-full appearance-none rounded-2xl border border-emerald-100 bg-white/85 py-3 pl-11 pr-11 text-sm text-slate-800 shadow-sm outline-none transition duration-300 focus:border-emerald-400 focus:bg-white"
+                                        required
+                                    >
+                                        <option value="">Pilih Kelas</option>
+
+                                        @foreach(($kelasList ?? collect()) as $kelas)
+                                            <option value="{{ $kelas->id }}" {{ old('kelas_id') == $kelas->id ? 'selected' : '' }}>
+                                                {{ $kelas->nama_kelas }} - {{ $kelas->jurusan }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+
+                                    <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400">
+                                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                                    </span>
+                                </div>
+
+                                @error('kelas_id')
+                                    <p class="mt-2 text-sm font-medium text-red-600">
+                                        <i class="fa-solid fa-circle-exclamation mr-1"></i>{{ $message }}
+                                    </p>
+                                @enderror
+
+                                @if(($kelasList ?? collect())->isEmpty())
+                                    <p class="mt-2 text-sm font-medium text-red-600">
+                                        <i class="fa-solid fa-circle-exclamation mr-1"></i>
+                                        Data kelas belum ada. Silakan tambah kelas dulu di admin.
+                                    </p>
+                                @endif
+                            </div>
+
+                            <!-- Password -->
+                            <div class="fade-up delay-400">
+                                <label for="password" class="mb-2 block text-sm font-bold text-slate-700">
+                                    Kata Sandi <span class="text-red-500">*</span>
+                                </label>
+
+                                <div class="group relative">
+                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition duration-300 group-focus-within:text-emerald-500">
+                                        <i class="fa-solid fa-lock"></i>
+                                    </span>
+
+                                    <input
+                                        id="password"
+                                        name="password"
+                                        type="password"
+                                        class="input-focus-shadow block w-full rounded-2xl border border-emerald-100 bg-white/85 py-3 pl-11 pr-12 text-sm text-slate-800 shadow-sm outline-none transition duration-300 placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white"
+                                        placeholder="Minimal 8 karakter"
+                                        required
+                                    >
+
+                                    <button
+                                        type="button"
+                                        onclick="togglePassword('password')"
+                                        class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition duration-300 hover:text-emerald-600"
+                                        aria-label="Tampilkan atau sembunyikan kata sandi"
+                                    >
+                                        <i id="eyeIconPassword" class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+
+                                @error('password')
+                                    <p class="mt-2 text-sm font-medium text-red-600">
+                                        <i class="fa-solid fa-circle-exclamation mr-1"></i>{{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+
+                            <!-- Konfirmasi Password -->
+                            <div class="fade-up delay-500">
+                                <label for="password_confirmation" class="mb-2 block text-sm font-bold text-slate-700">
+                                    Konfirmasi Kata Sandi <span class="text-red-500">*</span>
+                                </label>
+
+                                <div class="group relative">
+                                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400 transition duration-300 group-focus-within:text-emerald-500">
+                                        <i class="fa-solid fa-shield-halved"></i>
+                                    </span>
+
+                                    <input
+                                        id="password_confirmation"
+                                        name="password_confirmation"
+                                        type="password"
+                                        class="input-focus-shadow block w-full rounded-2xl border border-emerald-100 bg-white/85 py-3 pl-11 pr-12 text-sm text-slate-800 shadow-sm outline-none transition duration-300 placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white"
+                                        placeholder="Ketik ulang kata sandi"
+                                        required
+                                    >
+
+                                    <button
+                                        type="button"
+                                        onclick="togglePassword('password_confirmation')"
+                                        class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition duration-300 hover:text-emerald-600"
+                                        aria-label="Tampilkan atau sembunyikan konfirmasi kata sandi"
+                                    >
+                                        <i id="eyeIconConfirm" class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+
+                                @error('password_confirmation')
+                                    <p class="mt-2 text-sm font-medium text-red-600">
+                                        <i class="fa-solid fa-circle-exclamation mr-1"></i>{{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+
+                            <!-- Submit -->
+                            <div class="pt-2">
+                                <button
+                                    type="submit"
+                                    class="button-shine relative flex w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-xl shadow-emerald-500/25 transition duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-emerald-500/35 focus:outline-none focus:ring-4 focus:ring-emerald-200 active:translate-y-0"
+                                >
+                                    <span class="relative z-10 flex items-center gap-2">
+                                        Daftar Sekarang
+                                        <i class="fa-solid fa-user-plus"></i>
+                                    </span>
+                                </button>
+                            </div>
+
+                            <!-- Login Link -->
+                            <div class="text-center">
+                                <p class="text-sm text-slate-500">
+                                    Sudah punya akun?
+
+                                    <a
+                                        href="{{ route('login') }}"
+                                        class="font-extrabold text-emerald-600 transition duration-300 hover:text-emerald-700 hover:underline"
+                                    >
+                                        Masuk Disini!
+                                    </a>
+                                </p>
+                            </div>
+
+                        </form>
                     </div>
 
-                    <p class="mt-6 text-center text-lg font-semibold text-white">
-                        SMKN 1 CERME
+                    <p class="mt-5 text-center text-xs text-slate-400 fade-up delay-400">
+                        © {{ date('Y') }} Lantera • SMKN 1 Cerme
                     </p>
 
-                    <p class="mt-2 text-center text-sm font-medium text-emerald-50">
-                        Platform Sistem Informasi Perpustakaan
-                    </p>
                 </div>
+            </section>
 
-            </div>
+            <!-- Right Side -->
+            <section class="relative hidden overflow-hidden bg-gradient-to-br from-emerald-600 via-green-600 to-teal-800 p-8 lg:flex lg:items-center lg:justify-center">
+
+                <!-- Pattern -->
+                <div
+                    class="absolute inset-0 opacity-20"
+                    style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.8) 1px, transparent 0); background-size: 28px 28px;"
+                ></div>
+
+                <div class="floating-orb absolute -left-24 top-24 h-64 w-64 rounded-full bg-lime-300/20 blur-3xl"></div>
+                <div class="floating-orb floating-orb-2 absolute bottom-10 right-10 h-80 w-80 rounded-full bg-cyan-200/20 blur-3xl"></div>
+
+                <div class="relative z-10 w-full max-w-md text-white">
+
+                    <div class="hero-glass fade-up rounded-[1.8rem] border border-white/20 p-7 shadow-2xl">
+
+                        <h2 class="text-center text-3xl font-black leading-tight tracking-tight xl:text-4xl">
+                            Bergabung dengan
+                            <span id="typingText" class="typing-caret block text-emerald-100"></span>
+                        </h2>
+
+                        <!-- Logo Card -->
+                        <div class="mt-6 rounded-[1.7rem] border border-white/20 bg-white/15 p-6 shadow-2xl backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:bg-white/20">
+
+                            <div class="logo-ring relative mx-auto flex h-44 w-44 items-center justify-center rounded-full bg-white/95 shadow-2xl shadow-emerald-950/25">
+                                <img
+                                    src="{{ asset('image/smkn1cerme.png') }}"
+                                    alt="Logo SMKN 1 Cerme"
+                                    class="relative z-10 h-32 w-auto drop-shadow-2xl transition duration-500 hover:scale-105"
+                                >
+                            </div>
+
+                            <div class="mt-6 text-center">
+                                <p class="text-xl font-black tracking-wide text-white">
+                                    SMKN 1 CERME
+                                </p>
+
+                                <p class="mt-2 text-xs font-semibold text-emerald-50/90">
+                                    Platform Sistem Informasi Perpustakaan
+                                </p>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
 
         </div>
 
-    </div>
+    </main>
 
     <script>
         function togglePassword(fieldId) {
             const input = document.getElementById(fieldId);
             const eyeIcon = document.getElementById(fieldId === 'password' ? 'eyeIconPassword' : 'eyeIconConfirm');
+
+            if (!input || !eyeIcon) return;
 
             if (input.type === 'password') {
                 input.type = 'text';
@@ -262,6 +476,44 @@
                 eyeIcon.classList.add('fa-eye');
             }
         }
+
+        const typingTarget = document.getElementById('typingText');
+        const words = ['Lantera', 'Perpustakaan Digital', 'SMKN 1 Cerme'];
+
+        let wordIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+
+        function typeLoop() {
+            if (!typingTarget) return;
+
+            const currentWord = words[wordIndex];
+            typingTarget.textContent = currentWord.substring(0, charIndex);
+
+            if (!isDeleting && charIndex < currentWord.length) {
+                charIndex++;
+                setTimeout(typeLoop, 95);
+                return;
+            }
+
+            if (!isDeleting && charIndex === currentWord.length) {
+                isDeleting = true;
+                setTimeout(typeLoop, 1200);
+                return;
+            }
+
+            if (isDeleting && charIndex > 0) {
+                charIndex--;
+                setTimeout(typeLoop, 45);
+                return;
+            }
+
+            isDeleting = false;
+            wordIndex = (wordIndex + 1) % words.length;
+            setTimeout(typeLoop, 350);
+        }
+
+        typeLoop();
     </script>
 
 </body>

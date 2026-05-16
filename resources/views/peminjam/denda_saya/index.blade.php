@@ -67,91 +67,109 @@
 
     <!-- Table Card -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100">
-            <h3 class="text-base font-semibold text-slate-800">Daftar Denda</h3>
+        <div class="px-6 py-4 border-b border-slate-200">
+            <h3 class="text-base font-semibold text-slate-800">
+                Daftar Denda
+            </h3>
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[850px]">
+            <table class="w-full min-w-[920px] border-collapse text-sm">
                 <thead>
-                    <tr class="bg-slate-50 text-slate-600 text-sm">
-                        <th class="px-5 py-3 text-left w-12">No</th>
-                        <th class="px-5 py-3 text-left">Judul / Kategori</th>
-                        <th class="px-5 py-3 text-left">Kode Buku</th>
-                        <th class="px-5 py-3 text-center">Sumber</th>
-                        <th class="px-5 py-3 text-center">Kondisi</th>
-                        <th class="px-5 py-3 text-right">Denda</th>
-                        <th class="px-5 py-3 text-center">Tanggal</th>
-                        <th class="px-5 py-3 text-center">Status</th>
+                    <tr class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th class="w-16 border border-slate-200 px-5 py-4 text-left">
+                            No
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Judul / Kategori
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Kode Buku
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">
+                            Sumber
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">
+                            Kondisi
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-right">
+                            Denda
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">
+                            Tanggal
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">
+                            Status
+                        </th>
                     </tr>
                 </thead>
 
-                <tbody class="divide-y divide-slate-100">
+                <tbody>
                     @foreach($denda as $item)
-                        <tr class="hover:bg-slate-50">
-                            <td class="px-5 py-3 text-sm text-slate-500">
+                        <tr class="transition-colors hover:bg-slate-50">
+                            <td class="border border-slate-200 px-5 py-4 font-medium text-slate-600">
                                 {{ $denda->firstItem() + $loop->index }}
                             </td>
 
-                            <td class="px-5 py-3">
-                                <p class="text-sm font-medium text-slate-800">
+                            <td class="border border-slate-200 px-5 py-4">
+                                <span class="font-semibold text-slate-800">
                                     {{ $item->judul ?? '-' }}
-                                </p>
+                                </span>
                             </td>
 
-                            <td class="px-5 py-3 text-sm text-slate-500">
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
                                 {{ $item->kode_buku ?? '-' }}
                             </td>
 
-                            <td class="px-5 py-3 text-center">
+                            <td class="border border-slate-200 px-5 py-4 text-center">
                                 @if(($item->tipe ?? '') == 'kelas')
-                                    <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
+                                    <span class="font-semibold text-purple-600">
                                         Pinjam Kelas
                                     </span>
                                 @else
-                                    <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
+                                    <span class="font-semibold text-blue-600">
                                         Pinjam Buku
                                     </span>
                                 @endif
                             </td>
 
-                            <td class="px-5 py-3 text-center">
+                            <td class="border border-slate-200 px-5 py-4 text-center">
                                 @if(($item->kondisi ?? '') == 'rusak')
-                                    <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-700">
+                                    <span class="font-semibold text-orange-600">
                                         Rusak
                                     </span>
                                 @elseif(($item->kondisi ?? '') == 'hilang')
-                                    <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-700">
+                                    <span class="font-semibold text-red-600">
                                         Hilang
                                     </span>
                                 @elseif(($item->kondisi ?? '') == 'baik')
-                                    <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                                    <span class="font-semibold text-green-600">
                                         Baik
                                     </span>
                                 @else
-                                    <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-700">
+                                    <span class="font-semibold text-slate-500">
                                         -
                                     </span>
                                 @endif
                             </td>
 
-                            <td class="px-5 py-3 text-right">
-                                <span class="text-sm font-bold text-red-600">
+                            <td class="border border-slate-200 px-5 py-4 text-right">
+                                <span class="font-bold text-red-600">
                                     Rp {{ number_format($item->denda ?? 0, 0, ',', '.') }}
                                 </span>
                             </td>
 
-                            <td class="px-5 py-3 text-center text-sm text-slate-500">
+                            <td class="border border-slate-200 px-5 py-4 text-center text-slate-500">
                                 {{ !empty($item->tanggal) ? \Carbon\Carbon::parse($item->tanggal)->format('d M Y') : '-' }}
                             </td>
 
-                            <td class="px-5 py-3 text-center">
+                            <td class="border border-slate-200 px-5 py-4 text-center">
                                 @if(($item->status ?? 'pending') == 'paid')
-                                    <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+                                    <span class="font-semibold text-green-600">
                                         Lunas
                                     </span>
                                 @else
-                                    <span class="inline-block px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700">
+                                    <span class="font-semibold text-yellow-600">
                                         Belum Lunas
                                     </span>
                                 @endif

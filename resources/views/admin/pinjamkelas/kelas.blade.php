@@ -197,22 +197,40 @@
 
         {{-- Table --}}
         <div class="overflow-x-auto bg-white/90">
-            <table class="w-full min-w-[1100px]">
+            <table class="w-full min-w-[1280px] border-collapse text-sm">
                 <thead>
-                    <tr class="border-b border-slate-100 bg-slate-100/80 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        <th class="px-5 py-4 text-left w-16">No</th>
-                        <th class="px-5 py-4 text-left">Nama Siswa</th>
-                        <th class="px-5 py-4 text-left">Nomor Identitas</th>
-                        <th class="px-5 py-4 text-left">Kelas</th>
-                        <th class="px-5 py-4 text-left">Jurusan</th>
-                        <th class="px-5 py-4 text-left">Judul Buku</th>
-                        <th class="px-5 py-4 text-left w-28">Kode Buku</th>
-                        <th class="px-5 py-4 text-center w-32">Status</th>
-                        <th class="px-5 py-4 text-center w-36">Aksi</th>
+                    <tr class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th class="w-16 border border-slate-200 px-5 py-4 text-left">
+                            No
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Nama Siswa
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Nomor Identitas
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Kelas
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Jurusan
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Judul Buku
+                        </th>
+                        <th class="w-28 border border-slate-200 px-5 py-4 text-left">
+                            Kode Buku
+                        </th>
+                        <th class="w-32 border border-slate-200 px-5 py-4 text-center">
+                            Status
+                        </th>
+                        <th class="w-36 border border-slate-200 px-5 py-4 text-center">
+                            Aksi
+                        </th>
                     </tr>
                 </thead>
 
-                <tbody id="kelasPinjamTable" class="divide-y divide-slate-100">
+                <tbody id="kelasPinjamTable">
                     @forelse($pinjamKelas as $index => $item)
                         @php
                             $kelasData = $item->user->kelas ?? $item->kategori->kelas ?? null;
@@ -220,92 +238,65 @@
                         @endphp
 
                         <tr class="transition-colors hover:bg-slate-50">
-                            <td class="px-5 py-4">
-                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
-                                    {{ $pinjamKelas->firstItem() + $index }}
+                            <td class="border border-slate-200 px-5 py-4 font-medium text-slate-600">
+                                {{ $pinjamKelas->firstItem() + $index }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4">
+                                <span class="font-semibold text-slate-800">
+                                    {{ $item->user->name ?? '-' }}
                                 </span>
                             </td>
 
-                            <td class="px-5 py-4">
-                                <div class="min-w-0">
-                                    <p class="truncate text-sm font-bold text-slate-800">
-                                        {{ $item->user->name ?? '-' }}
-                                    </p>
-                                    <p class="mt-0.5 text-xs text-slate-400">
-                                        Siswa peminjam kelas
-                                    </p>
-                                </div>
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                {{ $item->user->nomor_identitas ?? '-' }}
                             </td>
 
-                            <td class="px-5 py-4">
-                                <span class="text-sm font-medium text-slate-600">
-                                    {{ $item->user->nomor_identitas ?? '-' }}
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                {{ $kelasData ?? '-' }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                {{ $jurusanData }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4">
+                                <span class="font-semibold text-slate-800">
+                                    {{ $item->kategori->nama_kategori ?? '-' }}
                                 </span>
                             </td>
 
-                            <td class="px-5 py-4">
-                                <span class="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
-                                    {{ $kelasData ?? '-' }}
-                                </span>
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                {{ $item->kode_buku ?? '-' }}
                             </td>
 
-                            <td class="px-5 py-4">
-                                <span class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
-                                    {{ $jurusanData }}
-                                </span>
-                            </td>
+                            <td class="border border-slate-200 px-5 py-4 text-center">
+                                @if($item->status == 'disetujui')
+                                    <span class="font-semibold text-emerald-600">
+                                        Disetujui
+                                    </span>
+                                @elseif($item->status == 'dikembalikan')
+                                    <span class="font-semibold text-slate-600">
+                                        Dikembalikan
+                                    </span>
+                                @elseif($item->status == 'denda')
+                                    <span class="font-semibold text-red-600">
+                                        Denda
+                                    </span>
 
-                            <td class="px-5 py-4">
-                                <div class="min-w-0">
-                                    <p class="max-w-xs truncate text-sm font-bold text-slate-800">
-                                        {{ $item->kategori->nama_kategori ?? '-' }}
-                                    </p>
-                                    <p class="mt-0.5 text-xs text-slate-400">
-                                        Kategori buku kelas
-                                    </p>
-                                </div>
-                            </td>
-
-                            <td class="px-5 py-4">
-                                <span class="inline-flex items-center rounded-xl bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                                    {{ $item->kode_buku ?? '-' }}
-                                </span>
-                            </td>
-
-                            <td class="px-5 py-4 text-center">
-                                @php
-                                    $statusClass = 'bg-amber-50 text-amber-700 ring-amber-100';
-                                    $statusText = 'Pending';
-                                    $statusIcon = 'fa-clock';
-
-                                    if ($item->status == 'disetujui') {
-                                        $statusClass = 'bg-emerald-50 text-emerald-700 ring-emerald-100';
-                                        $statusText = 'Disetujui';
-                                        $statusIcon = 'fa-check';
-                                    } elseif ($item->status == 'dikembalikan') {
-                                        $statusClass = 'bg-slate-100 text-slate-700 ring-slate-200';
-                                        $statusText = 'Dikembalikan';
-                                        $statusIcon = 'fa-rotate-left';
-                                    } elseif ($item->status == 'denda') {
-                                        $statusClass = 'bg-red-50 text-red-700 ring-red-100';
-                                        $statusText = 'Denda';
-                                        $statusIcon = 'fa-triangle-exclamation';
-                                    }
-                                @endphp
-
-                                <span class="inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1 {{ $statusClass }}">
-                                    <i class="fas {{ $statusIcon }} text-[10px]"></i>
-                                    {{ $statusText }}
-                                </span>
-
-                                @if($item->status == 'denda' && isset($item->denda) && $item->denda > 0)
-                                    <div class="mt-1 text-xs font-bold text-red-600">
-                                        Rp {{ number_format($item->denda, 0, ',', '.') }}
-                                    </div>
+                                    @if(isset($item->denda) && $item->denda > 0)
+                                        <div class="mt-1 text-xs font-bold text-red-600">
+                                            Rp {{ number_format($item->denda, 0, ',', '.') }}
+                                        </div>
+                                    @endif
+                                @else
+                                    <span class="font-semibold text-amber-600">
+                                        Pending
+                                    </span>
                                 @endif
                             </td>
 
-                            <td class="px-5 py-4">
+                            <td class="border border-slate-200 px-5 py-4">
                                 <div class="flex items-center justify-center gap-2">
                                     @if($item->status == 'pending')
                                         <form action="{{ route('admin.pinjamkelas.kelas.setujui', $item->id) }}" method="POST">
@@ -351,7 +342,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-6 py-16 text-center">
+                            <td colspan="9" class="border border-slate-200 px-6 py-16 text-center">
                                 <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
                                     <i class="fas fa-book-open text-2xl"></i>
                                 </div>

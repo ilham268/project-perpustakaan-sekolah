@@ -8,81 +8,89 @@
 <div class="space-y-6">
 
     {{-- Hero Header --}}
-<div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-5 py-5 md:px-7 md:py-6 shadow-md shadow-emerald-100/70">
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-5 py-5 shadow-md shadow-emerald-100/70 md:px-7 md:py-6">
 
-    {{-- Decorative Shape --}}
-    <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
-    <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
+        {{-- Decorative Shape --}}
+        <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
+        <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
 
-    <div class="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+        <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
-        {{-- Text --}}
-        <div class="max-w-2xl">
-            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white">
-                Dashboard Admin
-            </h1>
+            {{-- Text --}}
+            <div class="max-w-2xl">
+                <h1 class="text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+                    Dashboard Admin
+                </h1>
 
-            <p class="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50">
-                Pantau data buku, siswa, peminjaman, kunjungan, dan denda perpustakaan.
-            </p>
-        </div>
-
-        {{-- Small Summary Cards --}}
-        <div class="grid grid-cols-2 gap-3 w-full lg:w-[360px]">
-            <div class="rounded-2xl bg-white/15 px-4 py-3 ring-1 ring-white/20 backdrop-blur-md transition hover:bg-white/20">
-                <div class="flex items-center justify-between gap-3">
-                    <div>
-                        <p class="text-xs font-semibold text-emerald-50">
-                            Total Buku
-                        </p>
-
-                        <p class="mt-1 text-2xl font-extrabold tracking-tight text-white">
-                            {{ $totalBooks }}
-                        </p>
-                    </div>
-
-                    <div class="hidden sm:flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white ring-1 ring-white/20">
-                        <i class="fas fa-book text-sm"></i>
-                    </div>
-                </div>
+                <p class="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50">
+                    Pantau data buku, siswa, peminjaman, kunjungan, dan denda perpustakaan.
+                </p>
             </div>
 
-            <div class="rounded-2xl bg-white/15 px-4 py-3 ring-1 ring-white/20 backdrop-blur-md transition hover:bg-white/20">
-                <div class="flex items-center justify-between gap-3">
-                    <div>
-                        <p class="text-xs font-semibold text-emerald-50">
-                            Total Siswa
-                        </p>
+            {{-- Small Summary Cards --}}
+            <div class="grid w-full grid-cols-2 gap-3 lg:w-[360px]">
 
-                        <p class="mt-1 text-2xl font-extrabold tracking-tight text-white">
-                            {{ $totalAnggota }}
-                        </p>
-                    </div>
+                <div class="rounded-2xl bg-white/15 px-4 py-3 ring-1 ring-white/20 backdrop-blur-md transition hover:bg-white/20">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="text-xs font-semibold text-emerald-50">
+                                Total Buku
+                            </p>
 
-                    <div class="hidden sm:flex h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white ring-1 ring-white/20">
-                        <i class="fas fa-users text-sm"></i>
+                            <p class="mt-1 text-2xl font-extrabold tracking-tight text-white">
+                                {{ $totalBooks }}
+                            </p>
+                        </div>
+
+                        <div class="hidden h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white ring-1 ring-white/20 sm:flex">
+                            <i class="fas fa-book text-sm"></i>
+                        </div>
                     </div>
                 </div>
+
+                <div class="rounded-2xl bg-white/15 px-4 py-3 ring-1 ring-white/20 backdrop-blur-md transition hover:bg-white/20">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p class="text-xs font-semibold text-emerald-50">
+                                Total Siswa
+                            </p>
+
+                            <p class="mt-1 text-2xl font-extrabold tracking-tight text-white">
+                                {{ $totalAnggota }}
+                            </p>
+                        </div>
+
+                        <div class="hidden h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white ring-1 ring-white/20 sm:flex">
+                            <i class="fas fa-users text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+
             </div>
+
         </div>
     </div>
-</div>
+
     {{-- Stat Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-5">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 xl:grid-cols-4">
 
         {{-- Total Buku --}}
         <a
             href="{{ route('books.index') }}"
-            class="group relative overflow-hidden rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60"
+            class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60"
         >
             <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-emerald-50 transition group-hover:bg-emerald-100"></div>
 
             <div class="relative flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-sm font-medium text-slate-500">Total Buku</p>
+                    <p class="text-sm font-medium text-slate-500">
+                        Total Buku
+                    </p>
+
                     <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                         {{ $totalBooks }}
                     </p>
+
                     <div class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-600">
                         Lihat data
                         <i class="fas fa-arrow-right text-[10px] transition group-hover:translate-x-1"></i>
@@ -98,16 +106,20 @@
         {{-- Total Siswa --}}
         <a
             href="{{ route('users.index') }}?role=siswa"
-            class="group relative overflow-hidden rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60"
+            class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60"
         >
             <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-blue-50 transition group-hover:bg-blue-100"></div>
 
             <div class="relative flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-sm font-medium text-slate-500">Total Siswa</p>
+                    <p class="text-sm font-medium text-slate-500">
+                        Total Siswa
+                    </p>
+
                     <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                         {{ $totalAnggota }}
                     </p>
+
                     <div class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-600">
                         Lihat data
                         <i class="fas fa-arrow-right text-[10px] transition group-hover:translate-x-1"></i>
@@ -123,16 +135,20 @@
         {{-- Denda Terkumpul --}}
         <a
             href="{{ route('admin.denda.index') }}?status=paid"
-            class="group relative overflow-hidden rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60"
+            class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60"
         >
             <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-amber-50 transition group-hover:bg-amber-100"></div>
 
             <div class="relative flex items-start justify-between gap-4">
                 <div class="min-w-0">
-                    <p class="text-sm font-medium text-slate-500">Denda Terkumpul</p>
-                    <p class="mt-2 text-2xl font-bold tracking-tight text-slate-900 truncate">
+                    <p class="text-sm font-medium text-slate-500">
+                        Denda Terkumpul
+                    </p>
+
+                    <p class="mt-2 truncate text-2xl font-bold tracking-tight text-slate-900">
                         Rp {{ number_format($totalDendaSudahBayar, 0, ',', '.') }}
                     </p>
+
                     <div class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-600">
                         Lihat data
                         <i class="fas fa-arrow-right text-[10px] transition group-hover:translate-x-1"></i>
@@ -148,16 +164,20 @@
         {{-- Total Kunjungan --}}
         <a
             href="{{ route('admin.guest-book.index') }}"
-            class="group relative overflow-hidden rounded-2xl bg-white border border-slate-200/80 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60"
+            class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60"
         >
             <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-violet-50 transition group-hover:bg-violet-100"></div>
 
             <div class="relative flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-sm font-medium text-slate-500">Total Kunjungan</p>
+                    <p class="text-sm font-medium text-slate-500">
+                        Total Kunjungan
+                    </p>
+
                     <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
                         {{ $totalKunjungan }}
                     </p>
+
                     <div class="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-emerald-600">
                         Lihat data
                         <i class="fas fa-arrow-right text-[10px] transition group-hover:translate-x-1"></i>
@@ -169,18 +189,20 @@
                 </div>
             </div>
         </a>
+
     </div>
 
     {{-- Chart + Popular Books --}}
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-3">
 
         {{-- Chart Peminjaman --}}
-        <div class="xl:col-span-2 rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 px-5 py-4 md:px-6">
+        <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm xl:col-span-2">
+            <div class="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
                 <div>
-                    <h3 class="text-base md:text-lg font-bold text-slate-900">
+                    <h3 class="text-base font-bold text-slate-900 md:text-lg">
                         Statistik Peminjaman
                     </h3>
+
                     <p class="mt-1 text-xs text-slate-500">
                         Perkembangan jumlah peminjaman selama 12 bulan terakhir.
                     </p>
@@ -200,12 +222,13 @@
         </div>
 
         {{-- Buku Terpopuler --}}
-        <div class="rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
                 <div>
-                    <h3 class="text-base md:text-lg font-bold text-slate-900">
+                    <h3 class="text-base font-bold text-slate-900 md:text-lg">
                         Buku Terpopuler
                     </h3>
+
                     <p class="mt-1 text-xs text-slate-500">
                         Buku paling sering dipinjam.
                     </p>
@@ -213,13 +236,13 @@
 
                 <a
                     href="{{ route('books.index') }}"
-                    class="shrink-0 text-xs font-semibold text-emerald-600 hover:text-emerald-700"
+                    class="shrink-0 text-xs font-semibold text-emerald-600 transition hover:text-emerald-700"
                 >
                     Lihat Semua
                 </a>
             </div>
 
-            <div class="max-h-[390px] overflow-y-auto p-4 space-y-3">
+            <div class="max-h-[390px] space-y-3 overflow-y-auto p-4">
                 @forelse($popularBooks as $i => $book)
                     @php
                         $barMax = $popularBooks->first()->total_pinjam ?? 1;
@@ -227,6 +250,7 @@
                     @endphp
 
                     <div class="group flex items-center gap-3 rounded-2xl border border-transparent p-3 transition-all hover:border-slate-200 hover:bg-slate-50">
+
                         <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
                             {{ $i + 1 }}
                         </div>
@@ -247,6 +271,7 @@
                             <p class="truncate text-sm font-bold text-slate-800">
                                 {{ $book->judul }}
                             </p>
+
                             <p class="mt-0.5 truncate text-xs text-slate-400">
                                 {{ $book->penulis }}
                             </p>
@@ -263,19 +288,23 @@
                             <p class="text-lg font-bold text-emerald-600">
                                 {{ $book->total_pinjam }}
                             </p>
+
                             <p class="text-[10px] font-medium text-slate-400">
                                 kali
                             </p>
                         </div>
+
                     </div>
                 @empty
                     <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-12 text-center">
                         <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
                             <i class="fas fa-book-open text-xl"></i>
                         </div>
+
                         <p class="mt-3 text-sm font-semibold text-slate-600">
                             Belum ada data peminjaman
                         </p>
+
                         <p class="mt-1 text-xs text-slate-400">
                             Data buku populer akan muncul setelah ada transaksi.
                         </p>
@@ -283,15 +312,17 @@
                 @endforelse
             </div>
         </div>
+
     </div>
 
     {{-- Denda Belum Dibayar --}}
-    <div class="rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 px-5 py-4 md:px-6">
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
             <div>
-                <h3 class="text-base md:text-lg font-bold text-slate-900">
+                <h3 class="text-base font-bold text-slate-900 md:text-lg">
                     Denda Belum Dibayar
                 </h3>
+
                 <p class="mt-1 text-xs text-slate-500">
                     Daftar pengembalian buku yang masih memiliki tagihan denda.
                 </p>
@@ -307,60 +338,76 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[850px]">
+            <table class="w-full min-w-[1120px] border-collapse text-sm">
                 <thead>
-                    <tr class="border-b border-slate-100 bg-slate-50/80 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        <th class="px-5 py-4 text-left w-16">No</th>
-                        <th class="px-5 py-4 text-left">Nama Siswa</th>
-                        <th class="px-5 py-4 text-left">Judul Buku</th>
-                        <th class="px-5 py-4 text-center w-28">Kondisi</th>
-                        <th class="px-5 py-4 text-center w-36">Denda</th>
-                        <th class="px-5 py-4 text-center w-36">Tgl Kembali</th>
+                    <tr class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th class="w-16 border border-slate-200 px-5 py-4 text-left">
+                            No
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Nama Siswa
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Nomor Identitas
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Kelas
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Judul Buku
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Kode Buku
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">
+                            Kondisi
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">
+                            Denda
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">
+                            Tgl Kembali
+                        </th>
                     </tr>
                 </thead>
 
-                <tbody class="divide-y divide-slate-100">
+                <tbody>
                     @forelse($unpaidDenda as $i => $return)
                         <tr class="transition-colors hover:bg-slate-50">
-                            <td class="px-5 py-4">
-                                <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
-                                    {{ $i + 1 }}
+
+                            <td class="border border-slate-200 px-5 py-4 font-medium text-slate-600">
+                                {{ $i + 1 }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4">
+                                <span class="font-semibold text-slate-800">
+                                    {{ $return->loan->user->name }}
                                 </span>
                             </td>
 
-                            <td class="px-5 py-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-sm font-bold text-emerald-700">
-                                        {{ strtoupper(substr($return->loan->user->name, 0, 2)) }}
-                                    </div>
-
-                                    <div class="min-w-0">
-                                        <p class="truncate text-sm font-bold text-slate-800">
-                                            {{ $return->loan->user->name }}
-                                        </p>
-                                        <p class="text-xs text-slate-400">
-                                            {{ $return->loan->user->nomor_identitas }}
-                                        </p>
-
-                                        @if($return->loan->user->kelas)
-                                            <p class="mt-0.5 text-xs font-medium text-emerald-600">
-                                                Kelas {{ $return->loan->user->kelas }} - {{ $return->loan->user->jurusan ?? '' }}
-                                            </p>
-                                        @endif
-                                    </div>
-                                </div>
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                {{ $return->loan->user->nomor_identitas }}
                             </td>
 
-                            <td class="px-5 py-4">
-                                <p class="max-w-xs truncate text-sm font-medium text-slate-700">
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                @if($return->loan->user->kelas)
+                                    Kelas {{ $return->loan->user->kelas }} - {{ $return->loan->user->jurusan ?? '' }}
+                                @else
+                                    -
+                                @endif
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4">
+                                <span class="font-semibold text-slate-800">
                                     {{ $return->loan->bookItem->book->judul }}
-                                </p>
-                                <p class="mt-0.5 text-xs text-slate-400">
-                                    {{ $return->loan->bookItem->kode_buku ?? '-' }}
-                                </p>
+                                </span>
                             </td>
 
-                            <td class="px-5 py-4 text-center">
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                {{ $return->loan->bookItem->kode_buku ?? '-' }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-center">
                                 @if($return->kondisi == 'baik')
                                     <span class="inline-flex items-center justify-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 ring-1 ring-green-100">
                                         Baik
@@ -380,27 +427,28 @@
                                 @endif
                             </td>
 
-                            <td class="px-5 py-4 text-center">
+                            <td class="border border-slate-200 px-5 py-4 text-center">
                                 <span class="inline-flex items-center justify-center rounded-xl bg-red-50 px-3 py-1.5 text-sm font-bold text-red-600">
                                     Rp {{ number_format($return->denda, 0, ',', '.') }}
                                 </span>
                             </td>
 
-                            <td class="px-5 py-4 text-center">
-                                <span class="text-sm font-medium text-slate-500">
-                                    {{ \Carbon\Carbon::parse($return->tanggal_pengembalian)->translatedFormat('d M Y') }}
-                                </span>
+                            <td class="border border-slate-200 px-5 py-4 text-center text-slate-500">
+                                {{ \Carbon\Carbon::parse($return->tanggal_pengembalian)->translatedFormat('d M Y') }}
                             </td>
+
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-14 text-center">
+                            <td colspan="9" class="border border-slate-200 px-5 py-14 text-center">
                                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500">
                                     <i class="fas fa-circle-check text-2xl"></i>
                                 </div>
+
                                 <p class="mt-4 text-sm font-bold text-slate-700">
                                     Semua denda sudah dibayar
                                 </p>
+
                                 <p class="mt-1 text-xs text-slate-400">
                                     Tidak ada tagihan denda yang tertunda saat ini.
                                 </p>
@@ -411,6 +459,7 @@
             </table>
         </div>
     </div>
+
 </div>
 
 {{-- Chart.js --}}

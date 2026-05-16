@@ -107,8 +107,6 @@ class ReturnBookController extends Controller
         DB::transaction(function () use ($request, $loan, $totalDenda) {
             $loan->update([
                 'status' => 'dikembalikan',
-                'tanggal_pengembalian' => now(),
-                'denda' => $totalDenda,
             ]);
 
             ReturnBook::create([
@@ -244,8 +242,6 @@ class ReturnBookController extends Controller
         DB::transaction(function () use ($request, $loan, $totalDenda) {
             $loan->update([
                 'status' => 'dikembalikan',
-                'tanggal_pengembalian' => now(),
-                'denda' => $totalDenda,
             ]);
 
             ReturnBook::create([
@@ -320,7 +316,7 @@ class ReturnBookController extends Controller
     }
 
     // ======================================================
-    // INVOICE
+    // INVOICE BUKU
     // ======================================================
     public function downloadInvoice($id)
     {
@@ -394,7 +390,7 @@ class ReturnBookController extends Controller
         $pdf->setPaper('a4', 'portrait');
 
         return $pdf->download(
-            'Nota-Pengembalian-' . $return->loan->user->name . '-' . now()->format('Ymd') . '.pdf'
+            'Nota-Pengembalian-' . ($return->loan->user->name ?? 'Peminjam') . '-' . now()->format('Ymd') . '.pdf'
         );
     }
 
@@ -468,29 +464,29 @@ class ReturnBookController extends Controller
             });
         }
 
-        if ($status === 'paid') {
-            $pinjamKelas = collect();
-        } else {
-            $pinjamKelas = collect(
-                $pinjamKelasQuery->latest()->get()->map(function ($item) {
-                    return (object) [
-                        'tipe' => 'kelas',
-                        'id' => $item->id,
-                        'nama_peminjam' => $item->user->name ?? '-',
-                        'nomor_identitas' => $item->user->nomor_identitas ?? '-',
-                        'judul' => $item->kategori->nama_kategori ?? '-',
-                        'kode_buku' => $item->kode_buku ?? '-',
-                        'foto' => null,
-                        'kondisi' => $item->kondisi ?? '-',
-                        'denda' => $item->denda ?? 0,
-                        'status' => 'pending',
-                        'tanggal_pengembalian' => $item->tanggal_denda ?? $item->updated_at,
-                        'created_at' => $item->tanggal_denda ?? $item->updated_at,
-                        'invoice_route' => null,
-                    ];
-                })->all()
-            );
+        if ($status) {
+            $pinjamKelasQuery->where('status_denda', $status);
         }
+
+        $pinjamKelas = collect(
+            $pinjamKelasQuery->latest()->get()->map(function ($item) {
+                return (object) [
+                    'tipe' => 'kelas',
+                    'id' => $item->id,
+                    'nama_peminjam' => $item->user->name ?? '-',
+                    'nomor_identitas' => $item->user->nomor_identitas ?? '-',
+                    'judul' => $item->kategori->nama_kategori ?? '-',
+                    'kode_buku' => $item->kode_buku ?? '-',
+                    'foto' => null,
+                    'kondisi' => $item->kondisi ?? '-',
+                    'denda' => $item->denda ?? 0,
+                    'status' => $item->status_denda ?? 'pending',
+                    'tanggal_pengembalian' => $item->tanggal_denda ?? $item->updated_at,
+                    'created_at' => $item->tanggal_denda ?? $item->updated_at,
+                    'invoice_route' => route('denda.kelas.invoice', $item->id),
+                ];
+            })->all()
+        );
 
         $gabungan = $returnBooks
             ->merge($pinjamKelas)
@@ -499,6 +495,7 @@ class ReturnBookController extends Controller
 
         $perPage = 10;
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
+
         $currentItems = $gabungan
             ->slice(($currentPage - 1) * $perPage, $perPage)
             ->values();
@@ -522,12 +519,21 @@ class ReturnBookController extends Controller
             ->where('status', 'pending')
             ->sum('denda');
 
-        $totalPendingKelas = PinjamKelas::where('denda', '>', 0)->sum('denda');
+        $totalPendingKelas = PinjamKelas::where('denda', '>', 0)
+            ->where('status_denda', 'pending')
+            ->sum('denda');
+
         $totalPending = $totalPendingReturnBook + $totalPendingKelas;
 
-        $totalPaid = ReturnBook::where('denda', '>', 0)
+        $totalPaidReturnBook = ReturnBook::where('denda', '>', 0)
             ->where('status', 'paid')
             ->sum('denda');
+
+        $totalPaidKelas = PinjamKelas::where('denda', '>', 0)
+            ->where('status_denda', 'paid')
+            ->sum('denda');
+
+        $totalPaid = $totalPaidReturnBook + $totalPaidKelas;
 
         return view('petugas.denda.index', compact(
             'denda',
@@ -537,16 +543,71 @@ class ReturnBookController extends Controller
         ));
     }
 
-    public function markAsPaid($id)
+    public function markAsPaid($tipe, $id)
     {
-        $return = ReturnBook::findOrFail($id);
+        if ($tipe === 'buku') {
+            $return = ReturnBook::findOrFail($id);
 
-        $return->update([
-            'status' => 'paid',
-        ]);
+            $return->update([
+                'status' => 'paid',
+            ]);
 
-        return redirect()->back()
-            ->with('success', 'Denda berhasil ditandai sebagai lunas');
+            return redirect()
+                ->route('denda.index')
+                ->with('success', 'Denda buku berhasil ditandai sebagai lunas.');
+        }
+
+        if ($tipe === 'kelas') {
+            $pinjamKelas = PinjamKelas::findOrFail($id);
+
+            if (($pinjamKelas->denda ?? 0) <= 0) {
+                return redirect()
+                    ->route('denda.index')
+                    ->with('error', 'Data pinjam kelas ini tidak memiliki denda.');
+            }
+
+            $pinjamKelas->forceFill([
+                'status_denda' => 'paid',
+                'tanggal_bayar_denda' => now(),
+            ])->save();
+
+            return redirect()
+                ->route('denda.index')
+                ->with('success', 'Denda kelas berhasil ditandai sebagai lunas.');
+        }
+
+        return redirect()
+            ->route('denda.index')
+            ->with('error', 'Tipe denda tidak valid.');
+    }
+
+    public function downloadInvoiceKelasPetugas($id)
+    {
+        $pinjamKelas = PinjamKelas::with(['user', 'kategori'])->findOrFail($id);
+
+        $items = [
+            [
+                'label' => 'Denda Peminjaman Kelas',
+                'description' => 'Kategori: ' . ($pinjamKelas->kategori->nama_kategori ?? '-') . ' | Kondisi: ' . ucfirst($pinjamKelas->kondisi ?? '-'),
+                'nominal' => $pinjamKelas->denda ?? 0,
+            ],
+        ];
+
+        $data = [
+            'pinjamKelas' => $pinjamKelas,
+            'user' => $pinjamKelas->user,
+            'invoiceNumber' => 'KLS-' . str_pad($pinjamKelas->id, 5, '0', STR_PAD_LEFT),
+            'items' => $items,
+            'total' => $pinjamKelas->denda ?? 0,
+            'tanggalBayar' => $pinjamKelas->tanggal_bayar_denda ?? now(),
+        ];
+
+        $pdf = Pdf::loadView('petugas.pdf.invoice-kelas', $data);
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->download(
+            'Nota-Denda-Kelas-' . ($pinjamKelas->user->name ?? 'Peminjam') . '-' . now()->format('Ymd') . '.pdf'
+        );
     }
 
     // ======================================================
@@ -660,28 +721,28 @@ class ReturnBookController extends Controller
             });
         }
 
-        if ($status === 'paid') {
-            $pinjamKelas = collect();
-        } else {
-            $pinjamKelas = collect(
-                $pinjamKelasQuery->latest()->get()->map(function ($item) {
-                    return (object) [
-                        'tipe' => 'kelas',
-                        'id' => $item->id,
-                        'nama_peminjam' => $item->user->name ?? '-',
-                        'nomor_identitas' => $item->user->nomor_identitas ?? '-',
-                        'judul' => $item->kategori->nama_kategori ?? '-',
-                        'kode_buku' => $item->kode_buku ?? '-',
-                        'kondisi' => $item->kondisi ?? '-',
-                        'denda' => $item->denda ?? 0,
-                        'status' => 'pending',
-                        'tanggal_kembali' => $item->tanggal_denda ?? $item->updated_at,
-                        'created_at' => $item->tanggal_denda ?? $item->updated_at,
-                        'invoice_route' => null,
-                    ];
-                })->all()
-            );
+        if ($status) {
+            $pinjamKelasQuery->where('status_denda', $status);
         }
+
+        $pinjamKelas = collect(
+            $pinjamKelasQuery->latest()->get()->map(function ($item) {
+                return (object) [
+                    'tipe' => 'kelas',
+                    'id' => $item->id,
+                    'nama_peminjam' => $item->user->name ?? '-',
+                    'nomor_identitas' => $item->user->nomor_identitas ?? '-',
+                    'judul' => $item->kategori->nama_kategori ?? '-',
+                    'kode_buku' => $item->kode_buku ?? '-',
+                    'kondisi' => $item->kondisi ?? '-',
+                    'denda' => $item->denda ?? 0,
+                    'status' => $item->status_denda ?? 'pending',
+                    'tanggal_kembali' => $item->tanggal_denda ?? $item->updated_at,
+                    'created_at' => $item->tanggal_denda ?? $item->updated_at,
+                    'invoice_route' => route('admin.denda.kelas.invoice', $item->id),
+                ];
+            })->all()
+        );
 
         $gabungan = $returnBooks
             ->merge($pinjamKelas)
@@ -690,6 +751,7 @@ class ReturnBookController extends Controller
 
         $perPage = 10;
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
+
         $currentItems = $gabungan
             ->slice(($currentPage - 1) * $perPage, $perPage)
             ->values();
@@ -713,12 +775,21 @@ class ReturnBookController extends Controller
             ->where('status', 'pending')
             ->sum('denda');
 
-        $totalPendingKelas = PinjamKelas::where('denda', '>', 0)->sum('denda');
+        $totalPendingKelas = PinjamKelas::where('denda', '>', 0)
+            ->where('status_denda', 'pending')
+            ->sum('denda');
+
         $totalPending = $totalPendingReturnBook + $totalPendingKelas;
 
-        $totalPaid = ReturnBook::where('denda', '>', 0)
+        $totalPaidReturnBook = ReturnBook::where('denda', '>', 0)
             ->where('status', 'paid')
             ->sum('denda');
+
+        $totalPaidKelas = PinjamKelas::where('denda', '>', 0)
+            ->where('status_denda', 'paid')
+            ->sum('denda');
+
+        $totalPaid = $totalPaidReturnBook + $totalPaidKelas;
 
         return view('admin.denda.index', compact(
             'denda',
@@ -726,6 +797,73 @@ class ReturnBookController extends Controller
             'totalPending',
             'totalPaid'
         ));
+    }
+
+    public function adminDendaPaid($tipe, $id)
+    {
+        if ($tipe === 'buku') {
+            $return = ReturnBook::findOrFail($id);
+
+            $return->update([
+                'status' => 'paid',
+            ]);
+
+            return redirect()
+                ->route('admin.denda.index')
+                ->with('success', 'Denda buku berhasil ditandai sebagai lunas.');
+        }
+
+        if ($tipe === 'kelas') {
+            $pinjamKelas = PinjamKelas::findOrFail($id);
+
+            if (($pinjamKelas->denda ?? 0) <= 0) {
+                return redirect()
+                    ->route('admin.denda.index')
+                    ->with('error', 'Data pinjam kelas ini tidak memiliki denda.');
+            }
+
+            $pinjamKelas->forceFill([
+                'status_denda' => 'paid',
+                'tanggal_bayar_denda' => now(),
+            ])->save();
+
+            return redirect()
+                ->route('admin.denda.index')
+                ->with('success', 'Denda kelas berhasil ditandai sebagai lunas.');
+        }
+
+        return redirect()
+            ->route('admin.denda.index')
+            ->with('error', 'Tipe denda tidak valid.');
+    }
+
+    public function downloadInvoiceKelasAdmin($id)
+    {
+        $pinjamKelas = PinjamKelas::with(['user', 'kategori'])->findOrFail($id);
+
+        $items = [
+            [
+                'label' => 'Denda Peminjaman Kelas',
+                'description' => 'Kategori: ' . ($pinjamKelas->kategori->nama_kategori ?? '-') . ' | Kondisi: ' . ucfirst($pinjamKelas->kondisi ?? '-'),
+                'nominal' => $pinjamKelas->denda ?? 0,
+            ],
+        ];
+
+        $data = [
+            'pinjamKelas' => $pinjamKelas,
+            'user' => $pinjamKelas->user,
+            'invoiceNumber' => 'KLS-' . str_pad($pinjamKelas->id, 5, '0', STR_PAD_LEFT),
+            'items' => $items,
+            'total' => $pinjamKelas->denda ?? 0,
+            'tanggalBayar' => $pinjamKelas->tanggal_bayar_denda ?? now(),
+        ];
+
+        $pdf = Pdf::loadView('admin.pdf.invoice-kelas', $data);
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->download(
+            'Nota-Denda-Kelas-' . ($pinjamKelas->user->name ?? 'Peminjam') . '-' . now()->format('Ymd') . '.pdf'
+        );
     }
 
     public function exportDenda(Request $request)
@@ -748,39 +886,46 @@ class ReturnBookController extends Controller
         $user = Auth::user();
         $search = $request->search;
 
+        // Ambil semua denda buku siswa login, baik belum lunas maupun sudah lunas.
         $returnBooksQuery = ReturnBook::with(['loan.bookItem.book'])
             ->whereHas('loan', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
-            ->where('denda', '>', 0)
-            ->where('status', 'pending');
+            ->where('denda', '>', 0);
 
-        if ($search) {
-            $returnBooksQuery->whereHas('loan.bookItem.book', function ($q) use ($search) {
-                $q->where('judul', 'like', '%' . $search . '%');
+        if (!empty($search)) {
+            $returnBooksQuery->where(function ($q) use ($search) {
+                $q->whereHas('loan.bookItem.book', function ($q) use ($search) {
+                    $q->where('judul', 'like', '%' . $search . '%');
+                })
+                ->orWhereHas('loan.bookItem', function ($q) use ($search) {
+                    $q->where('kode_buku', 'like', '%' . $search . '%');
+                });
             });
         }
 
-        $returnBooks = collect(
-            $returnBooksQuery->latest()->get()->map(function ($item) {
+        $returnBooks = $returnBooksQuery
+            ->latest()
+            ->get()
+            ->map(function ($item) {
                 return (object) [
                     'tipe' => 'buku',
                     'judul' => $item->loan->bookItem->book->judul ?? '-',
                     'kode_buku' => $item->loan->bookItem->kode_buku ?? '-',
                     'kondisi' => $item->kondisi ?? '-',
-                    'denda' => $item->denda ?? 0,
-                    'status' => $item->status ?? 'pending',
+                    'denda' => (int) ($item->denda ?? 0),
+                    'status' => $item->status ?: 'pending',
                     'tanggal' => $item->tanggal_pengembalian ?? $item->created_at,
                     'created_at' => $item->created_at,
                 ];
-            })->all()
-        );
+            });
 
-        $pinjamKelasQuery = PinjamKelas::with(['user', 'kategori'])
+        // Ambil semua denda kelas siswa login, baik belum lunas maupun sudah lunas.
+        $pinjamKelasQuery = PinjamKelas::with(['kategori'])
             ->where('user_id', $user->id)
             ->where('denda', '>', 0);
 
-        if ($search) {
+        if (!empty($search)) {
             $pinjamKelasQuery->where(function ($q) use ($search) {
                 $q->whereHas('kategori', function ($q) use ($search) {
                     $q->where('nama_kategori', 'like', '%' . $search . '%');
@@ -789,20 +934,21 @@ class ReturnBookController extends Controller
             });
         }
 
-        $pinjamKelas = collect(
-            $pinjamKelasQuery->latest()->get()->map(function ($item) {
+        $pinjamKelas = $pinjamKelasQuery
+            ->latest()
+            ->get()
+            ->map(function ($item) {
                 return (object) [
                     'tipe' => 'kelas',
                     'judul' => $item->kategori->nama_kategori ?? '-',
                     'kode_buku' => $item->kode_buku ?? '-',
                     'kondisi' => $item->kondisi ?? '-',
-                    'denda' => $item->denda ?? 0,
-                    'status' => 'pending',
-                    'tanggal' => $item->tanggal_denda ?? $item->updated_at,
-                    'created_at' => $item->tanggal_denda ?? $item->updated_at,
+                    'denda' => (int) ($item->denda ?? 0),
+                    'status' => $item->status_denda ?: 'pending',
+                    'tanggal' => $item->tanggal_denda ?? $item->updated_at ?? $item->created_at,
+                    'created_at' => $item->tanggal_denda ?? $item->updated_at ?? $item->created_at,
                 ];
-            })->all()
-        );
+            });
 
         $gabungan = $returnBooks
             ->merge($pinjamKelas)
@@ -811,6 +957,7 @@ class ReturnBookController extends Controller
 
         $perPage = 10;
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
+
         $currentItems = $gabungan
             ->slice(($currentPage - 1) * $perPage, $perPage)
             ->values();
