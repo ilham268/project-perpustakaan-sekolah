@@ -1,36 +1,13 @@
+# SISTEM PEMINJAMAN BUKU PERPUSTAKAAN (LANTERA) 📚✨
 
-# SISTEM PEMINJAMAN BUKU PERPUSTAKAAN (LANTERA)
+Aplikasi **LANTERA (Layanan Perpustakaan Terintegrasi)** merupakan sistem peminjaman buku perpustakaan yang dikembangkan untuk mendukung pengelolaan perpustakaan di **SMKN 1 Cerme**.
 
-## Cara integrasi repository ke laptop masing-masing:
+Proyek ini dibuat sebagai bentuk kontribusi dan pengembangan oleh mahasiswa **Universitas Negeri Surabaya (UNESA)** dari Program Studi **Pendidikan Teknologi Informasi** untuk **SMKN 1 Cerme**.
 
-1. install git di laptop masing masing
-2. jika sudah jalankan command berikut di git (sesuaikan dimana lokasi file ingin disimpan)
+## Dikembangkan oleh
+**Aden**
 
-```bash
-  git clone https://github.com/ArcNasss/lantera.git
-```
-```bash
-  cd lantera
-```
-```bash
-  composer install
-  npm install
-```
-(kemudian lakukan konfigurasi tailwind untuk laravel 12)
+> *"Dari mahasiswa UNESA untuk SMKN 1 Cerme"😏*
 
-```bash
-  cp .env.example .env
-```
-3. Konfigurasi file .env , sesuaikan dengan nama database masing masing
-
-4. Run project dengan command
-
-```bash
-  php artisan serve
-  npm run dev
-```
-
-
-
--created with 😝 by Nasril
-
+---
+Terima kasih telah menggunakan **LANTERA** 🚀
