@@ -91,13 +91,13 @@ class PeminjamanExport implements FromCollection, WithMapping, WithEvents
 
                 // Merge cells for header
                 $sheet->mergeCells('A1:H1'); // LANTERA
-                $sheet->mergeCells('A2:H2'); // PERPUSTAKAAN SMP NEGERI 1 BALEN
+                $sheet->mergeCells('A2:H2'); 
                 $sheet->mergeCells('A3:H3'); // LAPORAN DATA PEMINJAMAN BUKU
                 $sheet->mergeCells('A4:H4'); // Periode
 
                 // Set header text
                 $sheet->setCellValue('A1', 'LANTERA');
-                $sheet->setCellValue('A2', 'PERPUSTAKAAN SMP NEGERI 1 BALEN');
+                $sheet->setCellValue('A2', 'PERPUSTAKAAN SMK NEGERI 1 CERME');
                 $sheet->setCellValue('A3', 'LAPORAN DATA PEMINJAMAN BUKU');
 
                 // Set periode

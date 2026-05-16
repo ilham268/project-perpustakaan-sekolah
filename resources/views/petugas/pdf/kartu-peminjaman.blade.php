@@ -156,7 +156,7 @@
             <td>
                 <div class="school-name">
                     <h1>Lantera</h1>
-                    <p>Perpustakaan SMPN 1 Balen</p>
+                    <p>Perpustakaan SMKN 1 CERME</p>
                 </div>
             </td>
         </tr>

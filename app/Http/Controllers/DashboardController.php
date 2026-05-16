@@ -16,7 +16,8 @@ class DashboardController extends Controller
     public function index()
     {
         $totalBooks       = Book::count();
-        $totalAnggota     = User::where('role', 'peminjam')->count();
+        // UBAH: role 'peminjam' menjadi 'siswa'
+        $totalAnggota     = User::where('role', 'siswa')->count();  // ← PERUBAHAN
         $totalDendaSudahBayar = ReturnBook::where('status', 'paid')->where('denda', '>', 0)->sum('denda');
         $totalKunjungan   = GuestBook::count();
 
@@ -24,7 +25,7 @@ class DashboardController extends Controller
         $chartLabels = [];
         for ($i = 11; $i >= 0; $i--) {
             $month = now()->subMonths($i);
-            $chartLabels[] = $month->format('M');
+            $chartLabels[] = $month->translatedFormat('M');  // tambah translatedFormat biar bahasa Indonesia
             $chartData[]   = Loan::whereYear('created_at', $month->year)
                 ->whereMonth('created_at', $month->month)
                 ->count();
@@ -34,7 +35,7 @@ class DashboardController extends Controller
                 $q->whereHas('loans');
             }])
             ->orderByDesc('total_pinjam')
-            ->take(3)
+            ->take(5)  // ubah dari 3 jadi 5
             ->get();
 
         $unpaidDenda = ReturnBook::with(['loan.user', 'loan.bookItem.book'])
@@ -67,7 +68,7 @@ class DashboardController extends Controller
         $chartLabels = [];
         for ($i = 11; $i >= 0; $i--) {
             $month = now()->subMonths($i);
-            $chartLabels[] = $month->format('M');
+            $chartLabels[] = $month->translatedFormat('M');  // tambah translatedFormat
             $chartData[]   = Loan::whereYear('created_at', $month->year)
                 ->whereMonth('created_at', $month->month)
                 ->count();

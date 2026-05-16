@@ -4,192 +4,305 @@
 @section('page-title', 'Riwayat Peminjaman')
 
 @section('content')
+
+<div class="space-y-5">
+
+    {{-- Alert Success --}}
     @if(session('success'))
-        <div class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
-            <i class="fas fa-check-circle text-green-500"></i>
-            <span>{{ session('success') }}</span>
+        <div class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-800 shadow-sm">
+            <div class="flex items-center gap-3 text-sm font-medium">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+
+                <span>{{ session('success') }}</span>
+            </div>
         </div>
     @endif
 
+    {{-- Alert Deleted --}}
     @if(session('deleted'))
-        <div class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
-            <i class="fas fa-trash text-red-500"></i>
-            <span>{{ session('deleted') }}</span>
+        <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
+            <div class="flex items-center gap-3 text-sm font-medium">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                    <i class="fas fa-trash"></i>
+                </div>
+
+                <span>{{ session('deleted') }}</span>
+            </div>
         </div>
     @endif
 
+    {{-- Alert Updated --}}
     @if(session('updated'))
-        <div class="mb-4 bg-cyan-50 border border-cyan-200 text-cyan-800 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
-            <i class="fas fa-pen text-cyan-500"></i>
-            <span>{{ session('updated') }}</span>
+        <div class="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-blue-800 shadow-sm">
+            <div class="flex items-center gap-3 text-sm font-medium">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                    <i class="fas fa-pen"></i>
+                </div>
+
+                <span>{{ session('updated') }}</span>
+            </div>
         </div>
     @endif
 
+    {{-- Alert Error --}}
     @if(session('error'))
-        <div class="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
-            <i class="fas fa-times-circle text-red-500"></i>
-            <span>{{ session('error') }}</span>
+        <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
+            <div class="flex items-center gap-3 text-sm font-medium">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+
+                <span>{{ session('error') }}</span>
+            </div>
         </div>
     @endif
 
-    <div class="mb-5 flex items-center justify-between">
-        <div>
-            <h3 class="text-2xl font-bold text-gray-900">Riwayat Peminjaman Saya</h3>
-            <p class="text-sm text-gray-500 mt-1">Daftar semua riwayat peminjaman buku Anda.</p>
-        </div>
+    {{-- Page Header --}}
+    <div class="flex flex-col gap-1">
+        <h3 class="text-2xl font-extrabold tracking-tight text-slate-900">
+            Riwayat Peminjaman Saya
+        </h3>
+
+        <p class="text-sm text-slate-500">
+            Daftar semua riwayat peminjaman buku Anda.
+        </p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mb-5">
-        <div class="rounded-xl p-5 text-white relative overflow-hidden" style="background: linear-gradient(135deg, #22c4e8 0%, #0ea5c9 100%);">
-            <div class="absolute -right-6 -top-6 w-28 h-28 rounded-full opacity-20" style="background: rgba(255,255,255,0.5);"></div>
-            <div class="relative z-10 flex items-center justify-between">
+    {{-- Stat Cards --}}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+        {{-- Total Riwayat --}}
+        <div class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60">
+            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-emerald-50 transition group-hover:bg-emerald-100"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-sm font-medium text-white/80 mb-1">Total Riwayat</p>
-                    <p class="text-2xl font-bold">{{ $loans->count() }} <span class="text-base font-normal">data</span></p>
+                    <p class="text-sm font-medium text-slate-500">
+                        Total Riwayat
+                    </p>
+
+                    <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                        {{ $loans->count() }}
+                    </p>
+
+                    <p class="mt-1 text-xs font-medium text-slate-400">
+                        data
+                    </p>
                 </div>
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(255,255,255,0.25);">
-                    <i class="fas fa-book-open text-xl text-white"></i>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                    <i class="fas fa-book-open text-xl"></i>
                 </div>
             </div>
         </div>
-        <div class="rounded-xl p-5 text-white relative overflow-hidden" style="background: linear-gradient(135deg, #22c4e8 0%, #0ea5c9 100%);">
-            <div class="absolute -right-6 -top-6 w-28 h-28 rounded-full opacity-20" style="background: rgba(255,255,255,0.5);"></div>
-            <div class="relative z-10 flex items-center justify-between">
+
+        {{-- Menunggu --}}
+        <div class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60">
+            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-amber-50 transition group-hover:bg-amber-100"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-sm font-medium text-white/80 mb-1">Menunggu</p>
-                    <p class="text-2xl font-bold">{{ $loans->where('status', 'pending')->count() }} <span class="text-base font-normal">data</span></p>
+                    <p class="text-sm font-medium text-slate-500">
+                        Menunggu
+                    </p>
+
+                    <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                        {{ $loans->where('status', 'pending')->count() }}
+                    </p>
+
+                    <p class="mt-1 text-xs font-medium text-slate-400">
+                        data
+                    </p>
                 </div>
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(255,255,255,0.25);">
-                    <i class="fas fa-clock text-xl text-white"></i>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-amber-100">
+                    <i class="fas fa-clock text-xl"></i>
                 </div>
             </div>
         </div>
-        <div class="rounded-xl p-5 text-white relative overflow-hidden" style="background: linear-gradient(135deg, #22c4e8 0%, #0ea5c9 100%);">
-            <div class="absolute -right-6 -top-6 w-28 h-28 rounded-full opacity-20" style="background: rgba(255,255,255,0.5);"></div>
-            <div class="relative z-10 flex items-center justify-between">
+
+        {{-- Dikembalikan --}}
+        <div class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60">
+            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-blue-50 transition group-hover:bg-blue-100"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-sm font-medium text-white/80 mb-1">Dikembalikan</p>
-                    <p class="text-2xl font-bold">{{ $loans->where('status', 'dikembalikan')->count() }} <span class="text-base font-normal">data</span></p>
+                    <p class="text-sm font-medium text-slate-500">
+                        Dikembalikan
+                    </p>
+
+                    <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                        {{ $loans->where('status', 'dikembalikan')->count() }}
+                    </p>
+
+                    <p class="mt-1 text-xs font-medium text-slate-400">
+                        data
+                    </p>
                 </div>
-                <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(255,255,255,0.25);">
-                    <i class="fas fa-check-double text-xl text-white"></i>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                    <i class="fas fa-check-double text-xl"></i>
                 </div>
             </div>
         </div>
+
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    {{-- Table Card --}}
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
-        <!-- Table -->
+        <div class="border-b border-slate-200 px-5 py-4">
+            <h3 class="text-base font-bold text-slate-900">
+                Data Riwayat Peminjaman
+            </h3>
+
+            <p class="mt-1 text-xs text-slate-500">
+                Riwayat pengajuan, persetujuan, penolakan, dan pengembalian buku.
+            </p>
+        </div>
+
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[980px]">
+            <table class="w-full min-w-[1180px] border-collapse text-sm">
                 <thead>
-                    <tr class="bg-cyan-500 text-white">
-                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider w-16">No</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider w-20">Foto</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">Judul Buku</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider w-32">Kategori</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider w-28">Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider w-32">Petugas</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider w-36">Tgl Pinjam</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wider w-36">Tgl Kembali</th>
+                    <tr class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                        <th class="w-16 border border-slate-200 px-5 py-4 text-left">
+                            No
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Judul Buku
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Kode Buku
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Kategori
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">
+                            Status
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-left">
+                            Petugas
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">
+                            Tgl Pinjam
+                        </th>
+                        <th class="border border-slate-200 px-5 py-4 text-center">
+                            Tgl Kembali
+                        </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 bg-white">
-                    @forelse($loans as $index => $loan)
-                    <tr class="hover:bg-gray-50 transition-colors duration-150">
-                        <td class="px-4 py-4 text-sm text-gray-900 text-center font-medium">{{ $index + 1 }}</td>
-                        <td class="px-4 py-4">
-                            @if($loan->bookItem->book->foto)
-                                <img src="{{ asset('storage/' . $loan->bookItem->book->foto) }}"
-                                     alt="{{ $loan->bookItem->book->judul }}"
-                                     class="w-14 h-20 object-cover rounded shadow-sm border border-gray-200">
-                            @else
-                                <div class="w-14 h-20 bg-gray-100 rounded shadow-sm border border-gray-200 flex items-center justify-center">
-                                    <i class="fas fa-image text-2xl text-gray-400"></i>
-                                </div>
-                            @endif
-                        </td>
-                        <td class="px-4 py-4">
-                            <div class="text-sm font-medium text-gray-900">{{ $loan->bookItem->book->judul }}</div>
-                            <div class="text-xs text-gray-500 mt-1">Kode: {{ $loan->bookItem->kode_buku }}</div>
-                        </td>
-                        <td class="px-4 py-4">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 whitespace-nowrap">
-                                {{ $loan->bookItem->book->category->nama_kategori }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-4 text-center">
-                            @if($loan->status == 'pending')
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                    <i class="fas fa-clock mr-1.5"></i>
-                                    Pending
-                                </span>
-                            @elseif($loan->status == 'disetujui')
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    <i class="fas fa-check-circle mr-1.5"></i>
-                                    Disetujui
-                                </span>
-                            @elseif($loan->status == 'dikembalikan')
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    <i class="fas fa-check-double mr-1.5"></i>
-                                    Dikembalikan
-                                </span>
-                            @elseif($loan->status == 'ditolak')
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    <i class="fas fa-times-circle mr-1.5"></i>
-                                    Ditolak
-                                </span>
-                            @else
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    {{ $loan->status }}
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-4 text-sm text-gray-700">
-                            {{ $loan->petugas->name ?? '-' }}
-                        </td>
-                        <td class="px-4 py-4 text-sm text-gray-900 text-center font-medium">
-                            {{ \Carbon\Carbon::parse($loan->tanggal_pinjam)->format('d M Y') }}
-                        </td>
-                        <td class="px-4 py-4 text-sm text-center">
-                            @if($loan->tanggal_kembali)
-                                <span class="font-medium text-gray-900">{{ \Carbon\Carbon::parse($loan->tanggal_kembali)->format('d M Y') }}</span>
-                            @else
-                                <span class="text-gray-400 italic">Belum dikembalikan</span>
-                            @endif
-                        </td>
-                    </tr>
 
-                    <!-- Alasan ditolak jika ada -->
-                    @if($loan->status == 'ditolak' && $loan->alasan_ditolak)
-                    <tr class="bg-red-50">
-                        <td colspan="8" class="px-4 py-3">
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-info-circle text-red-500 mt-0.5"></i>
-                                <div>
-                                    <span class="text-sm font-medium text-red-800">Alasan Ditolak:</span>
-                                    <span class="text-sm text-red-700 ml-2">{{ $loan->alasan_ditolak }}</span>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    @endif
+                <tbody>
+                    @forelse($loans as $index => $loan)
+                        <tr class="transition-colors hover:bg-slate-50">
+                            <td class="border border-slate-200 px-5 py-4 font-medium text-slate-600">
+                                {{ $index + 1 }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4">
+                                <span class="font-semibold text-slate-800">
+                                    {{ $loan->bookItem->book->judul ?? '-' }}
+                                </span>
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                {{ $loan->bookItem->kode_buku ?? '-' }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                {{ $loan->bookItem->book->category->nama_kategori ?? '-' }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-center">
+                                @if($loan->status == 'pending')
+                                    <span class="font-semibold text-amber-600">
+                                        Pending
+                                    </span>
+                                @elseif($loan->status == 'disetujui')
+                                    <span class="font-semibold text-emerald-600">
+                                        Disetujui
+                                    </span>
+                                @elseif($loan->status == 'dikembalikan')
+                                    <span class="font-semibold text-blue-600">
+                                        Dikembalikan
+                                    </span>
+                                @elseif($loan->status == 'ditolak')
+                                    <span class="font-semibold text-red-600">
+                                        Ditolak
+                                    </span>
+                                @else
+                                    <span class="font-semibold text-slate-500">
+                                        {{ ucfirst($loan->status ?? '-') }}
+                                    </span>
+                                @endif
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                {{ $loan->petugas->name ?? '-' }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-center text-slate-500">
+                                {{ $loan->tanggal_pinjam ? \Carbon\Carbon::parse($loan->tanggal_pinjam)->format('d M Y') : '-' }}
+                            </td>
+
+                            <td class="border border-slate-200 px-5 py-4 text-center">
+                                @if($loan->tanggal_kembali)
+                                    <span class="text-slate-500">
+                                        {{ \Carbon\Carbon::parse($loan->tanggal_kembali)->format('d M Y') }}
+                                    </span>
+                                @else
+                                    <span class="italic text-slate-400">
+                                        Belum dikembalikan
+                                    </span>
+                                @endif
+                            </td>
+                        </tr>
+
+                        {{-- Alasan ditolak jika ada --}}
+                        @if($loan->status == 'ditolak' && $loan->alasan_ditolak)
+                            <tr class="bg-red-50">
+                                <td colspan="8" class="border border-red-100 px-5 py-3">
+                                    <div class="flex items-start gap-2">
+                                        <i class="fas fa-info-circle mt-0.5 text-sm text-red-500"></i>
+
+                                        <div>
+                                            <span class="text-sm font-bold text-red-800">
+                                                Alasan Ditolak:
+                                            </span>
+
+                                            <span class="ml-1 text-sm text-red-700">
+                                                {{ $loan->alasan_ditolak }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
                     @empty
-                    <tr>
-                        <td colspan="8" class="px-6 py-12 text-center">
-                            <div class="flex flex-col items-center justify-center">
-                                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                                    <i class="fas fa-book-reader text-4xl text-gray-400"></i>
+                        <tr>
+                            <td colspan="8" class="border border-slate-200 px-6 py-16 text-center">
+                                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
+                                    <i class="fas fa-book-reader text-2xl"></i>
                                 </div>
-                                <p class="text-lg font-semibold text-gray-700 mb-1">Belum Ada Riwayat Peminjaman</p>
-                                <p class="text-sm text-gray-500">Anda belum memiliki riwayat peminjaman buku</p>
-                            </div>
-                        </td>
-                    </tr>
+
+                                <p class="mt-4 text-base font-bold text-slate-700">
+                                    Belum Ada Riwayat Peminjaman
+                                </p>
+
+                                <p class="mt-1 text-sm text-slate-400">
+                                    Anda belum memiliki riwayat peminjaman buku.
+                                </p>
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
+
     </div>
+
+</div>
+
 @endsection

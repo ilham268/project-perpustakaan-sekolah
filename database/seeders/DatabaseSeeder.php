@@ -9,14 +9,9 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
+    
     public function run(): void
     {
-        // User::factory(10)->create();
-
         User::create([
             'name' => 'admin',
             'nomor_identitas' => '1',
@@ -25,10 +20,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         User::create([
-            'name' => 'peminjam',
+            'name' => 'siswa',
             'nomor_identitas' => '11',
             'password' => bcrypt('11111111'),
-            'role' => 'peminjam',
+            'role' => 'siswa',
         ]);
 
         User::create([

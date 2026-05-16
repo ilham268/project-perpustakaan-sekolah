@@ -21,11 +21,20 @@ class CheckRoleMiddleware
             return redirect()->route('login');
         }
 
-        // Check if user has required role
-        if (!in_array($request->user()->role, $roles)) {
-            abort(403, 'Unauthorized access');
+        // Ambil role user asli
+        $userRole = $request->user()->role;
+        
+        // Cek apakah user memiliki role yang diizinkan
+        // Untuk kompatibilitas, jika route membutuhkan 'peminjam', user 'siswa' diizinkan
+        if (in_array('peminjam', $roles) && $userRole === 'siswa') {
+            return $next($request);
+        }
+        
+        // Cek langsung apakah role user ada di daftar yang diizinkan
+        if (in_array($userRole, $roles)) {
+            return $next($request);
         }
 
-        return $next($request);
+        abort(403, 'Unauthorized access');
     }
 }
