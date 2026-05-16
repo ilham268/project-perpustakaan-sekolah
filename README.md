@@ -7,4 +7,4 @@ Proyek ini dibuat sebagai bentuk kontribusi dan pengembangan oleh mahasiswa **Un
 > *"Dari mahasiswa UNESA untuk SMKN 1 Cerme"*
 
 ---
-Terima kasih telah menggunakan **LANTERA** 🚀
+Terima kasih telah menggunakan **LANTERA** 
