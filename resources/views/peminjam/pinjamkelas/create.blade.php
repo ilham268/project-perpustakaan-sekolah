@@ -1,138 +1,168 @@
 @extends('layouts.peminjam')
 
-@section('title', 'Input Buku')
-@section('page-title', 'Input Buku - Peminjaman Kelas')
+@section('title', 'Input Buku Paket')
+@section('page-title', 'Input Buku Paket')
 
 @section('content')
 
-<div class="mx-auto max-w-2xl space-y-5">
+@php
+    $booksPaket = $booksPaket ?? collect();
+@endphp
 
-    {{-- Page Header --}}
-    <div class="flex flex-col gap-1">
-        <h3 class="text-2xl font-extrabold tracking-tight text-slate-900">
-            Input Buku
-        </h3>
+<div class="mx-auto max-w-3xl space-y-6">
 
-        <p class="text-sm text-slate-500">
-            Ajukan peminjaman buku kelas berdasarkan kategori dan kode buku.
-        </p>
+    @if(session('success'))
+        <div class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-800 shadow-sm">
+            <span class="text-sm font-medium">
+                {{ session('success') }}
+            </span>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
+            <span class="text-sm font-medium">
+                {{ session('error') }}
+            </span>
+        </div>
+    @endif
+
+    {{-- Header --}}
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-5 py-5 shadow-md shadow-emerald-100/60 md:px-7 md:py-6">
+        <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
+        <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
+
+        <div class="relative">
+            <p class="text-xs font-bold uppercase tracking-wide text-emerald-50">
+                Peminjaman Buku Paket
+            </p>
+
+            <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+                Input Buku Paket
+            </h1>
+
+            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-emerald-50">
+                Pilih judul Buku Paket, lalu masukkan kode buku yang ada pada label buku fisik.
+            </p>
+        </div>
     </div>
 
-    {{-- Form Card --}}
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-        {{-- Card Header --}}
-        <div class="border-b border-slate-200 bg-gradient-to-r from-emerald-50 to-white px-5 py-4">
-            <h3 class="text-base font-bold text-slate-900">
-                Form Input Buku
-            </h3>
+    {{-- Form --}}
+    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-100 bg-white px-5 py-5 md:px-6">
+            <h2 class="text-lg font-bold text-slate-900 md:text-xl">
+                Form Peminjaman Buku Paket
+            </h2>
 
             <p class="mt-1 text-sm text-slate-500">
-                Kelas Anda:
-                <span class="font-bold text-emerald-600">
-                    {{ Auth::user()->kelas ?? 'Belum diatur' }}
-                </span>
+                Kode buku harus sesuai dengan label yang ditempel pada buku.
             </p>
         </div>
 
-        {{-- Card Body --}}
         <div class="p-5 md:p-6">
             <form action="{{ route('siswa.pinjamkelas.store') }}" method="POST">
                 @csrf
 
                 <div class="space-y-5">
 
-                    {{-- Kategori --}}
                     <div>
                         <label class="mb-2 block text-sm font-bold text-slate-700">
-                            Pilih Kategori
-                            <span class="text-red-500">*</span>
+                            Pilih Buku Paket <span class="text-red-500">*</span>
                         </label>
 
-                        @if($kategoris->isNotEmpty())
+                        @if($booksPaket->isNotEmpty())
                             <select
-                                name="kategori_id"
+                                name="book_id"
                                 required
-                                class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                                class="h-12 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
                             >
-                                <option value="">-- Pilih Kategori --</option>
+                                <option value="">Pilih Buku Paket</option>
 
-                                @foreach($kategoris as $kategori)
-                                    <option value="{{ $kategori->id }}">
-                                        {{ $kategori->nama_kategori }}
+                                @foreach($booksPaket as $book)
+                                    <option value="{{ $book->id }}" {{ old('book_id') == $book->id ? 'selected' : '' }}>
+                                        {{ $book->judul }}
                                     </option>
                                 @endforeach
                             </select>
 
                             <p class="mt-2 text-xs text-slate-400">
-                                Kategori yang tampil sesuai dengan kelas Anda.
+                                Buku yang tampil hanya Buku Paket.
                             </p>
                         @else
                             <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-4">
-                                <div class="flex items-start gap-3">
-                                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
-                                        <i class="fas fa-exclamation-circle"></i>
-                                    </div>
+                                <p class="text-sm font-bold text-red-700">
+                                    Buku Paket belum tersedia
+                                </p>
 
-                                    <div>
-                                        <p class="text-sm font-bold text-red-700">
-                                            Kategori belum tersedia
-                                        </p>
-
-                                        <p class="mt-1 text-sm leading-relaxed text-red-600">
-                                            Belum ada kategori untuk kelas
-                                            <strong>{{ Auth::user()->kelas }}</strong>.
-                                            Silakan hubungi petugas.
-                                        </p>
-                                    </div>
-                                </div>
+                                <p class="mt-1 text-sm leading-relaxed text-red-600">
+                                    Belum ada data Buku Paket yang bisa dipinjam. Silakan hubungi petugas.
+                                </p>
                             </div>
                         @endif
+
+                        @error('book_id')
+                            <p class="mt-2 text-xs font-semibold text-red-600">
+                                {{ $message }}
+                            </p>
+                        @enderror
                     </div>
 
-                    {{-- Kode Buku --}}
                     <div>
                         <label class="mb-2 block text-sm font-bold text-slate-700">
-                            Kode Buku
-                            <span class="text-red-500">*</span>
+                            Kode Buku <span class="text-red-500">*</span>
                         </label>
 
                         <input
                             type="text"
                             name="kode_buku"
+                            value="{{ old('kode_buku') }}"
                             required
                             placeholder="Masukkan kode buku"
-                            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm uppercase text-slate-700 outline-none transition placeholder:normal-case placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                            class="h-12 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-semibold uppercase tracking-wide text-slate-700 placeholder:font-normal placeholder:normal-case placeholder:tracking-normal placeholder:text-slate-400 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                            oninput="this.value = this.value.toUpperCase()"
                         >
 
                         <p class="mt-2 text-xs text-slate-400">
-                            Masukkan kode buku sesuai label yang ada pada buku.
+                            Masukkan kode buku sesuai label yang ditempel pada buku fisik.
+                        </p>
+
+                        @error('kode_buku')
+                            <p class="mt-2 text-xs font-semibold text-red-600">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+
+                    <div class="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-4">
+                        <p class="text-sm font-bold text-blue-700">
+                            Cara peminjaman
+                        </p>
+
+                        <p class="mt-1 text-sm leading-relaxed text-blue-600">
+                            Pilih judul Buku Paket, lalu masukkan kode buku. Sistem akan mengecek apakah kode tersebut valid dan masih tersedia.
                         </p>
                     </div>
 
-                    {{-- Action Buttons --}}
                     <div class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
                         <a
                             href="{{ route('siswa.pinjamkelas.index') }}"
-                            class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                            class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
                         >
                             Batal
                         </a>
 
                         <button
                             type="submit"
-                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
-                            {{ $kategoris->isEmpty() ? 'disabled' : '' }}
+                            class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:hover:bg-slate-300"
+                            {{ $booksPaket->isEmpty() ? 'disabled' : '' }}
                         >
-                            <i class="fas fa-save text-xs"></i>
-                            <span>Simpan Peminjaman</span>
+                            Simpan Peminjaman
                         </button>
                     </div>
 
                 </div>
             </form>
         </div>
-
     </div>
 
 </div>

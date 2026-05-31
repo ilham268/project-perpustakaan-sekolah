@@ -3,94 +3,112 @@
 namespace App\Http\Controllers;
 
 use App\Exports\PeminjamanExport;
-use Illuminate\Http\Request;
 use App\Models\Loan;
 use App\Models\Cart;
-use App\Models\BookItem;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 class LoanController extends Controller
 {
     public function petugasIndex(Request $request)
     {
         $query = Loan::with(['user', 'bookItem.book.category', 'petugas'])
-            ->whereIn('status', ['pending', 'disetujui', 'ditolak','dikembalikan']);
+            ->whereIn('status', ['pending', 'disetujui', 'ditolak', 'dikembalikan']);
 
-        if ($request->has('search') && $request->search) {
+        if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->whereHas('user', function($q) use ($search) {
+
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')
-                      ->orWhere('nomor_identitas', 'like', '%' . $search . '%');
+                        ->orWhere('nomor_identitas', 'like', '%' . $search . '%');
                 })
-                ->orWhereHas('bookItem.book', function($q) use ($search) {
-                    $q->where('judul', 'like', '%' . $search . '%');
-                })
-                ->orWhereHas('bookItem', function($q) use ($search) {
-                    $q->where('kode_buku', 'like', '%' . $search . '%');
-                });
+                    ->orWhereHas('bookItem.book', function ($q) use ($search) {
+                        $q->where('judul', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('bookItem', function ($q) use ($search) {
+                        $q->where('kode_buku', 'like', '%' . $search . '%');
+                    });
             });
         }
 
-        if ($request->has('status') && $request->status) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
         $loans = $query->orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")
             ->latest()
-            ->paginate(10)->withQueryString();
+            ->paginate(10)
+            ->withQueryString();
 
-        $totalPeminjaman = Loan::whereIn('status', ['pending','disetujui','ditolak','dikembalikan'])->count();
-        $totalPending    = Loan::where('status', 'pending')->count();
-        $totalDisetujui  = Loan::where('status', 'disetujui')->count();
+        $totalPeminjaman = Loan::whereIn('status', ['pending', 'disetujui', 'ditolak', 'dikembalikan'])->count();
+        $totalPending = Loan::where('status', 'pending')->count();
+        $totalDisetujui = Loan::where('status', 'disetujui')->count();
+        $lamaPinjamDefault = $this->lamaPinjamDefault();
 
-        return view('petugas.peminjaman.index', compact('loans', 'totalPeminjaman', 'totalPending', 'totalDisetujui'));
+        return view('petugas.peminjaman.index', compact(
+            'loans',
+            'totalPeminjaman',
+            'totalPending',
+            'totalDisetujui',
+            'lamaPinjamDefault'
+        ));
     }
-
 
     public function adminIndex(Request $request)
     {
         $query = Loan::with(['user', 'bookItem.book.category', 'petugas']);
 
-        if ($request->has('search') && $request->search) {
+        if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->whereHas('user', function($q) use ($search) {
+
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')
-                      ->orWhere('nomor_identitas', 'like', '%' . $search . '%');
+                        ->orWhere('nomor_identitas', 'like', '%' . $search . '%');
                 })
-                ->orWhereHas('bookItem.book', function($q) use ($search) {
-                    $q->where('judul', 'like', '%' . $search . '%');
-                })
-                ->orWhereHas('bookItem', function($q) use ($search) {
-                    $q->where('kode_buku', 'like', '%' . $search . '%');
-                });
+                    ->orWhereHas('bookItem.book', function ($q) use ($search) {
+                        $q->where('judul', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('bookItem', function ($q) use ($search) {
+                        $q->where('kode_buku', 'like', '%' . $search . '%');
+                    });
             });
         }
 
-        if ($request->has('status') && $request->status) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
         $loans = $query->latest()->paginate(10)->withQueryString();
 
         $totalPeminjaman = Loan::count();
-        $totalPending    = Loan::where('status', 'pending')->count();
-        $totalDisetujui  = Loan::where('status', 'disetujui')->count();
+        $totalPending = Loan::where('status', 'pending')->count();
+        $totalDisetujui = Loan::where('status', 'disetujui')->count();
+        $lamaPinjamDefault = $this->lamaPinjamDefault();
 
-        return view('admin.peminjaman.index', compact('loans', 'totalPeminjaman', 'totalPending', 'totalDisetujui'));
+        return view('admin.peminjaman.index', compact(
+            'loans',
+            'totalPeminjaman',
+            'totalPending',
+            'totalDisetujui',
+            'lamaPinjamDefault'
+        ));
     }
 
     public function index()
     {
         $user = Auth::user();
+
         $loans = Loan::with(['bookItem.book.category', 'petugas'])
             ->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
+            ->latest()
             ->get();
 
         return view('peminjam.loans.index', compact('loans'));
@@ -99,76 +117,157 @@ class LoanController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $carts = Cart::where('user_id', $user->id)->with('book.bookItems')->get();
 
-        if($carts->isEmpty()){
-            return redirect()->route('cart.index')->with('error', 'Keranjang peminjaman anda kosong');
+        $carts = Cart::where('user_id', $user->id)
+            ->with('book.bookItems')
+            ->get();
+
+        if ($carts->isEmpty()) {
+            return redirect()
+                ->route('cart.index')
+                ->with('error', 'Keranjang peminjaman anda kosong.');
         }
 
         try {
             DB::beginTransaction();
 
-            $createdLoans = 0;
-            $errors = [];
+            $selectedItems = [];
 
-            foreach($carts as $cart){
+            foreach ($carts as $cart) {
                 $book = $cart->book;
-                $requestedQuantity  = $cart->quantity;
+                $requestedQuantity = (int) $cart->quantity;
 
-                $availableItems = $book->bookItems()->where('status', 'available')->limit($requestedQuantity)->get();
-
-                if($availableItems->count() < $requestedQuantity){
-                    $errors[] = "Buku '{$book->judul}' tidak memiliki stok yang cukup.";
-                    continue;
+                if (!$book) {
+                    throw new \Exception('Ada buku di keranjang yang tidak ditemukan.');
                 }
 
-                foreach($availableItems as $item){
-                    Loan::create([
-                        'user_id' => $user->id,
-                        'book_item_id' => $item->id,
-                        'tanggal_pinjam' => now(),
-                        'tanggal_kembali' => now()->addDays(7),
-                        'status' => 'pending',
-                    ]);
+                if (!$this->isReferensiBook($book)) {
+                    throw new \Exception("Buku '{$book->judul}' bukan buku Referensi, jadi tidak bisa dipinjam siswa.");
+                }
 
-                    $item->update(['status' => 'borrowed']);
-                    $createdLoans++;
+                $availableItems = $book->bookItems()
+                    ->where('status', 'available')
+                    ->whereNotNull('kode_buku')
+                    ->where('kode_buku', '!=', '')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->limit($requestedQuantity)
+                    ->get();
+
+                if ($availableItems->count() < $requestedQuantity) {
+                    throw new \Exception("Buku '{$book->judul}' belum punya stok kode buku yang cukup.");
+                }
+
+                foreach ($availableItems as $item) {
+                    $selectedItems[] = $item;
                 }
             }
 
-            if($createdLoans > 0){
-                Cart::where('user_id', $user->id)->delete();
-                DB::commit();
-                return redirect()->route('cart.index')->with('success', "Berhasil mengajukan peminjaman {$createdLoans} buku. Silakan tunggu persetujuan petugas.");
-            } else {
-                DB::rollback();
-                return redirect()->route('cart.index')->with('error', 'Gagal mengajukan peminjaman. ' . implode(' ', $errors));
+            $createdLoans = 0;
+            $lamaPinjamDefault = $this->lamaPinjamDefault();
+
+            foreach ($selectedItems as $item) {
+                $tanggalPinjam = now();
+                $tanggalKembali = $tanggalPinjam->copy()->addDays($lamaPinjamDefault);
+
+                Loan::create([
+                    'user_id' => $user->id,
+                    'book_item_id' => $item->id,
+                    'tanggal_pinjam' => $tanggalPinjam,
+                    'tanggal_kembali' => $tanggalKembali,
+                    'status' => 'pending',
+                ]);
+
+                $item->update([
+                    'status' => 'borrowed',
+                ]);
+
+                $createdLoans++;
             }
 
-        }catch(\Exception $e){
-            DB::rollback();
-            return redirect()->route('cart.index')
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            Cart::where('user_id', $user->id)->delete();
+
+            DB::commit();
+
+            return redirect()
+                ->route('cart.index')
+                ->with('success', "Berhasil mengajukan peminjaman {$createdLoans} buku. Silakan tunggu persetujuan petugas.");
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->route('cart.index')
+                ->with('error', 'Gagal mengajukan peminjaman: ' . $e->getMessage());
         }
     }
 
     public function approve($id)
     {
-        $loan = Loan::findOrFail($id);
+        $loan = Loan::with('bookItem')->findOrFail($id);
 
         if ($loan->status !== 'pending') {
-            return redirect()->back()->with('error', 'Hanya pengajuan dengan status pending yang dapat disetujui');
+            return redirect()
+                ->back()
+                ->with('error', 'Hanya pengajuan dengan status pending yang dapat disetujui.');
+        }
+
+        $data = [
+            'status' => 'disetujui',
+            'petugas_id' => Auth::id(),
+        ];
+
+        if (!$loan->tanggal_pinjam) {
+            $data['tanggal_pinjam'] = now();
+        }
+
+        if (!$loan->tanggal_kembali) {
+            $data['tanggal_kembali'] = now()->addDays($this->lamaPinjamDefault());
+        }
+
+        $loan->update($data);
+
+        return redirect()->back()->with([
+            'success' => 'Pengajuan peminjaman berhasil disetujui.',
+            'loan_id' => $loan->id,
+        ]);
+    }
+
+    public function updateTanggalKembali(Request $request, $id)
+    {
+        $request->validate([
+            'tanggal_kembali' => ['required', 'date'],
+        ], [
+            'tanggal_kembali.required' => 'Tanggal kembali wajib diisi.',
+            'tanggal_kembali.date' => 'Tanggal kembali tidak valid.',
+        ]);
+
+        $loan = Loan::findOrFail($id);
+
+        if (in_array($loan->status, ['ditolak', 'dikembalikan'])) {
+            return redirect()
+                ->back()
+                ->with('error', 'Tanggal kembali tidak bisa diedit karena peminjaman sudah selesai atau ditolak.');
+        }
+
+        $tanggalKembali = Carbon::parse($request->tanggal_kembali)->startOfDay();
+
+        if ($loan->tanggal_pinjam) {
+            $tanggalPinjam = Carbon::parse($loan->tanggal_pinjam)->startOfDay();
+
+            if ($tanggalKembali->lt($tanggalPinjam)) {
+                return redirect()
+                    ->back()
+                    ->with('error', 'Tanggal kembali tidak boleh lebih kecil dari tanggal pinjam.');
+            }
         }
 
         $loan->update([
-            'status' => 'disetujui',
-            'petugas_id' => Auth::id(),
+            'tanggal_kembali' => $tanggalKembali->toDateString(),
         ]);
 
-        return redirect()->back()->with([
-            'success' => 'Pengajuan peminjaman berhasil disetujui',
-            'loan_id' => $loan->id
-        ]);
+        return redirect()
+            ->back()
+            ->with('success', 'Tanggal kembali berhasil diubah.');
     }
 
     public function downloadKartu($id)
@@ -182,10 +281,12 @@ class LoanController extends Controller
             'petugas' => $loan->petugas,
         ];
 
+        $kodeBuku = $loan->bookItem?->kode_buku ?? 'Tanpa-Kode';
+
         $pdf = Pdf::loadView('petugas.pdf.kartu-peminjaman', $data);
         $pdf->setPaper('a4', 'portrait');
 
-        return $pdf->stream('Kartu-Peminjaman-' . $loan->bookItem->kode_buku . '-' . now()->format('Ymd') . '.pdf');
+        return $pdf->stream('Kartu-Peminjaman-' . $kodeBuku . '-' . now()->format('Ymd') . '.pdf');
     }
 
     public function downloadMemberCard()
@@ -195,40 +296,51 @@ class LoanController extends Controller
         $pdf = Pdf::loadView('peminjam.pdf.kartu-anggota', [
             'user' => $user,
         ]);
+
         $pdf->setPaper('a4', 'landscape');
 
         return $pdf->stream('Kartu-Anggota-' . $user->nomor_identitas . '-' . now()->format('Ymd') . '.pdf');
     }
 
-
     public function reject(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'alasan_ditolak' => 'required|string|max:255',
+            'alasan_ditolak' => ['required', 'string', 'max:255'],
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
+            return redirect()
+                ->back()
                 ->withErrors($validator)
                 ->withInput()
                 ->with('reject_loan_id', $id);
         }
 
-        $loan = Loan::findOrFail($id);
+        $loan = Loan::with('bookItem')->findOrFail($id);
 
         if ($loan->status !== 'pending') {
-            return redirect()->back()->with('error', 'Hanya pengajuan dengan status pending yang dapat ditolak');
+            return redirect()
+                ->back()
+                ->with('error', 'Hanya pengajuan dengan status pending yang dapat ditolak.');
         }
 
-        $loan->update([
-            'status' => 'ditolak',
-            'petugas_id' => Auth::id(),
-            'alasan_ditolak' => $request->alasan_ditolak,
-        ]);
+        DB::transaction(function () use ($loan, $request) {
+            $loan->update([
+                'status' => 'ditolak',
+                'petugas_id' => Auth::id(),
+                'alasan_ditolak' => $request->alasan_ditolak,
+            ]);
 
-        $loan->bookItem->update(['status' => 'available']);
+            if ($loan->bookItem) {
+                $loan->bookItem->update([
+                    'status' => 'available',
+                ]);
+            }
+        });
 
-        return redirect()->back()->with('success', 'Pengajuan peminjaman berhasil ditolak');
+        return redirect()
+            ->back()
+            ->with('success', 'Pengajuan peminjaman berhasil ditolak.');
     }
 
     public function exportPeminjaman(Request $request)
@@ -241,5 +353,45 @@ class LoanController extends Controller
             new PeminjamanExport($startDate, $endDate, $status),
             'Laporan_Peminjaman_' . date('Y-m-d_His') . '.xlsx'
         );
+    }
+
+    private function lamaPinjamDefault(): int
+    {
+        return $this->settingInteger('lama_pinjam_default', 7);
+    }
+
+    private function settingInteger(string $key, int $default): int
+    {
+        try {
+            if (!Schema::hasTable('library_settings')) {
+                return $default;
+            }
+
+            $value = DB::table('library_settings')
+                ->where('key', $key)
+                ->value('value');
+
+            if ($value === null || $value === '') {
+                return $default;
+            }
+
+            $value = (int) $value;
+
+            return $value > 0 ? $value : $default;
+        } catch (\Throwable $e) {
+            return $default;
+        }
+    }
+
+    private function isReferensiBook($book): bool
+    {
+        $jenis = strtoupper(trim((string) $book->jenis_koleksi));
+
+        return str_contains($jenis, 'REFERENSI')
+            || str_contains($jenis, 'REFERENCE')
+            || str_contains($jenis, 'REFERANCE')
+            || str_contains($jenis, 'RAFERANCE')
+            || str_contains($jenis, 'REFEREN')
+            || str_contains($jenis, 'REF');
     }
 }

@@ -93,7 +93,7 @@
         }
 
         .login-glass {
-            background: linear-gradient(145deg, rgba(255, 255, 255, .92), rgba(255, 255, 255, .78));
+            background: linear-gradient(145deg, rgba(255, 255, 255, .94), rgba(255, 255, 255, .82));
             backdrop-filter: blur(18px);
             box-shadow:
                 0 28px 80px rgba(15, 118, 110, .15),
@@ -143,47 +143,80 @@
                 0 0 0 4px rgba(16, 185, 129, .12),
                 0 10px 28px rgba(16, 185, 129, .10);
         }
+
+        @media (max-width: 640px) {
+            .login-glass {
+                backdrop-filter: blur(12px);
+                box-shadow:
+                    0 20px 50px rgba(15, 118, 110, .12),
+                    inset 0 1px 0 rgba(255, 255, 255, .9);
+            }
+
+            .floating-orb {
+                animation-duration: 9s;
+            }
+
+            .button-shine::before {
+                animation-duration: 4.2s;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .login-glass {
+                border-radius: 1.25rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+            }
+        }
     </style>
 </head>
 
-<body class="min-h-screen bg-emerald-50 selection:bg-emerald-200 selection:text-emerald-950">
+<body class="min-h-[100svh] overflow-x-hidden bg-emerald-50 selection:bg-emerald-200 selection:text-emerald-950">
 
-    <main class="relative min-h-screen overflow-hidden">
+    <main class="relative min-h-[100svh] overflow-hidden">
 
         <!-- Background -->
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#bbf7d0_0,transparent_32%),radial-gradient(circle_at_bottom_right,#99f6e4_0,transparent_34%)]"></div>
 
-        <div class="floating-orb absolute -left-24 -top-24 h-64 w-64 rounded-full bg-emerald-300/35 blur-3xl"></div>
-        <div class="floating-orb floating-orb-2 absolute -right-24 top-1/3 h-72 w-72 rounded-full bg-teal-300/35 blur-3xl"></div>
-        <div class="floating-orb floating-orb-3 absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-lime-300/25 blur-3xl"></div>
+        <div class="floating-orb absolute -left-24 -top-24 h-48 w-48 rounded-full bg-emerald-300/35 blur-3xl sm:h-64 sm:w-64"></div>
+        <div class="floating-orb floating-orb-2 absolute -right-24 top-1/3 h-56 w-56 rounded-full bg-teal-300/35 blur-3xl sm:h-72 sm:w-72"></div>
+        <div class="floating-orb floating-orb-3 absolute -bottom-24 left-1/3 h-52 w-52 rounded-full bg-lime-300/25 blur-3xl sm:h-64 sm:w-64"></div>
 
-        <div class="relative z-10 grid min-h-screen lg:grid-cols-2">
+        <div class="relative z-10 grid min-h-[100svh] lg:grid-cols-2">
 
             <!-- Left Side -->
-            <section class="flex items-center justify-center px-5 py-8 sm:px-8 lg:px-12">
+            <section class="flex min-h-[100svh] items-center justify-center px-4 py-6 sm:px-6 sm:py-8 md:px-8 lg:px-12">
 
-                <div class="w-full max-w-sm">
+                <div class="w-full max-w-sm sm:max-w-md lg:max-w-sm xl:max-w-md">
 
                     <!-- Mobile Logo -->
                     <div class="mb-5 flex justify-center lg:hidden fade-up">
-                        <div class="flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-xl shadow-emerald-500/15 ring-1 ring-emerald-100">
+                        <div class="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-xl shadow-emerald-500/15 ring-1 ring-emerald-100 sm:h-20 sm:w-20">
                             <img
                                 src="{{ asset('image/smkn1cerme.png') }}"
                                 alt="Logo SMKN 1 Cerme"
-                                class="h-14 w-auto"
+                                class="h-11 w-auto sm:h-14"
                             >
                         </div>
                     </div>
 
                     <!-- Login Card -->
-                    <div class="login-glass fade-up rounded-[1.7rem] border border-white/70 p-6 sm:p-7">
+                    <div class="login-glass fade-up rounded-[1.4rem] border border-white/70 p-5 sm:rounded-[1.7rem] sm:p-7 md:p-8">
 
-                        <div class="mb-6 text-center sm:text-left">
-                            <h1 class="text-3xl font-black tracking-tight text-slate-900">
+                        <div class="mb-5 text-center sm:mb-6 sm:text-left">
+                            <h1 class="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
                                 Masuk Akun
                             </h1>
 
-                            <p class="mt-2 text-sm leading-relaxed text-slate-500">
+                            <p class="mt-2 text-xs leading-relaxed text-slate-500 sm:text-sm">
                                 Silakan masuk menggunakan nomor identitas dan kata sandi.
                             </p>
                         </div>
@@ -206,7 +239,7 @@
                                         id="nomor_identitas"
                                         name="nomor_identitas"
                                         type="text"
-                                        class="input-focus-shadow block w-full rounded-2xl border border-emerald-100 bg-white/85 py-3 pl-11 pr-4 text-sm text-slate-800 shadow-sm outline-none transition duration-300 placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white"
+                                        class="input-focus-shadow block w-full rounded-2xl border border-emerald-100 bg-white/85 py-3 pl-11 pr-4 text-sm text-slate-800 shadow-sm outline-none transition duration-300 placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white sm:py-3.5"
                                         placeholder="Masukkan nomor identitas"
                                         value="{{ old('nomor_identitas') }}"
                                     >
@@ -234,7 +267,7 @@
                                         id="password"
                                         name="password"
                                         type="password"
-                                        class="input-focus-shadow block w-full rounded-2xl border border-emerald-100 bg-white/85 py-3 pl-11 pr-12 text-sm text-slate-800 shadow-sm outline-none transition duration-300 placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white"
+                                        class="input-focus-shadow block w-full rounded-2xl border border-emerald-100 bg-white/85 py-3 pl-11 pr-12 text-sm text-slate-800 shadow-sm outline-none transition duration-300 placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white sm:py-3.5"
                                         placeholder="Masukkan kata sandi"
                                     >
 
@@ -259,27 +292,13 @@
                             <div class="fade-up delay-300 pt-2">
                                 <button
                                     type="submit"
-                                    class="button-shine relative flex w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 px-5 py-3 text-sm font-black uppercase tracking-wide text-white shadow-xl shadow-emerald-500/25 transition duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-emerald-500/35 focus:outline-none focus:ring-4 focus:ring-emerald-200 active:translate-y-0"
+                                    class="button-shine relative flex w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 px-5 py-3 text-xs font-black uppercase tracking-wide text-white shadow-xl shadow-emerald-500/25 transition duration-300 hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-emerald-500/35 focus:outline-none focus:ring-4 focus:ring-emerald-200 active:translate-y-0 sm:py-3.5 sm:text-sm"
                                 >
                                     <span class="relative z-10 flex items-center gap-2">
                                         Masuk Sekarang
                                         <i class="fa-solid fa-arrow-right-to-bracket"></i>
                                     </span>
                                 </button>
-                            </div>
-
-                            <!-- Register -->
-                            <div class="fade-up delay-400 text-center">
-                                <p class="text-sm text-slate-500">
-                                    Belum punya akun?
-
-                                    <a
-                                        href="{{ route('register') }}"
-                                        class="font-extrabold text-emerald-600 transition duration-300 hover:text-emerald-700 hover:underline"
-                                    >
-                                        Daftar Disini!
-                                    </a>
-                                </p>
                             </div>
 
                         </form>
@@ -292,8 +311,8 @@
                 </div>
             </section>
 
-            <!-- Right Side -->
-            <section class="relative hidden overflow-hidden bg-gradient-to-br from-emerald-600 via-green-600 to-teal-800 p-8 lg:flex lg:items-center lg:justify-center">
+            <!-- Right Side Desktop -->
+            <section class="relative hidden min-h-[100svh] overflow-hidden bg-gradient-to-br from-emerald-600 via-green-600 to-teal-800 p-6 lg:flex lg:items-center lg:justify-center xl:p-8">
 
                 <!-- Pattern -->
                 <div
@@ -304,28 +323,28 @@
                 <div class="floating-orb absolute -left-24 top-24 h-64 w-64 rounded-full bg-lime-300/20 blur-3xl"></div>
                 <div class="floating-orb floating-orb-2 absolute bottom-10 right-10 h-80 w-80 rounded-full bg-cyan-200/20 blur-3xl"></div>
 
-                <div class="relative z-10 w-full max-w-md text-white">
+                <div class="relative z-10 w-full max-w-sm text-white xl:max-w-md">
 
-                    <div class="hero-glass fade-up rounded-[1.8rem] border border-white/20 p-7 shadow-2xl">
+                    <div class="hero-glass fade-up rounded-[1.8rem] border border-white/20 p-6 shadow-2xl xl:p-7">
 
-                        <h2 class="text-center text-3xl font-black leading-tight tracking-tight xl:text-4xl">
+                        <h2 class="text-center text-2xl font-black leading-tight tracking-tight xl:text-4xl">
                             Selamat datang di
                             <span id="typingText" class="typing-caret block text-emerald-100"></span>
                         </h2>
 
                         <!-- Logo Card -->
-                        <div class="mt-6 rounded-[1.7rem] border border-white/20 bg-white/15 p-6 shadow-2xl backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:bg-white/20">
+                        <div class="mt-6 rounded-[1.7rem] border border-white/20 bg-white/15 p-5 shadow-2xl backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:bg-white/20 xl:p-6">
 
-                            <div class="logo-ring relative mx-auto flex h-44 w-44 items-center justify-center rounded-full bg-white/95 shadow-2xl shadow-emerald-950/25">
+                            <div class="logo-ring relative mx-auto flex h-36 w-36 items-center justify-center rounded-full bg-white/95 shadow-2xl shadow-emerald-950/25 xl:h-44 xl:w-44">
                                 <img
                                     src="{{ asset('image/smkn1cerme.png') }}"
                                     alt="Logo SMKN 1 Cerme"
-                                    class="relative z-10 h-32 w-auto drop-shadow-2xl transition duration-500 hover:scale-105"
+                                    class="relative z-10 h-24 w-auto drop-shadow-2xl transition duration-500 hover:scale-105 xl:h-32"
                                 >
                             </div>
 
                             <div class="mt-6 text-center">
-                                <p class="text-xl font-black tracking-wide text-white">
+                                <p class="text-lg font-black tracking-wide text-white xl:text-xl">
                                     SMKN 1 CERME
                                 </p>
 

@@ -4,12 +4,60 @@
 @section('page-title', 'Kategori Buku')
 
 @section('content')
+@php
+    $selectedTahun = request('tahun_pengadaan');
 
-<div class="space-y-5">
+    $tahunPengadaanOptions = \App\Models\Book::whereNotNull('tahun_pengadaan')
+        ->distinct()
+        ->orderByDesc('tahun_pengadaan')
+        ->pluck('tahun_pengadaan');
 
-    {{-- Flash Messages --}}
+    $bookQuery = \App\Models\Book::with('bookItems')->latest();
+
+    if ($selectedTahun) {
+        $bookQuery->where('tahun_pengadaan', $selectedTahun);
+    }
+
+    $books = $bookQuery->get();
+
+    $normalizeJenis = function ($value) {
+        return strtoupper(trim((string) $value));
+    };
+
+    $isReferensi = function ($book) use ($normalizeJenis) {
+        $jenis = $normalizeJenis($book->jenis_koleksi);
+
+        return str_contains($jenis, 'REFERENSI')
+            || str_contains($jenis, 'REFERENCE')
+            || str_contains($jenis, 'REFERANCE')
+            || str_contains($jenis, 'RAFERANCE')
+            || str_contains($jenis, 'REFEREN');
+    };
+
+    $isPaket = function ($book) use ($normalizeJenis) {
+        return str_contains($normalizeJenis($book->jenis_koleksi), 'PAKET');
+    };
+
+    $referensiBooks = $books->filter($isReferensi)->values();
+    $paketBooks = $books->filter($isPaket)->values();
+
+    $bosJudul = $books->count();
+    $bosEksemplar = $books->sum(fn($book) => $book->bookItems->count());
+    $kodeTerisi = $books->sum(fn($book) => $book->bookItems->filter(fn($item) => !empty($item->kode_buku))->count());
+
+    $referensiJudul = $referensiBooks->count();
+    $referensiEksemplar = $referensiBooks->sum(fn($book) => $book->bookItems->count());
+
+    $paketJudul = $paketBooks->count();
+    $paketEksemplar = $paketBooks->sum(fn($book) => $book->bookItems->count());
+
+    $booksIndexParams = $selectedTahun ? ['tahun_pengadaan' => $selectedTahun] : [];
+@endphp
+
+<div class="space-y-6" x-data="{ openBos: true }">
+
     @if(session('success') || request()->query('created') == '1')
-        <x-flash-message type="success" />
+        <x-flash-message type="success" message="{{ session('success') }}" />
     @endif
 
     @if(session('deleted'))
@@ -24,325 +72,429 @@
         <x-flash-message type="error" message="{{ session('error') }}" />
     @endif
 
-    {{-- Page Header --}}
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-            <h3 class="text-2xl font-extrabold tracking-tight text-slate-900">
-                Kategori Buku
-            </h3>
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-6 py-6 shadow-md shadow-emerald-100/60">
+        <div class="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10"></div>
+        <div class="pointer-events-none absolute right-24 -bottom-24 h-52 w-52 rounded-full bg-white/10"></div>
 
-            <p class="mt-1 text-sm text-slate-500">
-                Kelola kategori buku dan lihat daftar buku pada setiap kategori.
-            </p>
+        <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-wide text-emerald-50">
+                    Kategori Koleksi
+                </p>
+
+                <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+                    Kategori Buku
+                </h1>
+
+                <p class="mt-2 max-w-2xl text-sm leading-relaxed text-emerald-50">
+                    BOS adalah kategori utama. Buku Referensi dan Buku Paket menjadi isi dari kategori BOS.
+                </p>
+            </div>
+
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <a
+                    href="{{ route('books.import.form') }}"
+                    class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg bg-white px-4 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-50 focus:outline-none focus:ring-4 focus:ring-white/30"
+                >
+                    Import Excel BOS
+                </a>
+
+                <a
+                    href="{{ route('books.index', $booksIndexParams) }}"
+                    class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg border border-white/25 bg-white/15 px-4 text-sm font-semibold text-white shadow-sm backdrop-blur-md transition hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-white/20"
+                >
+                    Kelola Buku BOS
+                </a>
+            </div>
         </div>
-
-        <button
-            type="button"
-            @click="$dispatch('open-modal', 'create-category')"
-            class="inline-flex w-fit items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
-        >
-            <i class="fas fa-plus text-xs"></i>
-            <span>Tambah Kategori</span>
-        </button>
     </div>
 
-    {{-- Search --}}
-    <form
-        method="GET"
-        action="{{ route('categories.index') }}"
-        id="filter-form"
-        class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm"
-    >
-        <div class="relative w-full sm:max-w-md">
-            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400"></i>
+    <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <form method="GET" action="{{ route('categories.index') }}" id="filter-form">
+            <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900">
+                        Filter Tahun Data
+                    </h2>
 
-            <input
-                type="text"
-                name="search"
-                id="search-input"
-                value="{{ request('search') }}"
-                placeholder="Cari kategori..."
-                autocomplete="off"
-                class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
-            >
+                    <p class="mt-1 text-sm text-slate-500">
+                        Pilih tahun pengadaan untuk melihat isi BOS berdasarkan tahun import.
+                    </p>
+                </div>
+
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <select
+                        name="tahun_pengadaan"
+                        id="tahun-select"
+                        class="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 sm:w-56"
+                    >
+                        <option value="">Semua Tahun</option>
+
+                        @foreach($tahunPengadaanOptions as $tahunPengadaan)
+                            <option value="{{ $tahunPengadaan }}" {{ $selectedTahun == $tahunPengadaan ? 'selected' : '' }}>
+                                {{ $tahunPengadaan }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    <a
+                        href="{{ route('categories.index') }}"
+                        class="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                    >
+                        Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm">
+        <div class="bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-6">
+            <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                <div class="flex gap-4">
+                    <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-3xl bg-emerald-500 text-white shadow-sm">
+                        <i class="fas fa-book text-xl"></i>
+                    </div>
+
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-slate-900">
+                            BOS
+                        </h2>
+
+                        <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-slate-500">
+                            <span class="text-emerald-700">Kategori Utama</span>
+                            <span class="text-slate-300">•</span>
+                            <span>Referensi + Paket</span>
+
+                            @if($selectedTahun)
+                                <span class="text-slate-300">•</span>
+                                <span class="text-blue-700">Tahun {{ $selectedTahun }}</span>
+                            @endif
+                        </div>
+
+                        <p class="mt-3 max-w-2xl text-sm leading-relaxed text-slate-500">
+                            Di halaman ini BOS menjadi induk semua data buku. Data yang tampil bisa difilter berdasarkan tahun pengadaan.
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    @click="openBos = !openBos"
+                    class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                >
+                    <span x-text="openBos ? 'Tutup Isi BOS' : 'Buka Isi BOS'"></span>
+                </button>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div class="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm">
+                    <p class="text-sm font-semibold text-slate-500">
+                        Total Judul BOS
+                    </p>
+
+                    <p class="mt-2 text-3xl font-extrabold text-slate-900">
+                        {{ $bosJudul }}
+                    </p>
+
+                    <p class="mt-1 text-xs font-medium text-slate-400">
+                        {{ $selectedTahun ? 'Judul buku BOS tahun ' . $selectedTahun : 'Semua judul buku di BOS' }}
+                    </p>
+                </div>
+
+                <div class="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm">
+                    <p class="text-sm font-semibold text-slate-500">
+                        Total Eksemplar
+                    </p>
+
+                    <p class="mt-2 text-3xl font-extrabold text-slate-900">
+                        {{ $bosEksemplar }}
+                    </p>
+
+                    <p class="mt-1 text-xs font-medium text-slate-400">
+                        Semua item fisik buku
+                    </p>
+                </div>
+
+                <div class="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm">
+                    <p class="text-sm font-semibold text-slate-500">
+                        Kode Terisi
+                    </p>
+
+                    <p class="mt-2 text-3xl font-extrabold text-slate-900">
+                        {{ $kodeTerisi }}/{{ $bosEksemplar }}
+                    </p>
+
+                    <p class="mt-1 text-xs font-medium text-slate-400">
+                        Kode buku yang sudah diinput
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex gap-4">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                                <i class="fas fa-bookmark"></i>
+                            </div>
+
+                            <div>
+                                <h3 class="text-lg font-extrabold text-slate-900">
+                                    Buku Referensi
+                                </h3>
+
+                                <p class="mt-1 text-sm text-slate-500">
+                                    Bagian dari kategori BOS.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 grid grid-cols-2 gap-3">
+                        <div class="rounded-2xl bg-slate-50 p-4">
+                            <p class="text-xs font-bold uppercase text-slate-400">
+                                Judul
+                            </p>
+
+                            <p class="mt-1 text-2xl font-extrabold text-slate-900">
+                                {{ $referensiJudul }}
+                            </p>
+                        </div>
+
+                        <div class="rounded-2xl bg-slate-50 p-4">
+                            <p class="text-xs font-bold uppercase text-slate-400">
+                                Eksemplar
+                            </p>
+
+                            <p class="mt-1 text-2xl font-extrabold text-slate-900">
+                                {{ $referensiEksemplar }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex gap-4">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+
+                            <div>
+                                <h3 class="text-lg font-extrabold text-slate-900">
+                                    Buku Paket
+                                </h3>
+
+                                <p class="mt-1 text-sm text-slate-500">
+                                    Bagian dari kategori BOS.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 grid grid-cols-2 gap-3">
+                        <div class="rounded-2xl bg-slate-50 p-4">
+                            <p class="text-xs font-bold uppercase text-slate-400">
+                                Judul
+                            </p>
+
+                            <p class="mt-1 text-2xl font-extrabold text-slate-900">
+                                {{ $paketJudul }}
+                            </p>
+                        </div>
+
+                        <div class="rounded-2xl bg-slate-50 p-4">
+                            <p class="text-xs font-bold uppercase text-slate-400">
+                                Eksemplar
+                            </p>
+
+                            <p class="mt-1 text-2xl font-extrabold text-slate-900">
+                                {{ $paketEksemplar }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </form>
 
-    {{-- Category List --}}
-    @if($categories->count())
-        <div
-            x-data="{ openRow: null }"
-            class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
-        >
+        <div x-show="openBos" x-transition.opacity.duration.150ms x-cloak>
+            <div class="border-t border-slate-100 bg-white px-5 py-4">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h3 class="text-lg font-extrabold text-slate-900">
+                            Isi Kategori BOS
+                        </h3>
+
+                        <p class="mt-1 text-sm text-slate-500">
+                            {{ $selectedTahun ? 'Menampilkan buku BOS tahun data ' . $selectedTahun . '.' : 'Semua buku Referensi dan Paket ditampilkan menjadi satu di kategori BOS.' }}
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <a
+                            href="{{ route('books.import.form') }}"
+                            class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                        >
+                            Import Excel
+                        </a>
+
+                        <a
+                            href="{{ route('books.index', $booksIndexParams) }}"
+                            class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                        >
+                            Kelola Buku
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[900px] border-collapse text-sm">
+                <table class="w-full min-w-[1150px] border-collapse text-sm">
                     <thead>
-                        <tr class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            <th class="w-20 border border-slate-200 px-5 py-4 text-center">
-                                Detail
-                            </th>
+                        <tr class="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
                             <th class="w-16 border border-slate-200 px-5 py-4 text-left">
                                 No
                             </th>
+
                             <th class="border border-slate-200 px-5 py-4 text-left">
-                                Kategori
+                                Judul Buku
                             </th>
-                            <th class="w-40 border border-slate-200 px-5 py-4 text-center">
-                                Jumlah Buku
+
+                            <th class="w-28 border border-slate-200 px-5 py-4 text-center">
+                                Tahun Data
                             </th>
+
+                            <th class="w-52 border border-slate-200 px-5 py-4 text-left">
+                                Pengarang
+                            </th>
+
+                            <th class="w-44 border border-slate-200 px-5 py-4 text-left">
+                                Penerbit
+                            </th>
+
+                            <th class="w-24 border border-slate-200 px-5 py-4 text-center">
+                                Terbit
+                            </th>
+
                             <th class="w-32 border border-slate-200 px-5 py-4 text-center">
+                                Jenis
+                            </th>
+
+                            <th class="w-32 border border-slate-200 px-5 py-4 text-center">
+                                Eksemplar
+                            </th>
+
+                            <th class="w-32 border border-slate-200 px-5 py-4 text-center">
+                                Kode
+                            </th>
+
+                            <th class="w-28 border border-slate-200 px-5 py-4 text-center">
                                 Aksi
                             </th>
                         </tr>
                     </thead>
 
-                    <tbody>
-                        @foreach($categories as $index => $category)
-                            <tr
-                                :class="openRow === {{ $category->id }} ? 'bg-emerald-50/30' : 'hover:bg-slate-50'"
-                                class="transition-colors"
-                            >
-                                <td class="border border-slate-200 px-5 py-4 text-center">
-                                    <button
-                                        type="button"
-                                        @click="openRow = openRow === {{ $category->id }} ? null : {{ $category->id }}"
-                                        :class="openRow === {{ $category->id }}
-                                            ? 'bg-emerald-500 text-white ring-emerald-100'
-                                            : 'bg-emerald-50 text-emerald-600 ring-emerald-100 hover:bg-emerald-100'"
-                                        class="inline-flex h-8 w-8 items-center justify-center rounded-xl ring-1 transition"
-                                        :aria-expanded="openRow === {{ $category->id }}"
-                                        title="Lihat daftar buku"
-                                    >
-                                        <i
-                                            class="fas text-xs"
-                                            :class="openRow === {{ $category->id }} ? 'fa-chevron-up' : 'fa-chevron-down'"
-                                        ></i>
-                                    </button>
-                                </td>
+                    <tbody class="bg-white">
+                        @forelse($books as $book)
+                            @php
+                                $totalItems = $book->bookItems->count();
+                                $kodeBukuTerisi = $book->bookItems->filter(fn($item) => !empty($item->kode_buku))->count();
+                            @endphp
 
-                                <td class="border border-slate-200 px-5 py-4 font-medium text-slate-600">
-                                    {{ $categories->firstItem() + $index }}
+                            <tr class="transition-colors hover:bg-slate-50">
+                                <td class="border border-slate-200 px-5 py-4 font-semibold text-slate-600">
+                                    {{ $loop->iteration }}
                                 </td>
 
                                 <td class="border border-slate-200 px-5 py-4">
-                                    <span class="font-semibold text-slate-800">
-                                        {{ $category->nama_kategori }}
+                                    <div class="max-w-[320px] font-bold leading-snug text-slate-800">
+                                        {{ $book->judul }}
+                                    </div>
+
+                                    <div class="mt-1 text-xs font-medium text-slate-400">
+                                        No. Klasifikasi: {{ $book->nomor_klasifikasi ?? '-' }}
+                                    </div>
+                                </td>
+
+                                <td class="border border-slate-200 px-5 py-4 text-center">
+                                    <span class="font-semibold text-slate-700">
+                                        {{ $book->tahun_pengadaan ?? '-' }}
                                     </span>
                                 </td>
 
-                                <td class="border border-slate-200 px-5 py-4 text-center text-slate-500">
-                                    {{ $category->books_count }} buku
+                                <td class="border border-slate-200 px-5 py-4 text-slate-600">
+                                    {{ $book->penulis ?? '-' }}
+                                </td>
+
+                                <td class="border border-slate-200 px-5 py-4 text-slate-600">
+                                    {{ $book->penerbit ?? '-' }}
+                                </td>
+
+                                <td class="border border-slate-200 px-5 py-4 text-center text-slate-600">
+                                    {{ $book->tahun ?? '-' }}
+                                </td>
+
+                                <td class="border border-slate-200 px-5 py-4 text-center">
+                                    <span class="font-semibold text-emerald-700">
+                                        {{ $book->jenis_koleksi ?? 'BOS' }}
+                                    </span>
+                                </td>
+
+                                <td class="border border-slate-200 px-5 py-4 text-center">
+                                    <span class="font-bold text-slate-700">
+                                        {{ $totalItems }}
+                                    </span>
+                                </td>
+
+                                <td class="border border-slate-200 px-5 py-4 text-center">
+                                    @if($kodeBukuTerisi == $totalItems && $totalItems > 0)
+                                        <span class="font-bold text-emerald-700">
+                                            {{ $kodeBukuTerisi }}/{{ $totalItems }}
+                                        </span>
+                                    @else
+                                        <span class="font-bold text-amber-700">
+                                            {{ $kodeBukuTerisi }}/{{ $totalItems }}
+                                        </span>
+                                    @endif
                                 </td>
 
                                 <td class="border border-slate-200 px-5 py-4">
-                                    <div class="flex items-center justify-center gap-2">
-                                        <button
-                                            type="button"
-                                            @click="$dispatch('open-modal', 'edit-category-{{ $category->id }}')"
-                                            title="Edit Kategori"
-                                            class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-amber-100 transition hover:bg-amber-100"
+                                    <div class="flex items-center justify-center">
+                                        <a
+                                            href="{{ route('books.show', $book->id) }}"
+                                            title="Detail Buku"
+                                            class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
                                         >
-                                            <i class="fas fa-edit text-sm"></i>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            @click="$dispatch('open-confirm-delete', { url: '{{ route('categories.destroy', $category->id) }}' })"
-                                            title="Hapus Kategori"
-                                            class="flex h-8 w-8 items-center justify-center rounded-xl bg-red-50 text-red-600 ring-1 ring-red-100 transition hover:bg-red-100"
-                                        >
-                                            <i class="fas fa-trash text-sm"></i>
-                                        </button>
+                                            Detail
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
+                        @empty
+                            <tr>
+                                <td colspan="10" class="border border-slate-200 px-6 py-16 text-center">
+                                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
+                                        <i class="fas fa-book-open text-2xl"></i>
+                                    </div>
 
-                            {{-- Detail Buku --}}
-                            <tr
-                                x-show="openRow === {{ $category->id }}"
-                                x-transition.opacity.duration.150ms
-                                x-cloak
-                                class="bg-slate-50/50"
-                            >
-                                <td colspan="5" class="border border-slate-200 px-5 py-5">
+                                    <p class="mt-4 text-base font-bold text-slate-700">
+                                        Belum ada buku di kategori BOS
+                                    </p>
 
-                                    @if($category->books->count())
-                                        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                                            <div class="border-b border-slate-200 px-5 py-3">
-                                                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                                    Daftar Buku
-                                                </p>
-                                            </div>
-
-                                            <div class="overflow-x-auto">
-                                                <table class="w-full border-collapse text-sm">
-                                                    <thead>
-                                                        <tr class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                                            <th class="w-16 border border-slate-200 px-4 py-3 text-left">
-                                                                No
-                                                            </th>
-                                                            <th class="border border-slate-200 px-4 py-3 text-left">
-                                                                Judul Buku
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-
-                                                    <tbody>
-                                                        @foreach($category->books as $bookIndex => $book)
-                                                            <tr class="transition-colors hover:bg-slate-50">
-                                                                <td class="border border-slate-200 px-4 py-3 text-slate-500">
-                                                                    {{ $bookIndex + 1 }}
-                                                                </td>
-
-                                                                <td class="border border-slate-200 px-4 py-3">
-                                                                    <span class="font-medium text-slate-700">
-                                                                        {{ $book->judul }}
-                                                                    </span>
-                                                                </td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    @else
-                                        <div class="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-8 text-center">
-                                            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-                                                <i class="fas fa-book-open text-xl"></i>
-                                            </div>
-
-                                            <p class="mt-3 text-sm font-semibold text-slate-600">
-                                                Belum ada buku pada kategori ini
-                                            </p>
-                                        </div>
-                                    @endif
-
+                                    <p class="mt-1 text-sm text-slate-400">
+                                        Import Excel dulu atau ubah filter tahun data.
+                                    </p>
                                 </td>
                             </tr>
-                        @endforeach
+                        @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
-
-        {{-- Pagination --}}
-        @if($categories->hasPages())
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p class="text-sm text-slate-500">
-                    Menampilkan {{ $categories->firstItem() ?? 0 }}&ndash;{{ $categories->lastItem() ?? 0 }} dari {{ $categories->total() }} data
-                </p>
-
-                <div class="flex flex-wrap items-center gap-1">
-
-                    @if ($categories->onFirstPage())
-                        <span class="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-300">
-                            <i class="fas fa-chevron-left text-xs"></i>
-                        </span>
-                    @else
-                        <a
-                            href="{{ $categories->previousPageUrl() }}"
-                            class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50"
-                        >
-                            <i class="fas fa-chevron-left text-xs"></i>
-                        </a>
-                    @endif
-
-                    @php
-                        $start = max(1, $categories->currentPage() - 1);
-                        $end = min($categories->lastPage(), $categories->currentPage() + 1);
-                    @endphp
-
-                    @if($start > 1)
-                        <a
-                            href="{{ $categories->url(1) }}"
-                            class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50"
-                        >
-                            1
-                        </a>
-
-                        @if($start > 2)
-                            <span class="flex h-8 w-8 items-center justify-center text-sm text-slate-400">
-                                ...
-                            </span>
-                        @endif
-                    @endif
-
-                    @for ($i = $start; $i <= $end; $i++)
-                        @if ($i == $categories->currentPage())
-                            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-sm font-semibold text-white">
-                                {{ $i }}
-                            </span>
-                        @else
-                            <a
-                                href="{{ $categories->url($i) }}"
-                                class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50"
-                            >
-                                {{ $i }}
-                            </a>
-                        @endif
-                    @endfor
-
-                    @if($end < $categories->lastPage())
-                        @if($end < $categories->lastPage() - 1)
-                            <span class="flex h-8 w-8 items-center justify-center text-sm text-slate-400">
-                                ...
-                            </span>
-                        @endif
-
-                        <a
-                            href="{{ $categories->url($categories->lastPage()) }}"
-                            class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50"
-                        >
-                            {{ $categories->lastPage() }}
-                        </a>
-                    @endif
-
-                    @if ($categories->hasMorePages())
-                        <a
-                            href="{{ $categories->nextPageUrl() }}"
-                            class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50"
-                        >
-                            <i class="fas fa-chevron-right text-xs"></i>
-                        </a>
-                    @else
-                        <span class="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-300">
-                            <i class="fas fa-chevron-right text-xs"></i>
-                        </span>
-                    @endif
-
-                </div>
-            </div>
-        @endif
-    @else
-        <div class="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
-            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-                <i class="fas fa-tags text-2xl"></i>
-            </div>
-
-            <p class="mt-4 text-sm font-bold text-slate-700">
-                Belum ada kategori
-            </p>
-
-            <p class="mt-1 text-xs text-slate-400">
-                Klik tombol "Tambah Kategori" untuk membuat kategori baru.
-            </p>
-        </div>
-    @endif
+    </div>
 
 </div>
-
-{{-- Modals --}}
-<x-modal name="create-category" title="Tambah Kategori" maxWidth="md">
-    @include('admin.categories.partials.create-form')
-</x-modal>
-
-@foreach($categories as $category)
-    <x-modal name="edit-category-{{ $category->id }}" title="Edit Kategori" maxWidth="md">
-        @include('admin.categories.partials.edit-form', ['category' => $category])
-    </x-modal>
-@endforeach
-
-<x-confirm-delete />
 
 <style>
     [x-cloak] {
@@ -353,19 +505,12 @@
 <script>
     (function () {
         var form = document.getElementById('filter-form');
-        var searchInput = document.getElementById('search-input');
-        var debounceTimer;
+        var tahunSelect = document.getElementById('tahun-select');
 
-        if (!form || !searchInput) {
-            return;
-        }
+        if (!form || !tahunSelect) return;
 
-        searchInput.addEventListener('input', function () {
-            clearTimeout(debounceTimer);
-
-            debounceTimer = setTimeout(function () {
-                form.submit();
-            }, 400);
+        tahunSelect.addEventListener('change', function () {
+            form.submit();
         });
     })();
 </script>

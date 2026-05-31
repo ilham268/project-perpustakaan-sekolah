@@ -7,14 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 class Book extends Model
 {
     protected $fillable = [
-        'category_id',
+        'tahun_pengadaan',
+        'nomor_klasifikasi',
         'judul',
-        'synopsis',
-        'foto',
         'penulis',
         'penerbit',
         'tahun',
+        'sumber_buku',
+        'jenis_koleksi',
+        'jumlah_eksemplar',
+        'category_id',
         'nomor_rak',
+        'synopsis',
+        'foto',
     ];
 
     public function category()

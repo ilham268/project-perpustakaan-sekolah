@@ -9,14 +9,16 @@
 
     {{-- Hero Header --}}
     <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-5 py-5 shadow-md shadow-emerald-100/70 md:px-7 md:py-6">
-
-        {{-- Decorative Shape --}}
         <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
         <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
 
         <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div class="max-w-2xl">
-                <h1 class="text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+                <p class="text-xs font-bold uppercase tracking-wide text-emerald-50">
+                    Petugas Perpustakaan
+                </p>
+
+                <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl">
                     Dashboard Petugas
                 </h1>
 
@@ -25,32 +27,22 @@
                 </p>
             </div>
         </div>
-
     </div>
 
     {{-- Alert Pending --}}
     @if($totalPending > 0)
         <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 shadow-sm">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
-                <div class="flex items-center gap-3 text-sm font-medium text-amber-900">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600 ring-1 ring-amber-200">
-                        <i class="fas fa-bell text-base"></i>
-                    </div>
-
-                    <span>
-                        Ada <strong>{{ $totalPending }}</strong> pengajuan peminjaman yang menunggu persetujuan.
-                    </span>
-                </div>
+                <p class="text-sm font-medium text-amber-900">
+                    Ada <strong>{{ $totalPending }}</strong> pengajuan peminjaman yang menunggu persetujuan.
+                </p>
 
                 <a
                     href="{{ route('peminjaman.index') }}?status=pending"
-                    class="inline-flex w-fit items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-600"
+                    class="inline-flex h-10 w-fit items-center justify-center whitespace-nowrap rounded-lg bg-amber-500 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-600 focus:outline-none focus:ring-4 focus:ring-amber-100"
                 >
-                    Proses sekarang
-                    <i class="fas fa-arrow-right text-xs"></i>
+                    Proses Sekarang
                 </a>
-
             </div>
         </div>
     @endif
@@ -180,8 +172,8 @@
     <div class="grid grid-cols-1 gap-5 xl:grid-cols-3">
 
         {{-- Chart Peminjaman --}}
-        <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm xl:col-span-2">
-            <div class="flex flex-col gap-3 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:col-span-2">
+            <div class="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
                 <div>
                     <h3 class="text-base font-bold text-slate-900 md:text-lg">
                         Statistik Peminjaman
@@ -192,10 +184,9 @@
                     </p>
                 </div>
 
-                <div class="inline-flex w-fit items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
-                    <i class="fas fa-calendar-days"></i>
+                <p class="text-xs font-semibold text-slate-500">
                     12 Bulan Terakhir
-                </div>
+                </p>
             </div>
 
             <div class="p-4 md:p-6">
@@ -206,8 +197,8 @@
         </div>
 
         {{-- Pengajuan Menunggu Persetujuan --}}
-        <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
                 <div>
                     <h3 class="text-base font-bold text-slate-900 md:text-lg">
                         Perlu Diproses
@@ -228,47 +219,45 @@
 
             <div class="max-h-[390px] space-y-3 overflow-y-auto p-4">
                 @forelse($pendingLoans as $loan)
-                    <div class="group flex items-center gap-3 rounded-2xl border border-transparent p-3 transition-all hover:border-slate-200 hover:bg-slate-50">
+                    <div class="rounded-2xl border border-slate-200 bg-white p-3 transition hover:bg-slate-50">
+                        <div class="flex gap-3">
+                            @if($loan->bookItem->book->foto)
+                                <img
+                                    src="{{ asset('storage/' . $loan->bookItem->book->foto) }}"
+                                    alt="{{ $loan->bookItem->book->judul }}"
+                                    class="h-16 w-11 shrink-0 rounded-xl border border-slate-200 object-cover shadow-sm"
+                                >
+                            @else
+                                <div class="flex h-16 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 text-slate-300">
+                                    <i class="fas fa-book text-sm"></i>
+                                </div>
+                            @endif
 
-                        {{-- Cover --}}
-                        @if($loan->bookItem->book->foto)
-                            <img
-                                src="{{ asset('storage/' . $loan->bookItem->book->foto) }}"
-                                alt="{{ $loan->bookItem->book->judul }}"
-                                class="h-16 w-11 shrink-0 rounded-xl border border-slate-200 object-cover shadow-sm"
-                            >
-                        @else
-                            <div class="flex h-16 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-100 text-slate-300">
-                                <i class="fas fa-book text-sm"></i>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-bold text-slate-800">
+                                    {{ $loan->bookItem->book->judul }}
+                                </p>
+
+                                <p class="mt-0.5 truncate text-xs text-slate-500">
+                                    {{ $loan->user->name }}
+                                </p>
+
+                                <p class="mt-0.5 text-xs font-medium text-emerald-600">
+                                    {{ \Carbon\Carbon::parse($loan->tanggal_pinjam)->translatedFormat('d M Y') }}
+                                </p>
                             </div>
-                        @endif
-
-                        {{-- Info --}}
-                        <div class="min-w-0 flex-1">
-                            <p class="truncate text-sm font-bold text-slate-800">
-                                {{ $loan->bookItem->book->judul }}
-                            </p>
-
-                            <p class="mt-0.5 truncate text-xs text-slate-400">
-                                {{ $loan->user->name }}
-                            </p>
-
-                            <p class="mt-0.5 text-xs font-medium text-emerald-600">
-                                {{ \Carbon\Carbon::parse($loan->tanggal_pinjam)->translatedFormat('d M Y') }}
-                            </p>
                         </div>
 
-                        {{-- Actions --}}
-                        <div class="flex shrink-0 flex-col gap-1">
+                        <div class="mt-3 flex items-center justify-end gap-2">
                             <form method="POST" action="{{ route('peminjaman.approve', $loan->id) }}">
                                 @csrf
 
                                 <button
                                     type="submit"
                                     title="Setujui"
-                                    class="flex h-8 w-8 items-center justify-center rounded-xl bg-green-50 text-green-600 ring-1 ring-green-100 transition hover:bg-green-100"
+                                    class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
                                 >
-                                    <i class="fas fa-check text-xs"></i>
+                                    Setujui
                                 </button>
                             </form>
 
@@ -278,21 +267,16 @@
                                 <button
                                     type="submit"
                                     title="Tolak"
-                                    class="flex h-8 w-8 items-center justify-center rounded-xl bg-red-50 text-red-500 ring-1 ring-red-100 transition hover:bg-red-100"
+                                    class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
                                 >
-                                    <i class="fas fa-times text-xs"></i>
+                                    Tolak
                                 </button>
                             </form>
                         </div>
-
                     </div>
                 @empty
-                    <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-12 text-center">
-                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500">
-                            <i class="fas fa-circle-check text-xl"></i>
-                        </div>
-
-                        <p class="mt-3 text-sm font-semibold text-slate-600">
+                    <div class="rounded-2xl border border-dashed border-slate-200 px-4 py-12 text-center">
+                        <p class="text-sm font-semibold text-slate-600">
                             Tidak ada pengajuan pending
                         </p>
 

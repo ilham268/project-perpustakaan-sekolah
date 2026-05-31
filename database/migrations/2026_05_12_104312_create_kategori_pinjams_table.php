@@ -11,8 +11,14 @@ return new class extends Migration
         Schema::create('kategori_pinjams', function (Blueprint $table) {
             $table->id();
             $table->string('nama_kategori', 100);
-            $table->string('kelas', 50);
+            $table->unsignedBigInteger('kelas_id')->nullable();
+            $table->string('kelas', 50)->nullable();
             $table->timestamps();
+
+            $table->foreign('kelas_id')
+                ->references('id')
+                ->on('kelas')
+                ->nullOnDelete();
         });
     }
 

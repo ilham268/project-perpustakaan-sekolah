@@ -13,18 +13,13 @@ class PinjamKelas extends Model
         'user_id',
         'book_id',
         'kode_buku',
-        'tanggal_pinjam',
-        'tanggal_kembali',
         'status',
         'kondisi',
         'denda',
-        'tanggal_denda',
+        'status_denda',
     ];
 
     protected $casts = [
-        'tanggal_pinjam' => 'date',
-        'tanggal_kembali' => 'date',
-        'tanggal_denda' => 'datetime',
         'denda' => 'integer',
     ];
 

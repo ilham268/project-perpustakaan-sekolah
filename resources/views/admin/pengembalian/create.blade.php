@@ -5,6 +5,26 @@
 
 @section('content')
 
+    @php
+        try {
+            $settingDenda = null;
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('library_settings')) {
+                $settingDenda = \Illuminate\Support\Facades\DB::table('library_settings')
+                    ->where('key', 'denda_telat_per_hari')
+                    ->value('value');
+            }
+
+            $dendaTelatPerHariValue = is_numeric($settingDenda) ? (int) $settingDenda : 10000;
+
+            if ($dendaTelatPerHariValue < 0) {
+                $dendaTelatPerHariValue = 10000;
+            }
+        } catch (\Throwable $e) {
+            $dendaTelatPerHariValue = 10000;
+        }
+    @endphp
+
     @if(session('success'))
         <div class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
             <i class="fas fa-check-circle text-green-500"></i>
@@ -29,13 +49,13 @@
         </a>
     </div>
 
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-6xl mx-auto">
 
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-5">
             <div class="px-6 py-4 border-b border-slate-100">
                 <h3 class="text-base font-semibold text-slate-900">Cari Peminjaman</h3>
                 <p class="text-sm text-slate-500 mt-0.5">
-                    Cari berdasarkan nama, nomor identitas, atau kode buku
+                    Cari berdasarkan nama, nomor identitas, judul buku, atau kode buku.
                 </p>
             </div>
 
@@ -49,7 +69,7 @@
                 <form action="{{ route('admin.pengembalian.search') }}" method="POST">
                     @csrf
 
-                    <div class="flex gap-3">
+                    <div class="flex flex-col gap-3 md:flex-row">
                         <div class="relative flex-1">
                             <i class="fas fa-search text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 text-sm"></i>
 
@@ -58,7 +78,7 @@
                                 name="search"
                                 value="{{ old('search', isset($loan) ? $loan->user->name : '') }}"
                                 class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-full text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
-                                placeholder="Nama, NIM/NISN, atau kode buku..."
+                                placeholder="Nama, NIM/NISN, judul, atau kode buku..."
                                 minlength="2"
                                 required
                             >
@@ -66,82 +86,118 @@
 
                         <button
                             type="submit"
-                            class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-sm font-medium flex items-center gap-2 transition-colors"
+                            class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-sm font-medium flex items-center justify-center gap-2 transition-colors"
                         >
                             <i class="fas fa-search"></i>
                             <span>Cari</span>
                         </button>
+
+                        <a
+                            href="{{ route('admin.pengembalian.index') }}"
+                            class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-full text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                        >
+                            <i class="fas fa-rotate-left"></i>
+                            <span>Reset</span>
+                        </a>
                     </div>
                 </form>
             </div>
         </div>
 
-        @if(isset($loans) && $loans->count() > 1)
+        @if(isset($loans) && $loans->count() > 0 && !isset($loan))
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-5">
-                <div class="px-6 py-4 border-b border-slate-100">
-                    <h3 class="text-base font-semibold text-slate-900">Pilih Peminjaman</h3>
-                    <p class="text-sm text-slate-500 mt-0.5">
-                        Ditemukan {{ $loans->count() }} peminjaman aktif.
-                    </p>
+                <div class="px-6 py-4 border-b border-slate-100 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                    <div>
+                        <h3 class="text-base font-semibold text-slate-900">Daftar Peminjaman Aktif</h3>
+                        <p class="text-sm text-slate-500 mt-0.5">
+                            Ada {{ $loans->count() }} buku yang sedang dipinjam dan siap diproses pengembaliannya.
+                        </p>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full">
+                    <table class="w-full min-w-[980px]">
                         <thead>
                             <tr class="bg-emerald-600 text-white text-sm">
+                                <th class="px-5 py-3 text-left font-semibold w-14">No</th>
                                 <th class="px-5 py-3 text-left font-semibold">Judul Buku</th>
+                                <th class="px-5 py-3 text-left font-semibold">Kode Buku</th>
                                 <th class="px-5 py-3 text-left font-semibold">Peminjam</th>
+                                <th class="px-5 py-3 text-left font-semibold">Nomor Identitas</th>
                                 <th class="px-5 py-3 text-center font-semibold">Tgl Pinjam</th>
                                 <th class="px-5 py-3 text-center font-semibold">Tgl Kembali</th>
-                                <th class="px-5 py-3 text-center font-semibold w-20">Aksi</th>
+                                <th class="px-5 py-3 text-center font-semibold w-24">Aksi</th>
                             </tr>
                         </thead>
 
                         <tbody class="divide-y divide-slate-100">
                             @foreach($loans as $loanOption)
+                                @php
+                                    $tanggalKembaliOption = $loanOption->tanggal_kembali
+                                        ? \Carbon\Carbon::parse($loanOption->tanggal_kembali)->startOfDay()
+                                        : null;
+
+                                    $isLate = $tanggalKembaliOption
+                                        ? $tanggalKembaliOption->lt(now()->startOfDay())
+                                        : false;
+                                @endphp
+
                                 <tr class="hover:bg-slate-50">
-                                    <td class="px-5 py-3">
-                                        <p class="text-sm font-medium text-slate-900">
+                                    <td class="px-5 py-4 text-sm text-slate-500">
+                                        {{ $loop->iteration }}
+                                    </td>
+
+                                    <td class="px-5 py-4">
+                                        <p class="text-sm font-semibold text-slate-900">
                                             {{ $loanOption->bookItem->book->judul ?? '-' }}
                                         </p>
                                         <p class="text-xs text-slate-400">
-                                            {{ $loanOption->bookItem->kode_buku ?? '-' }}
+                                            Kategori: {{ $loanOption->bookItem->book->category->nama_kategori ?? '-' }}
                                         </p>
                                     </td>
 
-                                    <td class="px-5 py-3">
-                                        <p class="text-sm font-medium text-slate-900">
+                                    <td class="px-5 py-4 text-sm text-slate-600">
+                                        {{ $loanOption->bookItem->kode_buku ?? '-' }}
+                                    </td>
+
+                                    <td class="px-5 py-4">
+                                        <p class="text-sm font-semibold text-slate-900">
                                             {{ $loanOption->user->name ?? '-' }}
                                         </p>
-                                        <p class="text-xs text-slate-400">
-                                            {{ $loanOption->user->nomor_identitas ?? '-' }}
-                                        </p>
                                     </td>
 
-                                    <td class="px-5 py-3 text-center text-sm text-slate-600">
+                                    <td class="px-5 py-4 text-sm text-slate-600">
+                                        {{ $loanOption->user->nomor_identitas ?? '-' }}
+                                    </td>
+
+                                    <td class="px-5 py-4 text-center text-sm text-slate-600">
                                         {{ $loanOption->tanggal_pinjam ? \Carbon\Carbon::parse($loanOption->tanggal_pinjam)->format('d M Y') : '-' }}
                                     </td>
 
-                                    <td class="px-5 py-3 text-center">
-                                        @php
-                                            $isLate = $loanOption->tanggal_kembali ? \Carbon\Carbon::parse($loanOption->tanggal_kembali)->isPast() : false;
-                                        @endphp
-
-                                        <span class="text-sm {{ $isLate ? 'text-red-600 font-semibold' : 'text-slate-600' }}">
+                                    <td class="px-5 py-4 text-center">
+                                        <span class="text-sm {{ $isLate ? 'text-red-600 font-bold' : 'text-slate-600' }}">
                                             {{ $loanOption->tanggal_kembali ? \Carbon\Carbon::parse($loanOption->tanggal_kembali)->format('d M Y') : '-' }}
                                         </span>
+
+                                        @if($isLate)
+                                            <p class="mt-1 text-xs font-semibold text-red-500">
+                                                Terlambat
+                                            </p>
+                                        @endif
                                     </td>
 
-                                    <td class="px-5 py-3 text-center">
+                                    <td class="px-5 py-4 text-center">
                                         <form action="{{ route('admin.pengembalian.search') }}" method="POST">
                                             @csrf
+
                                             <input type="hidden" name="loan_id" value="{{ $loanOption->id }}">
 
                                             <button
                                                 type="submit"
-                                                class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium transition-colors"
+                                                class="inline-flex items-center justify-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors"
                                             >
-                                                Pilih
+                                                <i class="fas fa-check"></i>
+                                                <span>Pilih</span>
                                             </button>
                                         </form>
                                     </td>
@@ -149,6 +205,24 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+            </div>
+        @endif
+
+        @if(isset($loans) && $loans->count() === 0 && !isset($loan))
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-5">
+                <div class="px-6 py-12 text-center">
+                    <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                        <i class="fas fa-book-open text-2xl"></i>
+                    </div>
+
+                    <p class="text-sm font-bold text-slate-700">
+                        Tidak ada peminjaman aktif
+                    </p>
+
+                    <p class="mt-1 text-xs text-slate-400">
+                        Belum ada buku dengan status disetujui yang perlu dikembalikan.
+                    </p>
                 </div>
             </div>
         @endif
@@ -233,6 +307,7 @@
                         method="POST"
                         x-data="{
                             kondisi: 'baik',
+                            dendaPerHari: {{ $dendaTelatPerHariValue }},
                             dendaRusak: 10000,
                             dendaRusakFormatted: '10.000',
                             dendaHilang: 100000,
@@ -266,7 +341,7 @@
                             },
 
                             get dendaKeterlambatan() {
-                                return this.daysLate * 10000;
+                                return this.daysLate * this.dendaPerHari;
                             },
 
                             get dendaKondisi() {
@@ -321,7 +396,8 @@
                                         :class="daysLate > 0 ? 'text-red-700' : 'text-green-700'"
                                     >
                                         Denda keterlambatan:
-                                        <strong>Rp 10.000</strong> per hari
+                                        <strong x-text="'Rp ' + formatRupiah(dendaPerHari)"></strong>
+                                        per hari
 
                                         <span x-show="daysLate > 0">
                                             ×
@@ -502,7 +578,7 @@
 
                         <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-200">
                             <a
-                                href="{{ route('admin.peminjaman.riwayat') }}"
+                                href="{{ route('admin.pengembalian.index') }}"
                                 class="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg transition-colors"
                             >
                                 Batal

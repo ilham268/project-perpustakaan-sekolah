@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
 use App\Models\BookItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class BookItemController extends Controller
 {
@@ -12,18 +14,12 @@ class BookItemController extends Controller
     {
         try {
             $request->validate([
-                'book_id' => 'required|exists:books,id',
+                'book_id' => ['required', 'exists:books,id'],
             ]);
 
-            $kodeBukuInput = $request->input('kode_buku', []);
-            if (!is_array($kodeBukuInput)) {
-                $kodeBukuInput = [$kodeBukuInput];
-            }
+            $book = Book::findOrFail($request->book_id);
 
-            $kodeBukuList = collect($kodeBukuInput)
-                ->map(fn ($kode) => trim((string) $kode))
-                ->filter()
-                ->values();
+            $kodeBukuList = $this->extractCodes($request);
 
             if ($kodeBukuList->isEmpty()) {
                 return response()->json([
@@ -65,6 +61,8 @@ class BookItemController extends Controller
 
             $existingCodes = BookItem::query()
                 ->whereIn('kode_buku', $kodeBukuList)
+                ->whereNotNull('kode_buku')
+                ->where('kode_buku', '!=', '')
                 ->pluck('kode_buku')
                 ->values();
 
@@ -78,69 +76,128 @@ class BookItemController extends Controller
                 ], 422);
             }
 
-            $createdItems = DB::transaction(function () use ($request, $kodeBukuList) {
-                $items = [];
+            $emptyItems = $book->bookItems()
+                ->where(function ($q) {
+                    $q->whereNull('kode_buku')
+                        ->orWhere('kode_buku', '');
+                })
+                ->where('status', 'available')
+                ->orderBy('id')
+                ->limit($kodeBukuList->count())
+                ->get();
 
-                foreach ($kodeBukuList as $kode) {
-                    $items[] = BookItem::create([
-                        'book_id' => $request->book_id,
-                        'kode_buku' => $kode,
-                        'status' => 'available',
+            if ($emptyItems->count() < $kodeBukuList->count()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Jumlah kode melebihi item kosong. Item kosong tersedia hanya ' . $emptyItems->count() . '.',
+                    'errors' => [
+                        'kode_buku' => ['Jumlah kode buku yang diinput terlalu banyak.'],
+                    ],
+                ], 422);
+            }
+
+            DB::transaction(function () use ($emptyItems, $kodeBukuList) {
+                foreach ($emptyItems as $index => $item) {
+                    $item->update([
+                        'kode_buku' => $kodeBukuList[$index],
                     ]);
                 }
-
-                return collect($items);
             });
 
             return response()->json([
                 'success' => true,
-                'message' => $createdItems->count() . ' item buku berhasil ditambahkan',
-                'created_count' => $createdItems->count(),
-                'items' => $createdItems,
+                'message' => $kodeBukuList->count() . ' kode buku berhasil disimpan',
+                'updated_count' => $kodeBukuList->count(),
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validasi gagal',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
             ], 500);
         }
     }
 
     public function update(Request $request, BookItem $bookItem)
     {
-        $validated = $request->validate([
-            'kode_buku' => 'required|string|max:50|unique:book_items,kode_buku,' . $bookItem->id,
-            'status' => 'required|in:available,borrowed,damaged,lost',
-        ]);
+        try {
+            $validated = $request->validate([
+                'kode_buku' => 'required|string|max:50|unique:book_items,kode_buku,' . $bookItem->id,
+                'status' => 'required|in:available,borrowed,damaged,lost',
+            ]);
 
-        $bookItem->update($validated);
+            $bookItem->update($validated);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Item buku berhasil diupdate'
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Item buku berhasil diupdate',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function destroy(BookItem $bookItem)
     {
-        if ($bookItem->status === 'borrowed') {
+        try {
+            if ($bookItem->status === 'borrowed') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak dapat menghapus item yang sedang dipinjam',
+                ], 400);
+            }
+
+            $bookItem->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Item buku berhasil dihapus',
+            ]);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak dapat menghapus item yang sedang dipinjam'
-            ], 400);
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function extractCodes(Request $request)
+    {
+        $codes = collect();
+
+        if ($request->filled('kode_buku_text')) {
+            $textCodes = preg_split('/[\r\n,;]+/', $request->kode_buku_text);
+
+            $codes = $codes->merge($textCodes);
         }
 
-        $bookItem->delete();
+        if ($request->has('kode_buku')) {
+            $kodeBukuInput = $request->input('kode_buku', []);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Item buku berhasil dihapus'
-        ]);
+            if (!is_array($kodeBukuInput)) {
+                $kodeBukuInput = [$kodeBukuInput];
+            }
+
+            $codes = $codes->merge($kodeBukuInput);
+        }
+
+        return $codes
+            ->map(fn ($kode) => trim((string) $kode))
+            ->filter()
+            ->values();
     }
 }

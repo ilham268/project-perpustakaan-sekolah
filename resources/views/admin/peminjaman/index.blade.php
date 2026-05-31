@@ -5,9 +5,8 @@
 
 @section('content')
 
-<div class="space-y-5">
+<div class="space-y-6">
 
-    {{-- Alert Success --}}
     @if(session('success'))
         <div class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-800 shadow-sm">
             <div class="flex items-center gap-3 text-sm font-medium">
@@ -20,7 +19,6 @@
         </div>
     @endif
 
-    {{-- Alert Error --}}
     @if(session('error'))
         <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
             <div class="flex items-center gap-3 text-sm font-medium">
@@ -33,32 +31,57 @@
         </div>
     @endif
 
-    {{-- Page Header --}}
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h3 class="text-2xl font-extrabold tracking-tight text-slate-900">
-            Daftar Peminjaman
-        </h3>
+    @if($errors->any())
+        <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
+            <div class="flex items-center gap-3 text-sm font-medium">
+                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
 
-        <button
-            type="button"
-            onclick="openExportModal()"
-            class="inline-flex w-fit items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600"
-        >
-            <i class="fas fa-file-export text-xs"></i>
-            <span>Export Excel</span>
-        </button>
+                <span>{{ $errors->first() }}</span>
+            </div>
+        </div>
+    @endif
+
+    {{-- Header --}}
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-5 py-5 shadow-md shadow-emerald-100/60 md:px-7 md:py-6">
+        <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
+        <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
+
+        <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-wide text-emerald-50">
+                    Data Peminjaman
+                </p>
+
+                <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+                    Daftar Peminjaman
+                </h1>
+
+                <p class="mt-2 max-w-2xl text-sm leading-relaxed text-emerald-50">
+                    Lama pinjam default: {{ $lamaPinjamDefault ?? 7 }} hari. Tanggal kembali bisa diedit langsung di tabel.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                onclick="openExportModal()"
+                class="inline-flex h-10 w-fit items-center justify-center whitespace-nowrap rounded-lg bg-white px-4 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-50 focus:outline-none focus:ring-4 focus:ring-white/30"
+            >
+                Export Excel
+            </button>
+        </div>
     </div>
 
-    {{-- Search & Filter --}}
+    {{-- Filter --}}
     <form
         method="GET"
         action="{{ route('admin.peminjaman.index') }}"
         id="filter-form"
-        class="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm"
+        class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
     >
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-            <div class="relative w-full lg:max-w-md">
+        <div class="grid grid-cols-1 gap-3 lg:grid-cols-12">
+            <div class="relative lg:col-span-8">
                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400"></i>
 
                 <input
@@ -68,21 +91,17 @@
                     value="{{ request('search') }}"
                     placeholder="Cari judul buku atau nama peminjam..."
                     autocomplete="off"
-                    class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                    class="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm font-medium text-slate-700 placeholder:text-slate-400 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
                 >
             </div>
 
-            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <span class="text-sm font-semibold text-slate-600">
-                    Status:
-                </span>
-
+            <div class="lg:col-span-3">
                 <select
                     name="status"
                     id="status-select"
-                    class="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                    class="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
                 >
-                    <option value="" {{ !request('status') ? 'selected' : '' }}>Semua</option>
+                    <option value="" {{ !request('status') ? 'selected' : '' }}>Semua Status</option>
                     <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                     <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>Disetujui</option>
                     <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
@@ -90,126 +109,123 @@
                 </select>
             </div>
 
+            <div class="lg:col-span-1">
+                <a
+                    href="{{ route('admin.peminjaman.index') }}"
+                    title="Reset Filter"
+                    class="inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                >
+                    Reset
+                </a>
+            </div>
         </div>
     </form>
 
-    {{-- Stat Cards --}}
+    {{-- Summary Cards --}}
     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-semibold text-slate-500">
+                Total Peminjaman
+            </p>
 
-        {{-- Total Peminjaman --}}
-        <div class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60">
-            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-emerald-50 transition group-hover:bg-emerald-100"></div>
-
-            <div class="relative flex items-start justify-between gap-4">
-                <div class="min-w-0">
-                    <p class="text-sm font-medium text-slate-500">
-                        Total Peminjaman
-                    </p>
-
-                    <p class="mt-2 truncate text-3xl font-bold tracking-tight text-slate-900">
-                        {{ number_format($totalPeminjaman) }}
-                    </p>
-                </div>
-
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
-                    <i class="fas fa-book-open text-xl"></i>
-                </div>
-            </div>
+            <p class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">
+                {{ number_format($totalPeminjaman) }}
+            </p>
         </div>
 
-        {{-- Menunggu Persetujuan --}}
-        <div class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60">
-            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-amber-50 transition group-hover:bg-amber-100"></div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-semibold text-slate-500">
+                Menunggu Persetujuan
+            </p>
 
-            <div class="relative flex items-start justify-between gap-4">
-                <div class="min-w-0">
-                    <p class="text-sm font-medium text-slate-500">
-                        Menunggu Persetujuan
-                    </p>
-
-                    <p class="mt-2 truncate text-3xl font-bold tracking-tight text-slate-900">
-                        {{ number_format($totalPending) }}
-                    </p>
-                </div>
-
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-amber-100">
-                    <i class="fas fa-clock text-xl"></i>
-                </div>
-            </div>
+            <p class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">
+                {{ number_format($totalPending) }}
+            </p>
         </div>
 
-        {{-- Selesai --}}
-        <div class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60">
-            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-blue-50 transition group-hover:bg-blue-100"></div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p class="text-sm font-semibold text-slate-500">
+                Disetujui
+            </p>
 
-            <div class="relative flex items-start justify-between gap-4">
-                <div class="min-w-0">
-                    <p class="text-sm font-medium text-slate-500">
-                        Selesai
-                    </p>
-
-                    <p class="mt-2 truncate text-3xl font-bold tracking-tight text-slate-900">
-                        {{ number_format($totalDisetujui) }}
-                    </p>
-                </div>
-
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
-                    <i class="fas fa-check-circle text-xl"></i>
-                </div>
-            </div>
+            <p class="mt-2 text-3xl font-extrabold tracking-tight text-slate-900">
+                {{ number_format($totalDisetujui) }}
+            </p>
         </div>
-
     </div>
 
-    {{-- Table Card --}}
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    {{-- Table --}}
+    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-100 bg-white px-5 py-4">
+            <div class="flex flex-col gap-1">
+                <h2 class="text-lg font-extrabold text-slate-900">
+                    Data Peminjaman
+                </h2>
+
+                <p class="text-sm text-slate-500">
+                    Kelola pengajuan peminjaman, status, dan tanggal kembali.
+                </p>
+            </div>
+        </div>
+
         <div class="overflow-x-auto">
             <table class="w-full min-w-[1280px] border-collapse text-sm">
                 <thead>
-                    <tr class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr class="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
                         <th class="w-16 border border-slate-200 px-5 py-4 text-left">
                             No
                         </th>
+
                         <th class="border border-slate-200 px-5 py-4 text-left">
                             Judul Buku
                         </th>
-                        <th class="border border-slate-200 px-5 py-4 text-left">
+
+                        <th class="w-36 border border-slate-200 px-5 py-4 text-left">
                             Kode Buku
                         </th>
+
                         <th class="border border-slate-200 px-5 py-4 text-left">
                             Peminjam
                         </th>
-                        <th class="border border-slate-200 px-5 py-4 text-left">
+
+                        <th class="w-40 border border-slate-200 px-5 py-4 text-left">
                             Nomor Identitas
                         </th>
-                        <th class="border border-slate-200 px-5 py-4 text-left">
-                            Kategori
-                        </th>
-                        <th class="border border-slate-200 px-5 py-4 text-center">
+
+                        <th class="w-32 border border-slate-200 px-5 py-4 text-center">
                             Status
                         </th>
-                        <th class="border border-slate-200 px-5 py-4 text-center">
+
+                        <th class="w-36 border border-slate-200 px-5 py-4 text-center">
                             Tgl Pinjam
                         </th>
-                        <th class="border border-slate-200 px-5 py-4 text-center">
+
+                        <th class="w-64 border border-slate-200 px-5 py-4 text-center">
                             Tgl Kembali
                         </th>
-                        <th class="w-28 border border-slate-200 px-5 py-4 text-center">
+
+                        <th class="w-48 border border-slate-200 px-5 py-4 text-center">
                             Aksi
                         </th>
                     </tr>
                 </thead>
 
-                <tbody>
+                <tbody class="bg-white">
                     @forelse($loans as $loan)
-                        <tr class="transition-colors hover:bg-slate-50">
+                        @php
+                            $tanggalPinjamText = $loan->tanggal_pinjam ? \Carbon\Carbon::parse($loan->tanggal_pinjam)->translatedFormat('d M Y') : '-';
+                            $tanggalKembaliText = $loan->tanggal_kembali ? \Carbon\Carbon::parse($loan->tanggal_kembali)->translatedFormat('d M Y') : '-';
+                            $tanggalKembaliInput = $loan->tanggal_kembali ? \Carbon\Carbon::parse($loan->tanggal_kembali)->format('Y-m-d') : '';
+                            $bolehEditTanggal = !in_array($loan->status, ['ditolak', 'dikembalikan']);
+                        @endphp
 
+                        <tr class="transition-colors hover:bg-slate-50">
                             <td class="border border-slate-200 px-5 py-4 font-medium text-slate-600">
                                 {{ $loans->firstItem() + $loop->index }}
                             </td>
 
                             <td class="border border-slate-200 px-5 py-4">
-                                <span class="font-semibold text-slate-800">
+                                <span class="block max-w-[280px] truncate font-semibold text-slate-800">
                                     {{ $loan->bookItem->book->judul ?? '-' }}
                                 </span>
                             </td>
@@ -219,17 +235,13 @@
                             </td>
 
                             <td class="border border-slate-200 px-5 py-4">
-                                <span class="font-semibold text-slate-800">
+                                <span class="block max-w-[220px] truncate font-semibold text-slate-800">
                                     {{ $loan->user->name ?? '-' }}
                                 </span>
                             </td>
 
                             <td class="border border-slate-200 px-5 py-4 text-slate-500">
                                 {{ $loan->user->nomor_identitas ?? '-' }}
-                            </td>
-
-                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
-                                {{ $loan->bookItem->book->category->nama_kategori ?? '-' }}
                             </td>
 
                             <td class="border border-slate-200 px-5 py-4 text-center">
@@ -257,16 +269,45 @@
                             </td>
 
                             <td class="border border-slate-200 px-5 py-4 text-center text-slate-500">
-                                {{ $loan->tanggal_pinjam ? \Carbon\Carbon::parse($loan->tanggal_pinjam)->translatedFormat('d M Y') : '-' }}
+                                {{ $tanggalPinjamText }}
                             </td>
 
-                            <td class="border border-slate-200 px-5 py-4 text-center text-slate-500">
-                                {{ $loan->tanggal_kembali ? \Carbon\Carbon::parse($loan->tanggal_kembali)->translatedFormat('d M Y') : '-' }}
+                            <td class="border border-slate-200 px-5 py-4 text-center">
+                                @if($bolehEditTanggal)
+                                    <form
+                                        action="{{ route('admin.peminjaman.update-tanggal-kembali', $loan->id) }}"
+                                        method="POST"
+                                        class="flex items-center justify-center gap-2"
+                                    >
+                                        @csrf
+                                        @method('PUT')
+
+                                        <input
+                                            type="date"
+                                            name="tanggal_kembali"
+                                            value="{{ $tanggalKembaliInput }}"
+                                            required
+                                            title="{{ $tanggalKembaliText }}"
+                                            class="h-10 w-40 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 focus:border-blue-400 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            title="Simpan Tanggal Kembali"
+                                            class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg bg-blue-600 px-3 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                                        >
+                                            Simpan
+                                        </button>
+                                    </form>
+                                @else
+                                    <span class="text-slate-500">
+                                        {{ $tanggalKembaliText }}
+                                    </span>
+                                @endif
                             </td>
 
                             <td class="border border-slate-200 px-5 py-4">
-                                <div class="flex items-center justify-center gap-1.5">
-
+                                <div class="flex items-center justify-center gap-2">
                                     @if($loan->status == 'pending')
                                         <form action="{{ route('admin.peminjaman.approve', $loan->id) }}" method="POST" class="inline">
                                             @csrf
@@ -275,41 +316,39 @@
                                                 type="submit"
                                                 title="Setujui"
                                                 onclick="return confirm('Setujui peminjaman ini?')"
-                                                class="flex h-8 w-8 items-center justify-center rounded-xl bg-green-50 text-green-600 ring-1 ring-green-100 transition hover:bg-green-100"
+                                                class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
                                             >
-                                                <i class="fas fa-check text-xs"></i>
+                                                Setujui
                                             </button>
                                         </form>
 
                                         <button
                                             type="button"
-                                            onclick="openRejectModal({{ $loan->id }}, @json($loan->bookItem->book->judul ?? '-'), @json($loan->user->name ?? '-'))"
+                                            onclick="openRejectModal({{ $loan->id }})"
                                             title="Tolak"
-                                            class="flex h-8 w-8 items-center justify-center rounded-xl bg-red-50 text-red-600 ring-1 ring-red-100 transition hover:bg-red-100"
+                                            class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
                                         >
-                                            <i class="fas fa-times text-xs"></i>
+                                            Tolak
                                         </button>
                                     @elseif($loan->status == 'disetujui')
                                         <a
                                             href="{{ route('admin.peminjaman.download-kartu', $loan->id) }}"
                                             title="Download Kartu"
-                                            class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100 transition hover:bg-emerald-100"
+                                            class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
                                         >
-                                            <i class="fas fa-download text-xs"></i>
+                                            Download
                                         </a>
                                     @else
-                                        <span class="text-xs text-slate-300">
+                                        <span class="text-xs text-slate-400">
                                             —
                                         </span>
                                     @endif
-
                                 </div>
                             </td>
-
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="border border-slate-200 px-6 py-16 text-center">
+                            <td colspan="9" class="border border-slate-200 px-6 py-16 text-center">
                                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
                                     <i class="fas fa-book-open text-2xl"></i>
                                 </div>
@@ -331,54 +370,58 @@
 
     {{-- Pagination --}}
     @if($loans->total() > 0)
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p class="text-sm text-slate-500">
-                Menampilkan {{ $loans->firstItem() }}&ndash;{{ $loans->lastItem() }} dari {{ $loans->total() }} data
-            </p>
+        <div class="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-sm text-slate-500">
+                    Menampilkan
+                    <span class="font-semibold text-slate-700">{{ $loans->firstItem() }}</span>&ndash;<span class="font-semibold text-slate-700">{{ $loans->lastItem() }}</span>
+                    dari
+                    <span class="font-semibold text-slate-700">{{ $loans->total() }}</span>
+                    data
+                </p>
 
-            <div class="flex flex-wrap items-center gap-1">
-
-                @if($loans->onFirstPage())
-                    <span class="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-300">
-                        <i class="fas fa-chevron-left text-xs"></i>
-                    </span>
-                @else
-                    <a
-                        href="{{ $loans->previousPageUrl() }}"
-                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50"
-                    >
-                        <i class="fas fa-chevron-left text-xs"></i>
-                    </a>
-                @endif
-
-                @foreach($loans->getUrlRange(1, $loans->lastPage()) as $page => $url)
-                    @if($page == $loans->currentPage())
-                        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-sm font-semibold text-white">
-                            {{ $page }}
+                <div class="flex flex-wrap items-center gap-1">
+                    @if($loans->onFirstPage())
+                        <span class="flex h-9 min-w-9 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-300">
+                            Prev
                         </span>
                     @else
                         <a
-                            href="{{ $url }}"
-                            class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50"
+                            href="{{ $loans->previousPageUrl() }}"
+                            class="flex h-9 min-w-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
                         >
-                            {{ $page }}
+                            Prev
                         </a>
                     @endif
-                @endforeach
 
-                @if($loans->hasMorePages())
-                    <a
-                        href="{{ $loans->nextPageUrl() }}"
-                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 transition hover:bg-slate-50"
-                    >
-                        <i class="fas fa-chevron-right text-xs"></i>
-                    </a>
-                @else
-                    <span class="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-300">
-                        <i class="fas fa-chevron-right text-xs"></i>
-                    </span>
-                @endif
+                    @foreach($loans->getUrlRange(1, $loans->lastPage()) as $page => $url)
+                        @if($page == $loans->currentPage())
+                            <span class="flex h-9 min-w-9 items-center justify-center rounded-lg bg-emerald-600 px-3 text-sm font-semibold text-white">
+                                {{ $page }}
+                            </span>
+                        @else
+                            <a
+                                href="{{ $url }}"
+                                class="flex h-9 min-w-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                            >
+                                {{ $page }}
+                            </a>
+                        @endif
+                    @endforeach
 
+                    @if($loans->hasMorePages())
+                        <a
+                            href="{{ $loans->nextPageUrl() }}"
+                            class="flex h-9 min-w-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                        >
+                            Next
+                        </a>
+                    @else
+                        <span class="flex h-9 min-w-9 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-300">
+                            Next
+                        </span>
+                    @endif
+                </div>
             </div>
         </div>
     @endif
@@ -388,7 +431,6 @@
 {{-- Reject Modal --}}
 <div id="rejectModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 px-4">
     <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-
         <div class="mb-5">
             <h3 class="text-lg font-bold text-slate-900">
                 Tolak Peminjaman
@@ -411,7 +453,7 @@
                 rows="3"
                 required
                 placeholder="Masukkan alasan penolakan..."
-                class="mb-1 w-full rounded-xl border px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-100 {{ $errors->has('alasan_ditolak') ? 'border-red-500' : 'border-slate-200' }}"
+                class="mb-1 w-full rounded-lg border px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-red-400 focus:ring-4 focus:ring-red-100 {{ $errors->has('alasan_ditolak') ? 'border-red-500' : 'border-slate-200' }}"
             >{{ old('alasan_ditolak') }}</textarea>
 
             @error('alasan_ditolak')
@@ -420,24 +462,23 @@
                 </p>
             @enderror
 
-            <div class="mt-4 flex gap-3">
+            <div class="mt-4 flex flex-col gap-2 sm:flex-row">
                 <button
                     type="button"
                     onclick="closeRejectModal()"
-                    class="flex-1 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    class="inline-flex h-10 flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
                 >
                     Batal
                 </button>
 
                 <button
                     type="submit"
-                    class="flex-1 rounded-xl bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600"
+                    class="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-red-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
                 >
                     Tolak Pengajuan
                 </button>
             </div>
         </form>
-
     </div>
 </div>
 
@@ -475,7 +516,7 @@
         }
     })();
 
-    function openRejectModal(id, judul, nama) {
+    function openRejectModal(id) {
         document.getElementById('rejectForm').action = `{{ url('/admin/peminjaman') }}/${id}/reject`;
         document.getElementById('rejectModal').classList.remove('hidden');
         document.getElementById('rejectModal').classList.add('flex');

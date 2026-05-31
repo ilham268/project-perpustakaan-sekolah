@@ -2,69 +2,100 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\KategoriPinjam;
-use App\Models\User;
-use App\Models\Book;
-use App\Models\PinjamKelas;
-use App\Models\Kelas;
-use Carbon\Carbon;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PinjamKelasExport;
+use App\Models\Book;
+use App\Models\BookItem;
+use App\Models\Kelas;
+use App\Models\PinjamKelas;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class KategoriPinjamController extends Controller
 {
     public function index(Request $request)
     {
-        $query = KategoriPinjam::query();
+        $booksPaketQuery = Book::query()
+            ->withCount([
+                'bookItems as total_eksemplar',
+                'bookItems as kode_terisi' => function ($q) {
+                    $q->whereNotNull('kode_buku')
+                        ->where('kode_buku', '!=', '');
+                },
+                'bookItems as stok_tersedia' => function ($q) {
+                    $q->where('status', 'available')
+                        ->whereNotNull('kode_buku')
+                        ->where('kode_buku', '!=', '');
+                },
+            ])
+            ->where(function ($q) {
+                $this->filterPaket($q);
+            });
 
         if ($request->filled('search')) {
             $search = $request->search;
 
-            $kelasDariJurusanSearch = Kelas::where('jurusan', 'like', '%' . $search . '%')
-                ->pluck('nama_kelas')
-                ->toArray();
-
-            $query->where(function ($q) use ($search, $kelasDariJurusanSearch) {
-                $q->where('nama_kategori', 'like', '%' . $search . '%')
-                    ->orWhere('kelas', 'like', '%' . $search . '%');
-
-                if (!empty($kelasDariJurusanSearch)) {
-                    $q->orWhereIn('kelas', $kelasDariJurusanSearch);
-                }
+            $booksPaketQuery->where(function ($q) use ($search) {
+                $q->where('judul', 'like', "%{$search}%")
+                    ->orWhere('penulis', 'like', "%{$search}%")
+                    ->orWhere('penerbit', 'like', "%{$search}%")
+                    ->orWhere('nomor_klasifikasi', 'like', "%{$search}%")
+                    ->orWhere('tahun_pengadaan', 'like', "%{$search}%");
             });
         }
 
-        if ($request->filled('kelas')) {
-            $query->where('kelas', $request->kelas);
+        if ($request->filled('tahun_pengadaan')) {
+            $booksPaketQuery->where('tahun_pengadaan', $request->tahun_pengadaan);
         }
 
-        if ($request->filled('jurusan')) {
-            $kelasDariJurusan = Kelas::where('jurusan', $request->jurusan)
-                ->pluck('nama_kelas')
-                ->toArray();
-
-            if (!empty($kelasDariJurusan)) {
-                $query->whereIn('kelas', $kelasDariJurusan);
-            } else {
-                $query->whereRaw('1 = 0');
-            }
-        }
-
-        $kategoris = $query
-            ->latest()
+        $booksPaket = $booksPaketQuery
+            ->orderByDesc('tahun_pengadaan')
+            ->orderBy('judul')
             ->paginate(10)
             ->withQueryString();
 
-        $kelasList = Kelas::orderBy('nama_kelas')->get();
-
-        $jurusanList = Kelas::whereNotNull('jurusan')
-            ->where('jurusan', '!=', '')
+        $tahunOptions = Book::query()
+            ->where(function ($q) {
+                $this->filterPaket($q);
+            })
+            ->whereNotNull('tahun_pengadaan')
             ->distinct()
-            ->orderBy('jurusan')
-            ->pluck('jurusan');
+            ->orderByDesc('tahun_pengadaan')
+            ->pluck('tahun_pengadaan');
+
+        $totalPaket = Book::query()
+            ->where(function ($q) {
+                $this->filterPaket($q);
+            })
+            ->count();
+
+        $totalEksemplar = BookItem::whereHas('book', function ($q) {
+                $this->filterPaket($q);
+            })
+            ->count();
+
+        $totalKodeTerisi = BookItem::whereHas('book', function ($q) {
+                $this->filterPaket($q);
+            })
+            ->whereNotNull('kode_buku')
+            ->where('kode_buku', '!=', '')
+            ->count();
+
+        $kategoris = new LengthAwarePaginator([], 0, 10, 1, [
+            'path' => request()->url(),
+        ]);
+
+        $kelasList = collect();
+        $jurusanList = collect();
 
         return view('admin.pinjamkelas.kategori', compact(
+            'booksPaket',
+            'tahunOptions',
+            'totalPaket',
+            'totalEksemplar',
+            'totalKodeTerisi',
             'kategoris',
             'kelasList',
             'jurusanList'
@@ -73,162 +104,193 @@ class KategoriPinjamController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nama_kategori' => 'required|string|max:100|unique:kategori_pinjams,nama_kategori',
-            'kelas' => 'required|string|exists:kelas,nama_kelas',
-        ], [
-            'nama_kategori.required' => 'Nama kategori wajib diisi.',
-            'nama_kategori.unique' => 'Nama kategori sudah ada.',
-            'kelas.required' => 'Kelas wajib dipilih.',
-            'kelas.exists' => 'Kelas tidak ditemukan.',
-        ]);
-
-        KategoriPinjam::create([
-            'nama_kategori' => $request->nama_kategori,
-            'kelas' => $request->kelas,
-        ]);
-
         return redirect()
             ->route('admin.pinjamkelas.kategori')
-            ->with('success', 'Kategori berhasil ditambahkan');
+            ->with('error', 'Kategori kelas sudah tidak digunakan. Buku Paket diambil dari data import Excel.');
     }
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'nama_kategori' => 'required|string|max:100|unique:kategori_pinjams,nama_kategori,' . $id,
-            'kelas' => 'required|string|exists:kelas,nama_kelas',
-        ], [
-            'nama_kategori.required' => 'Nama kategori wajib diisi.',
-            'nama_kategori.unique' => 'Nama kategori sudah ada.',
-            'kelas.required' => 'Kelas wajib dipilih.',
-            'kelas.exists' => 'Kelas tidak ditemukan.',
-        ]);
-
-        $kategori = KategoriPinjam::findOrFail($id);
-
-        $kategori->update([
-            'nama_kategori' => $request->nama_kategori,
-            'kelas' => $request->kelas,
-        ]);
-
         return redirect()
             ->route('admin.pinjamkelas.kategori')
-            ->with('success', 'Kategori berhasil diupdate');
+            ->with('error', 'Edit kategori kelas sudah tidak digunakan. Kelola data melalui menu Buku Paket.');
     }
 
     public function destroy($id)
     {
-        $kategori = KategoriPinjam::findOrFail($id);
-        $kategori->delete();
-
         return redirect()
             ->route('admin.pinjamkelas.kategori')
-            ->with('success', 'Kategori berhasil dihapus');
+            ->with('error', 'Hapus kategori kelas sudah tidak digunakan. Buku Paket dikelola dari data buku.');
     }
 
     public function show($id)
     {
-        $kategori = KategoriPinjam::findOrFail($id);
+        $book = Book::where('id', $id)
+            ->where(function ($q) {
+                $this->filterPaket($q);
+            })
+            ->first();
 
-        $siswas = User::where('role', 'siswa')
-            ->where('kelas', $kategori->kelas)
-            ->orderBy('name')
-            ->get();
+        if ($book) {
+            return redirect()->route('books.show', $book->id);
+        }
 
-        return view('admin.pinjamkelas.show', compact('kategori', 'siswas'));
+        return redirect()
+            ->route('admin.pinjamkelas.kategori')
+            ->with('error', 'Buku Paket tidak ditemukan.');
     }
 
     public function prosesPinjam(Request $request)
     {
         $request->validate([
-            'kategori_id' => 'required|exists:kategori_pinjams,id',
-            'user_id' => 'required|exists:users,id',
-            'kode_buku' => 'required|string|max:100',
+            'book_id' => ['required', 'exists:books,id'],
+            'user_id' => ['required', 'exists:users,id'],
+            'kode_buku' => ['required', 'string', 'max:100'],
         ]);
 
-        $kategori = KategoriPinjam::findOrFail($request->kategori_id);
+        $kodeBuku = strtoupper(trim($request->kode_buku));
 
-        $book = Book::where('judul', 'LIKE', '%' . $kategori->nama_kategori . '%')
-            ->first();
+        try {
+            DB::beginTransaction();
 
-        PinjamKelas::create([
-            'kategori_pinjam_id' => $request->kategori_id,
-            'user_id' => $request->user_id,
-            'book_id' => $book ? $book->id : null,
-            'kode_buku' => strtoupper($request->kode_buku),
-            'tanggal_pinjam' => now(),
-            'tanggal_kembali' => now()->addDays(7),
-            'status' => 'pending',
-        ]);
+            $book = Book::where('id', $request->book_id)
+                ->where(function ($q) {
+                    $this->filterPaket($q);
+                })
+                ->first();
 
-        return redirect()
-            ->route('admin.pinjamkelas.kategori')
-            ->with('success', 'Peminjaman berhasil ditambahkan');
+            if (!$book) {
+                DB::rollBack();
+
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Buku yang dipilih bukan Buku Paket.');
+            }
+
+            $user = User::where('id', $request->user_id)
+                ->where('role', 'siswa')
+                ->first();
+
+            if (!$user) {
+                DB::rollBack();
+
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'User siswa tidak ditemukan.');
+            }
+
+            $bookItem = BookItem::where('book_id', $book->id)
+                ->whereNotNull('kode_buku')
+                ->where('kode_buku', '!=', '')
+                ->whereRaw('UPPER(kode_buku) = ?', [$kodeBuku])
+                ->lockForUpdate()
+                ->first();
+
+            if (!$bookItem) {
+                DB::rollBack();
+
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Kode buku tidak valid atau tidak cocok dengan judul Buku Paket.');
+            }
+
+            if ($bookItem->status !== 'available') {
+                DB::rollBack();
+
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Kode buku ini sudah dipinjam atau tidak tersedia.');
+            }
+
+            $sedangDipinjam = PinjamKelas::where('kode_buku', $bookItem->kode_buku)
+                ->whereIn('status', ['pending', 'disetujui'])
+                ->lockForUpdate()
+                ->exists();
+
+            if ($sedangDipinjam) {
+                DB::rollBack();
+
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Kode buku ini masih dalam proses peminjaman.');
+            }
+
+            PinjamKelas::create([
+                'kategori_pinjam_id' => null,
+                'book_id' => $book->id,
+                'user_id' => $user->id,
+                'kode_buku' => $bookItem->kode_buku,
+                'status' => 'pending',
+            ]);
+
+            $bookItem->update([
+                'status' => 'borrowed',
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('admin.pinjamkelas.kelas')
+                ->with('success', 'Peminjaman Buku Paket berhasil ditambahkan.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal menambahkan peminjaman: ' . $e->getMessage());
+        }
     }
 
     public function kelasPinjam(Request $request)
     {
-        $query = PinjamKelas::with(['user', 'kategori']);
+        $query = PinjamKelas::with(['user', 'book', 'kategori.kelasData']);
 
         if ($request->filled('search')) {
             $search = $request->search;
 
-            $kelasDariJurusanSearch = Kelas::where('jurusan', 'like', '%' . $search . '%')
-                ->pluck('nama_kelas')
-                ->toArray();
-
-            $query->where(function ($q) use ($search, $kelasDariJurusanSearch) {
-                $q->where('kode_buku', 'like', '%' . $search . '%')
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_buku', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($userQuery) use ($search) {
-                        $userQuery->where('name', 'like', '%' . $search . '%')
-                            ->orWhere('nomor_identitas', 'like', '%' . $search . '%')
-                            ->orWhere('kelas', 'like', '%' . $search . '%');
+                        $userQuery->where('name', 'like', "%{$search}%")
+                            ->orWhere('nomor_identitas', 'like', "%{$search}%")
+                            ->orWhere('kelas', 'like', "%{$search}%")
+                            ->orWhere('jurusan', 'like', "%{$search}%");
                     })
-                    ->orWhereHas('kategori', function ($kategoriQuery) use ($search) {
-                        $kategoriQuery->where('nama_kategori', 'like', '%' . $search . '%')
-                            ->orWhere('kelas', 'like', '%' . $search . '%');
+                    ->orWhereHas('book', function ($bookQuery) use ($search) {
+                        $bookQuery->where('judul', 'like', "%{$search}%")
+                            ->orWhere('penulis', 'like', "%{$search}%")
+                            ->orWhere('penerbit', 'like', "%{$search}%")
+                            ->orWhere('tahun_pengadaan', 'like', "%{$search}%");
                     });
-
-                if (!empty($kelasDariJurusanSearch)) {
-                    $q->orWhereHas('user', function ($userQuery) use ($kelasDariJurusanSearch) {
-                        $userQuery->whereIn('kelas', $kelasDariJurusanSearch);
-                    })
-                    ->orWhereHas('kategori', function ($kategoriQuery) use ($kelasDariJurusanSearch) {
-                        $kategoriQuery->whereIn('kelas', $kelasDariJurusanSearch);
-                    });
-                }
             });
         }
 
-        if ($request->filled('kelas')) {
-            $query->where(function ($q) use ($request) {
-                $q->whereHas('user', function ($userQuery) use ($request) {
-                    $userQuery->where('kelas', $request->kelas);
-                })
-                ->orWhereHas('kategori', function ($kategoriQuery) use ($request) {
-                    $kategoriQuery->where('kelas', $request->kelas);
+        if ($request->filled('kelas_id')) {
+            $kelas = Kelas::find($request->kelas_id);
+
+            if ($kelas) {
+                $query->whereHas('user', function ($q) use ($kelas) {
+                    $q->where('kelas', $kelas->nama_kelas)
+                        ->where('jurusan', $kelas->jurusan);
                 });
-            });
+            }
         }
 
         if ($request->filled('jurusan')) {
-            $kelasDariJurusan = Kelas::where('jurusan', $request->jurusan)
-                ->pluck('nama_kelas')
-                ->toArray();
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('jurusan', $request->jurusan);
+            });
+        }
 
-            if (!empty($kelasDariJurusan)) {
-                $query->where(function ($q) use ($kelasDariJurusan) {
-                    $q->whereHas('user', function ($userQuery) use ($kelasDariJurusan) {
-                        $userQuery->whereIn('kelas', $kelasDariJurusan);
-                    })
-                    ->orWhereHas('kategori', function ($kategoriQuery) use ($kelasDariJurusan) {
-                        $kategoriQuery->whereIn('kelas', $kelasDariJurusan);
-                    });
-                });
-            } else {
-                $query->whereRaw('1 = 0');
-            }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
 
         $pinjamKelas = $query
@@ -236,11 +298,9 @@ class KategoriPinjamController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $kelasList = Kelas::whereNotNull('nama_kelas')
-            ->where('nama_kelas', '!=', '')
-            ->distinct()
+        $kelasList = Kelas::orderBy('jurusan')
             ->orderBy('nama_kelas')
-            ->pluck('nama_kelas');
+            ->get();
 
         $jurusanList = Kelas::whereNotNull('jurusan')
             ->where('jurusan', '!=', '')
@@ -248,13 +308,10 @@ class KategoriPinjamController extends Controller
             ->orderBy('jurusan')
             ->pluck('jurusan');
 
-        $kelasJurusanMap = Kelas::pluck('jurusan', 'nama_kelas');
-
         return view('admin.pinjamkelas.kelas', compact(
             'pinjamKelas',
             'kelasList',
-            'jurusanList',
-            'kelasJurusanMap'
+            'jurusanList'
         ));
     }
 
@@ -263,33 +320,21 @@ class KategoriPinjamController extends Controller
         return Excel::download(
             new PinjamKelasExport(
                 $request->search,
-                $request->kelas,
+                $request->kelas_id,
                 $request->jurusan
             ),
-            'kelas-pinjam-' . now()->format('Y-m-d') . '.xlsx'
+            'peminjaman-buku-paket-' . now()->format('Y-m-d') . '.xlsx'
         );
     }
 
     public function setujuiKelas($id)
     {
-        $pinjam = PinjamKelas::findOrFail($id);
+        $pinjam = PinjamKelas::with('book')->findOrFail($id);
 
-        if ($pinjam->status == 'disetujui') {
+        if ($pinjam->status !== 'pending') {
             return redirect()
                 ->back()
-                ->with('error', 'Peminjaman kelas ini sudah disetujui.');
-        }
-
-        if ($pinjam->status == 'dikembalikan') {
-            return redirect()
-                ->back()
-                ->with('error', 'Peminjaman kelas ini sudah dikembalikan.');
-        }
-
-        if ($pinjam->status == 'denda') {
-            return redirect()
-                ->back()
-                ->with('error', 'Peminjaman kelas ini sudah masuk denda.');
+                ->with('error', 'Hanya peminjaman pending yang bisa disetujui.');
         }
 
         $pinjam->update([
@@ -298,15 +343,15 @@ class KategoriPinjamController extends Controller
 
         return redirect()
             ->back()
-            ->with('success', 'Peminjaman kelas berhasil disetujui.');
+            ->with('success', 'Peminjaman Buku Paket berhasil disetujui.');
     }
 
     public function formDendaKelas($id)
     {
-        $pinjam = PinjamKelas::with(['user', 'kategori'])
+        $pinjam = PinjamKelas::with(['user', 'book', 'kategori.kelasData'])
             ->findOrFail($id);
 
-        if ($pinjam->status == 'dikembalikan') {
+        if ($pinjam->status === 'dikembalikan') {
             return redirect()
                 ->route('admin.pinjamkelas.kelas')
                 ->with('error', 'Peminjaman ini sudah dikembalikan.');
@@ -318,49 +363,79 @@ class KategoriPinjamController extends Controller
     public function simpanDendaKelas(Request $request, $id)
     {
         $request->validate([
-            'kondisi' => 'required|in:baik,rusak,hilang',
-            'denda' => 'nullable|numeric|min:0',
-            'denda_rusak' => 'nullable|numeric|min:0',
-            'denda_hilang' => 'nullable|numeric|min:0',
+            'kondisi' => ['required', 'in:baik,rusak,hilang'],
+            'denda' => ['nullable', 'numeric', 'min:0'],
+            'denda_rusak' => ['nullable', 'numeric', 'min:0'],
+            'denda_hilang' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $pinjam = PinjamKelas::findOrFail($id);
 
-        if ($pinjam->status == 'dikembalikan') {
+        if ($pinjam->status === 'dikembalikan') {
             return redirect()
                 ->route('admin.pinjamkelas.kelas')
                 ->with('error', 'Peminjaman ini sudah dikembalikan.');
         }
 
-        $dendaKondisi = 0;
+        $totalDenda = 0;
 
-        if ($request->kondisi == 'rusak') {
-            $dendaKondisi = (int) $request->input('denda_rusak', 10000);
-        } elseif ($request->kondisi == 'hilang') {
-            $dendaKondisi = (int) $request->input('denda_hilang', 100000);
+        if ($request->kondisi === 'rusak') {
+            $totalDenda = (int) $request->input('denda_rusak', 10000);
         }
 
-        $tanggalJatuhTempo = Carbon::parse($pinjam->tanggal_kembali)->startOfDay();
-        $tanggalSekarang = Carbon::now()->startOfDay();
-
-        $dendaKeterlambatan = 0;
-
-        if ($tanggalSekarang->gt($tanggalJatuhTempo)) {
-            $daysLate = $tanggalJatuhTempo->diffInDays($tanggalSekarang);
-            $dendaKeterlambatan = $daysLate * 10000;
+        if ($request->kondisi === 'hilang') {
+            $totalDenda = (int) $request->input('denda_hilang', 100000);
         }
 
-        $totalDenda = $dendaKeterlambatan + $dendaKondisi;
+        DB::transaction(function () use ($pinjam, $request, $totalDenda) {
+            if ($request->kondisi === 'baik' || $totalDenda <= 0) {
+                $pinjam->update([
+                    'status' => 'dikembalikan',
+                    'kondisi' => 'baik',
+                    'denda' => 0,
+                    'status_denda' => null,
+                ]);
+            } else {
+                $pinjam->update([
+                    'status' => 'denda',
+                    'status_denda' => 'pending',
+                    'kondisi' => $request->kondisi,
+                    'denda' => $totalDenda,
+                ]);
+            }
 
-        $pinjam->update([
-            'status' => 'denda',
-            'kondisi' => $request->kondisi,
-            'denda' => $totalDenda,
-            'tanggal_denda' => now(),
-        ]);
+            $bookItem = BookItem::whereRaw('UPPER(kode_buku) = ?', [strtoupper($pinjam->kode_buku)])
+                ->first();
+
+            if ($bookItem && ($request->kondisi === 'baik' || $request->kondisi === 'rusak')) {
+                $bookItem->update([
+                    'status' => 'available',
+                ]);
+            }
+
+            if ($bookItem && $request->kondisi === 'hilang') {
+                $bookItem->update([
+                    'status' => 'lost',
+                ]);
+            }
+        });
+
+        if ($request->kondisi === 'baik' || $totalDenda <= 0) {
+            return redirect()
+                ->route('admin.pinjamkelas.kelas')
+                ->with('success', 'Peminjaman Buku Paket berhasil dikembalikan.');
+        }
 
         return redirect()
             ->route('admin.pinjamkelas.kelas')
-            ->with('success', 'Denda peminjaman kelas berhasil diproses.');
+            ->with('success', 'Denda peminjaman Buku Paket berhasil diproses.');
+    }
+
+    private function filterPaket($q): void
+    {
+        $q->where('jenis_koleksi', 'like', '%Paket%')
+            ->orWhere('jenis_koleksi', 'like', '%Packet%')
+            ->orWhere('jenis_koleksi', 'like', '%Pakett%')
+            ->orWhere('jenis_koleksi', 'like', '%PKT%');
     }
 }

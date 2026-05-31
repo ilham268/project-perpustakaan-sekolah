@@ -19,16 +19,12 @@ return new class extends Migration
                 ->constrained('users')
                 ->onDelete('cascade');
 
-            // Dibuat nullable karena peminjaman kelas sekarang pakai kode_buku
             $table->foreignId('book_id')
                 ->nullable()
                 ->constrained('books')
                 ->nullOnDelete();
 
             $table->string('kode_buku')->nullable();
-
-            $table->date('tanggal_pinjam');
-            $table->date('tanggal_kembali');
 
             $table->enum('status', [
                 'pending',
@@ -44,6 +40,11 @@ return new class extends Migration
             ])->nullable();
 
             $table->integer('denda')->default(0);
+
+            $table->enum('status_denda', [
+                'pending',
+                'paid',
+            ])->nullable()->default(null);
 
             $table->timestamps();
         });

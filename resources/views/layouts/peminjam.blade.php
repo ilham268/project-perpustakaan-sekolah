@@ -70,7 +70,7 @@
 </head>
 
 <body
-    class="bg-slate-50 text-slate-800"
+    class="min-h-screen overflow-hidden bg-slate-50 text-slate-800"
     x-data="{ sidebarOpen: false, userOpen: false }"
     x-cloak
 >
@@ -80,31 +80,31 @@
         <div
             x-show="sidebarOpen"
             x-transition.opacity
-            class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden"
+            class="fixed inset-0 z-40 bg-slate-900/50 lg:hidden"
             @click="sidebarOpen = false"
         ></div>
 
         {{-- Sidebar --}}
         <aside
-            class="fixed lg:static inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 ease-in-out"
+            class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out lg:static"
             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
         >
             {{-- Logo --}}
-            <div class="h-20 flex items-center justify-between px-6 border-b border-slate-100">
+            <div class="flex h-20 items-center justify-between border-b border-slate-100 px-6">
                 <div class="flex items-center gap-3">
-                    <div class="p-2 bg-emerald-50 rounded-xl">
+                    <div class="rounded-xl bg-emerald-50 p-2">
                         <img
                             src="{{ asset('image/smkn1cerme.png') }}"
                             alt="Logo SMKN 1 CERME"
-                            class="w-7 h-7 object-contain"
+                            class="h-7 w-7 object-contain"
                         >
                     </div>
 
                     <div>
-                        <h1 class="text-xl font-bold text-slate-800 tracking-tight">
+                        <h1 class="text-xl font-bold tracking-tight text-slate-800">
                             Lantera
                         </h1>
-                        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">
+                        <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">
                             Digital Library
                         </p>
                     </div>
@@ -113,15 +113,16 @@
                 <button
                     type="button"
                     @click="sidebarOpen = false"
-                    class="lg:hidden text-slate-400 hover:text-slate-600 transition"
+                    class="text-slate-400 transition hover:text-slate-600 lg:hidden"
+                    aria-label="Tutup menu"
                 >
                     <i class="fas fa-xmark text-xl"></i>
                 </button>
             </div>
 
             {{-- Navigation --}}
-            <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-3">
+            <nav class="flex-1 space-y-1 overflow-y-auto px-4 py-6">
+                <div class="mb-4 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
                     Menu Utama
                 </div>
 
@@ -181,15 +182,15 @@
                                 href="{{ route('cart.index') }}"
                                 class="sub-link
                                 {{ request()->routeIs('cart.*')
-                                    ? 'text-emerald-700 bg-emerald-50/70 font-medium'
-                                    : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                                    ? 'bg-emerald-50/70 font-medium text-emerald-700'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-emerald-600'
                                 }}"
                             >
                                 <i class="fas fa-shopping-cart"></i>
                                 <span>Keranjang Peminjaman</span>
 
                                 @if(isset($cartCount) && $cartCount > 0)
-                                    <span class="ml-auto text-[10px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">
+                                    <span class="ml-auto rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] text-white">
                                         {{ $cartCount }}
                                     </span>
                                 @endif
@@ -199,8 +200,8 @@
                                 href="{{ route('peminjam.loan.index') }}"
                                 class="sub-link
                                 {{ request()->routeIs(['peminjam.loan.index', 'loans.*'])
-                                    ? 'text-emerald-700 bg-emerald-50/70 font-medium'
-                                    : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                                    ? 'bg-emerald-50/70 font-medium text-emerald-700'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-emerald-600'
                                 }}"
                             >
                                 <i class="fas fa-clock-rotate-left"></i>
@@ -211,15 +212,15 @@
                                 href="{{ route('siswa.denda.index') }}"
                                 class="sub-link
                                 {{ request()->routeIs('siswa.denda.index')
-                                    ? 'text-emerald-700 bg-emerald-50/70 font-medium'
-                                    : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                                    ? 'bg-emerald-50/70 font-medium text-emerald-700'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-emerald-600'
                                 }}"
                             >
                                 <i class="fas fa-wallet"></i>
                                 <span>Denda Saya</span>
 
                                 @if(isset($dendaCount) && $dendaCount > 0)
-                                    <span class="ml-auto text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full">
+                                    <span class="ml-auto rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] text-white">
                                         {{ $dendaCount }}
                                     </span>
                                 @endif
@@ -254,8 +255,8 @@
                                 href="{{ route('siswa.pinjamkelas.input') }}"
                                 class="sub-link
                                 {{ request()->routeIs('siswa.pinjamkelas.input')
-                                    ? 'text-emerald-700 bg-emerald-50/70 font-medium'
-                                    : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                                    ? 'bg-emerald-50/70 font-medium text-emerald-700'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-emerald-600'
                                 }}"
                             >
                                 <i class="fas fa-pen"></i>
@@ -266,8 +267,8 @@
                                 href="{{ route('siswa.pinjamkelas.index') }}"
                                 class="sub-link
                                 {{ request()->routeIs('siswa.pinjamkelas.index')
-                                    ? 'text-emerald-700 bg-emerald-50/70 font-medium'
-                                    : 'text-slate-500 hover:text-emerald-600 hover:bg-slate-50'
+                                    ? 'bg-emerald-50/70 font-medium text-emerald-700'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-emerald-600'
                                 }}"
                             >
                                 <i class="fas fa-book"></i>
@@ -295,17 +296,17 @@
 
             {{-- User Summary --}}
             @auth
-                <div class="p-4 border-t border-slate-100">
-                    <div class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
-                        <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
+                <div class="border-t border-slate-100 p-4">
+                    <div class="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-colors hover:bg-slate-50">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
                             {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                         </div>
 
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold text-slate-800 truncate">
+                        <div class="min-w-0 flex-1">
+                            <p class="truncate text-sm font-semibold text-slate-800">
                                 {{ Auth::user()->name }}
                             </p>
-                            <p class="text-xs text-slate-500 truncate">
+                            <p class="truncate text-xs text-slate-500">
                                 {{ Auth::user()->email }}
                             </p>
                         </div>
@@ -315,39 +316,40 @@
         </aside>
 
         {{-- Content Wrapper --}}
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
 
             {{-- Header --}}
-            <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 sticky top-0 z-30">
-                <div class="flex items-center justify-between w-full">
+            <header class="sticky top-0 z-30 flex h-16 items-center border-b border-slate-200 bg-white px-4 md:px-6">
+                <div class="flex w-full min-w-0 items-center justify-between gap-4">
 
-                    <div class="flex items-center gap-4">
+                    <div class="flex min-w-0 items-center gap-3 md:gap-4">
                         <button
                             type="button"
                             @click="sidebarOpen = true"
-                            class="lg:hidden text-slate-500 hover:text-emerald-600 hover:bg-slate-100 p-2 rounded-lg transition"
+                            class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-emerald-600 lg:hidden"
+                            aria-label="Buka menu"
                         >
                             <i class="fas fa-bars text-xl"></i>
                         </button>
 
-                        <div>
-                            <h2 class="text-lg md:text-xl font-semibold text-slate-800">
+                        <div class="min-w-0">
+                            <h2 class="truncate text-base font-semibold text-slate-800 sm:text-lg md:text-xl">
                                 @yield('title', 'Dashboard')
                             </h2>
 
                             @auth
-                                <p class="hidden sm:block text-xs text-slate-500">
+                                <p class="hidden truncate text-xs text-slate-500 sm:block">
                                     Selamat datang kembali, {{ Auth::user()->name }}
                                 </p>
                             @else
-                                <p class="hidden sm:block text-xs text-slate-500">
+                                <p class="hidden truncate text-xs text-slate-500 sm:block">
                                     Sistem Informasi Perpustakaan Digital
                                 </p>
                             @endauth
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex shrink-0 items-center gap-2">
 
                         @auth
                             {{-- User Dropdown --}}
@@ -355,52 +357,54 @@
                                 <button
                                     type="button"
                                     @click="userOpen = !userOpen"
-                                    class="flex items-center gap-2 focus:outline-none hover:bg-slate-100 p-1.5 rounded-xl transition"
+                                    class="flex items-center gap-2 rounded-xl p-1.5 transition hover:bg-slate-100 focus:outline-none"
                                 >
-                                    <div class="w-9 h-9 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center font-bold text-sm">
+                                    <div class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-100 text-sm font-bold text-emerald-700">
                                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                                     </div>
 
-                                    <div class="hidden md:block text-left">
-                                        <p class="text-sm font-semibold text-slate-700 leading-tight">
+                                    <div class="hidden text-left md:block">
+                                        <p class="max-w-32 truncate text-sm font-semibold leading-tight text-slate-700 lg:max-w-44">
                                             {{ Auth::user()->name }}
                                         </p>
-                                        <p class="text-xs text-slate-400">
+                                        <p class="truncate text-xs text-slate-400">
                                             {{ Auth::user()->role }}
                                         </p>
                                     </div>
 
-                                    <i class="fas fa-chevron-down text-slate-400 text-xs hidden md:block"></i>
+                                    <i class="fas fa-chevron-down hidden text-xs text-slate-400 md:block"></i>
                                 </button>
 
                                 <div
                                     x-show="userOpen"
                                     @click.away="userOpen = false"
                                     x-transition
-                                    class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 py-1 z-50"
+                                    class="absolute right-0 z-50 mt-2 w-56 rounded-xl border border-slate-100 bg-white py-1 shadow-lg"
                                 >
-                                    <div class="px-4 py-3 border-b border-slate-100">
-                                        <p class="text-xs text-slate-500">Signed in as</p>
-                                        <p class="text-sm font-medium text-slate-700 truncate">
+                                    <div class="border-b border-slate-100 px-4 py-3">
+                                        <p class="text-xs text-slate-500">
+                                            Masuk sebagai
+                                        </p>
+                                        <p class="truncate text-sm font-medium text-slate-700">
                                             {{ Auth::user()->email }}
                                         </p>
                                     </div>
 
                                     <a
                                         href="{{ route('peminjam.kartu-anggota') }}"
-                                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-50"
                                     >
                                         <i class="fas fa-id-card w-4 text-slate-400"></i>
                                         Kartu Anggota
                                     </a>
 
-                                    <div class="border-t border-slate-100 my-1"></div>
+                                    <div class="my-1 border-t border-slate-100"></div>
 
                                     <form action="{{ route('logout') }}" method="POST">
                                         @csrf
                                         <button
                                             type="submit"
-                                            class="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                                            class="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-600 transition hover:bg-red-50"
                                         >
                                             <i class="fas fa-sign-out-alt w-4 text-red-400"></i>
                                             Logout
@@ -409,24 +413,14 @@
                                 </div>
                             </div>
                         @else
-                            {{-- Guest Buttons --}}
-                            <div class="flex items-center gap-2">
-                                <a
-                                    href="{{ route('login') }}"
-                                    class="px-4 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-50 rounded-xl transition"
-                                >
-                                    <i class="fas fa-sign-in-alt mr-2"></i>
-                                    Login
-                                </a>
-
-                                <a
-                                    href="{{ route('register') }}"
-                                    class="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm transition"
-                                >
-                                    <i class="fas fa-user-plus mr-2"></i>
-                                    Register
-                                </a>
-                            </div>
+                            {{-- Login Button --}}
+                            <a
+                                href="{{ route('login') }}"
+                                class="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-emerald-500/20 transition hover:bg-emerald-600 hover:shadow-md"
+                            >
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>Login</span>
+                            </a>
                         @endauth
 
                     </div>
@@ -435,7 +429,7 @@
 
             {{-- Main Content --}}
             <main class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-6">
-                <div class="max-w-7xl mx-auto">
+                <div class="mx-auto max-w-7xl">
                     @yield('content')
                 </div>
             </main>

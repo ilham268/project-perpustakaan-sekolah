@@ -5,72 +5,65 @@
 
 @section('content')
 
-<div class="space-y-5">
+<div class="space-y-6">
 
     {{-- Alert Success --}}
     @if(session('success'))
         <div class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-800 shadow-sm">
-            <div class="flex items-center gap-3 text-sm font-medium">
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-
-                <span>{{ session('success') }}</span>
-            </div>
+            <span class="text-sm font-medium">
+                {{ session('success') }}
+            </span>
         </div>
     @endif
 
     {{-- Alert Deleted --}}
     @if(session('deleted'))
         <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
-            <div class="flex items-center gap-3 text-sm font-medium">
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
-                    <i class="fas fa-trash"></i>
-                </div>
-
-                <span>{{ session('deleted') }}</span>
-            </div>
+            <span class="text-sm font-medium">
+                {{ session('deleted') }}
+            </span>
         </div>
     @endif
 
     {{-- Alert Updated --}}
     @if(session('updated'))
         <div class="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-blue-800 shadow-sm">
-            <div class="flex items-center gap-3 text-sm font-medium">
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
-                    <i class="fas fa-pen"></i>
-                </div>
-
-                <span>{{ session('updated') }}</span>
-            </div>
+            <span class="text-sm font-medium">
+                {{ session('updated') }}
+            </span>
         </div>
     @endif
 
     {{-- Alert Error --}}
     @if(session('error'))
         <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
-            <div class="flex items-center gap-3 text-sm font-medium">
-                <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
-                    <i class="fas fa-times-circle"></i>
-                </div>
-
-                <span>{{ session('error') }}</span>
-            </div>
+            <span class="text-sm font-medium">
+                {{ session('error') }}
+            </span>
         </div>
     @endif
 
-    {{-- Page Header --}}
-    <div class="flex flex-col gap-1">
-        <h3 class="text-2xl font-extrabold tracking-tight text-slate-900">
-            Riwayat Peminjaman Saya
-        </h3>
+    {{-- Header --}}
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-5 py-5 shadow-md shadow-emerald-100/60 md:px-7 md:py-6">
+        <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
+        <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
 
-        <p class="text-sm text-slate-500">
-            Daftar semua riwayat peminjaman buku Anda.
-        </p>
+        <div class="relative">
+            <p class="text-xs font-bold uppercase tracking-wide text-emerald-50">
+                Data Peminjaman
+            </p>
+
+            <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+                Riwayat Peminjaman Saya
+            </h1>
+
+            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-emerald-50">
+                Daftar semua riwayat pengajuan, persetujuan, penolakan, dan pengembalian buku Anda.
+            </p>
+        </div>
     </div>
 
-    {{-- Stat Cards --}}
+    {{-- Stat Cards - kotak dipertahankan --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 
         {{-- Total Riwayat --}}
@@ -150,15 +143,14 @@
 
     </div>
 
-    {{-- Table Card --}}
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-        <div class="border-b border-slate-200 px-5 py-4">
-            <h3 class="text-base font-bold text-slate-900">
+    {{-- Table --}}
+    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-100 bg-white px-5 py-4">
+            <h2 class="text-lg font-extrabold text-slate-900">
                 Data Riwayat Peminjaman
-            </h3>
+            </h2>
 
-            <p class="mt-1 text-xs text-slate-500">
+            <p class="mt-1 text-sm text-slate-500">
                 Riwayat pengajuan, persetujuan, penolakan, dan pengembalian buku.
             </p>
         </div>
@@ -166,35 +158,42 @@
         <div class="overflow-x-auto">
             <table class="w-full min-w-[1180px] border-collapse text-sm">
                 <thead>
-                    <tr class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr class="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
                         <th class="w-16 border border-slate-200 px-5 py-4 text-left">
                             No
                         </th>
+
                         <th class="border border-slate-200 px-5 py-4 text-left">
                             Judul Buku
                         </th>
-                        <th class="border border-slate-200 px-5 py-4 text-left">
+
+                        <th class="w-36 border border-slate-200 px-5 py-4 text-left">
                             Kode Buku
                         </th>
+
                         <th class="border border-slate-200 px-5 py-4 text-left">
                             Kategori
                         </th>
-                        <th class="border border-slate-200 px-5 py-4 text-center">
+
+                        <th class="w-36 border border-slate-200 px-5 py-4 text-center">
                             Status
                         </th>
+
                         <th class="border border-slate-200 px-5 py-4 text-left">
                             Petugas
                         </th>
-                        <th class="border border-slate-200 px-5 py-4 text-center">
+
+                        <th class="w-36 border border-slate-200 px-5 py-4 text-center">
                             Tgl Pinjam
                         </th>
-                        <th class="border border-slate-200 px-5 py-4 text-center">
+
+                        <th class="w-40 border border-slate-200 px-5 py-4 text-center">
                             Tgl Kembali
                         </th>
                     </tr>
                 </thead>
 
-                <tbody>
+                <tbody class="bg-white">
                     @forelse($loans as $index => $loan)
                         <tr class="transition-colors hover:bg-slate-50">
                             <td class="border border-slate-200 px-5 py-4 font-medium text-slate-600">
@@ -202,7 +201,7 @@
                             </td>
 
                             <td class="border border-slate-200 px-5 py-4">
-                                <span class="font-semibold text-slate-800">
+                                <span class="block max-w-[280px] truncate font-semibold text-slate-800">
                                     {{ $loan->bookItem->book->judul ?? '-' }}
                                 </span>
                             </td>
@@ -264,30 +263,20 @@
                         @if($loan->status == 'ditolak' && $loan->alasan_ditolak)
                             <tr class="bg-red-50">
                                 <td colspan="8" class="border border-red-100 px-5 py-3">
-                                    <div class="flex items-start gap-2">
-                                        <i class="fas fa-info-circle mt-0.5 text-sm text-red-500"></i>
+                                    <span class="text-sm font-bold text-red-800">
+                                        Alasan Ditolak:
+                                    </span>
 
-                                        <div>
-                                            <span class="text-sm font-bold text-red-800">
-                                                Alasan Ditolak:
-                                            </span>
-
-                                            <span class="ml-1 text-sm text-red-700">
-                                                {{ $loan->alasan_ditolak }}
-                                            </span>
-                                        </div>
-                                    </div>
+                                    <span class="ml-1 text-sm text-red-700">
+                                        {{ $loan->alasan_ditolak }}
+                                    </span>
                                 </td>
                             </tr>
                         @endif
                     @empty
                         <tr>
                             <td colspan="8" class="border border-slate-200 px-6 py-16 text-center">
-                                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
-                                    <i class="fas fa-book-reader text-2xl"></i>
-                                </div>
-
-                                <p class="mt-4 text-base font-bold text-slate-700">
+                                <p class="text-sm font-bold text-slate-700">
                                     Belum Ada Riwayat Peminjaman
                                 </p>
 
@@ -300,7 +289,6 @@
                 </tbody>
             </table>
         </div>
-
     </div>
 
 </div>
