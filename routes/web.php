@@ -54,6 +54,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::delete('/kelas/{kelas}', [KelasController::class, 'destroy'])->name('kelas.destroy');
 
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::get('/categories/create', [CategoryController::class, 'create'])->name('categories.create');
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::get('/categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
     Route::patch('/categories/{category}/toggle', [CategoryController::class, 'toggle'])->name('categories.toggle');
@@ -77,6 +78,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
     Route::get('/peminjaman', [LoanController::class, 'adminIndex'])->name('admin.peminjaman.index');
     Route::get('/peminjaman/export', [LoanController::class, 'exportPeminjaman'])->name('admin.peminjaman.export');
+    Route::get('/peminjaman/input', [LoanController::class, 'adminCreateManual'])->name('admin.peminjaman.create');
+    Route::post('/peminjaman/input', [LoanController::class, 'adminStoreManual'])->name('admin.peminjaman.store');
     Route::post('/peminjaman/{id}/approve', [LoanController::class, 'approve'])->name('admin.peminjaman.approve');
     Route::post('/peminjaman/{id}/reject', [LoanController::class, 'reject'])->name('admin.peminjaman.reject');
     Route::put('/peminjaman/{id}/tanggal-kembali', [LoanController::class, 'updateTanggalKembali'])->name('admin.peminjaman.update-tanggal-kembali');

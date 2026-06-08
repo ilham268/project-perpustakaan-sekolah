@@ -12,6 +12,8 @@
     $totalEksemplarReferensi = $booksReferensi->sum(function ($book) {
         return $book->bookItems->count();
     });
+
+    $selectedTahun = request('tahun_pengadaan');
 @endphp
 
 <div class="space-y-6">
@@ -44,7 +46,6 @@
         </div>
     @endif
 
-    {{-- Hero Header --}}
     <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-6 py-6 shadow-md shadow-emerald-100/60">
         <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
         <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
@@ -60,7 +61,7 @@
                 </h1>
 
                 <p class="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50">
-                    Halaman ini hanya menampilkan Buku Referensi. Buku Paket dikelola melalui menu peminjaman Buku Paket.
+                    Halaman ini hanya menampilkan Buku Referensi. Filter data cukup berdasarkan tahun pengadaan.
                 </p>
             </div>
 
@@ -82,7 +83,6 @@
         </div>
     </div>
 
-    {{-- Summary Cards --}}
     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <p class="text-sm font-semibold text-slate-500">
@@ -118,60 +118,37 @@
         </div>
     </div>
 
-    {{-- Filter --}}
     <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
         <form method="GET" action="{{ route('books.index') }}" id="filter-form">
-            <div class="grid grid-cols-1 gap-3 lg:grid-cols-10">
-                <div class="relative lg:col-span-4">
-                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400"></i>
+            <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900">
+                        Filter Tahun Data
+                    </h2>
 
-                    <input
-                        type="text"
-                        name="search"
-                        id="search-input"
-                        value="{{ request('search') }}"
-                        placeholder="Cari judul, pengarang, penerbit, klasifikasi..."
-                        autocomplete="off"
-                        class="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm font-medium text-slate-700 placeholder:text-slate-400 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
-                    >
+                    <p class="mt-1 text-sm text-slate-500">
+                        Pilih tahun pengadaan untuk melihat Buku Referensi berdasarkan tahun import.
+                    </p>
                 </div>
 
-                <div class="lg:col-span-2">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <select
                         name="tahun_pengadaan"
                         id="tahun-select"
-                        class="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                        class="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 sm:w-56"
                     >
                         <option value="">Semua Tahun</option>
 
                         @foreach(($tahunPengadaanOptions ?? collect()) as $tahunPengadaan)
-                            <option value="{{ $tahunPengadaan }}" {{ request('tahun_pengadaan') == $tahunPengadaan ? 'selected' : '' }}>
+                            <option value="{{ $tahunPengadaan }}" {{ $selectedTahun == $tahunPengadaan ? 'selected' : '' }}>
                                 {{ $tahunPengadaan }}
                             </option>
                         @endforeach
                     </select>
-                </div>
 
-                <div class="lg:col-span-2">
-                    <select
-                        name="sumber_buku"
-                        id="sumber-select"
-                        class="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
-                    >
-                        <option value="">Semua Sumber</option>
-
-                        @foreach(($sumberOptions ?? collect()) as $sumber)
-                            <option value="{{ $sumber }}" {{ request('sumber_buku') == $sumber ? 'selected' : '' }}>
-                                {{ $sumber }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="lg:col-span-2">
                     <a
                         href="{{ route('books.index') }}"
-                        class="inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                        class="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
                     >
                         Reset
                     </a>
@@ -180,7 +157,6 @@
         </form>
     </div>
 
-    {{-- Table Card --}}
     <form
         id="bulk-delete-form"
         action="{{ route('books.bulk-delete') }}"
@@ -201,8 +177,8 @@
                     </p>
 
                     <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-slate-500">
-                        @if(request('tahun_pengadaan'))
-                            <span>Tahun {{ request('tahun_pengadaan') }}</span>
+                        @if($selectedTahun)
+                            <span>Tahun {{ $selectedTahun }}</span>
                             <span class="text-slate-300">•</span>
                         @endif
 
@@ -400,7 +376,7 @@
                                 </p>
 
                                 <p class="mt-1 text-sm text-slate-400">
-                                    Import Excel dulu atau ubah filter pencarian.
+                                    Import Excel dulu atau ubah filter tahun data.
                                 </p>
                             </td>
                         </tr>
@@ -416,34 +392,15 @@
 <script>
     (function () {
         var form = document.getElementById('filter-form');
-        var searchInput = document.getElementById('search-input');
         var tahunSelect = document.getElementById('tahun-select');
-        var sumberSelect = document.getElementById('sumber-select');
-        var debounceTimer;
 
-        if (form) {
-            if (searchInput) {
-                searchInput.addEventListener('input', function () {
-                    clearTimeout(debounceTimer);
-
-                    debounceTimer = setTimeout(function () {
-                        form.submit();
-                    }, 400);
-                });
-            }
-
-            if (tahunSelect) {
-                tahunSelect.addEventListener('change', function () {
-                    form.submit();
-                });
-            }
-
-            if (sumberSelect) {
-                sumberSelect.addEventListener('change', function () {
-                    form.submit();
-                });
-            }
+        if (!form || !tahunSelect) {
+            return;
         }
+
+        tahunSelect.addEventListener('change', function () {
+            form.submit();
+        });
     })();
 
     (function () {
