@@ -102,10 +102,10 @@
 
                     <div>
                         <h1 class="text-xl font-bold tracking-tight text-slate-800">
-                            Lantera
+                            SMKN 1 CERME
                         </h1>
                         <p class="text-xs font-semibold uppercase tracking-wide text-emerald-600">
-                            Digital Library
+                            Perpustakaan Digital
                         </p>
                     </div>
                 </div>

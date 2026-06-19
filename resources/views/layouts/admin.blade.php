@@ -99,11 +99,11 @@
 
                     <div>
                         <h1 class="text-xl font-bold text-slate-800 tracking-tight">
-                            Lantera
+                            SMKN 1 CERME
                         </h1>
 
                         <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide">
-                            SMKN 1 CERME
+                            Perpustakaan Digital
                         </p>
                     </div>
                 </div>

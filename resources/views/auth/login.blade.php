@@ -305,7 +305,7 @@
                     </div>
 
                     <p class="mt-5 text-center text-xs text-slate-400 fade-up delay-400">
-                        © {{ date('Y') }} Lantera • SMKN 1 Cerme
+                        © {{ date('Y') }} Siswa • SMKN 1 Cerme
                     </p>
 
                 </div>
@@ -381,7 +381,7 @@
         }
 
         const typingTarget = document.getElementById('typingText');
-        const words = ['Lantera', 'Perpustakaan Digital', 'SMKN 1 Cerme'];
+        const words = ['Perpustakaan Digital', 'SMKN 1 Cerme'];
 
         let wordIndex = 0;
         let charIndex = 0;
