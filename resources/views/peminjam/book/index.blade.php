@@ -6,7 +6,7 @@
 @section('content')
 
 @if(session('success'))
-    <div class="mb-5 rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-800 shadow-sm">
+    <div class="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800 shadow-sm">
         <span class="text-sm font-medium">
             {{ session('success') }}
         </span>
@@ -30,11 +30,11 @@
 >
 
     {{-- Header --}}
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-5 py-6 shadow-md shadow-emerald-100/70 md:px-7 md:py-7">
-        <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
-        <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
+    <div class="relative overflow-hidden rounded-[28px] px-5 py-7 shadow-lg shadow-[var(--forest)]/10 sm:px-7 sm:py-8" style="background-image: linear-gradient(135deg, var(--forest) 0%, var(--emerald-deep) 48%, var(--emerald) 100%);">
+        <div class="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-white/[0.06]"></div>
+        <div class="pointer-events-none absolute -bottom-24 right-10 h-64 w-64 rounded-full bg-white/[0.05]"></div>
 
-        <div class="pointer-events-none absolute right-5 top-5 opacity-20">
+        <div class="pointer-events-none absolute right-6 top-6 hidden opacity-[0.15] sm:block">
             <img
                 src="{{ asset('image/logoTrans.png') }}"
                 alt="Lantera"
@@ -42,32 +42,32 @@
             >
         </div>
 
-        <div class="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div class="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div class="max-w-2xl">
-                <p class="text-xs font-bold uppercase tracking-wide text-emerald-50">
-                    Buku Referensi
+                <p class="catalog-eyebrow font-semibold uppercase text-white/70">
+                    Buku&nbsp;Referensi
                 </p>
 
-                <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+                <h1 class="font-display mt-3 text-[26px] font-semibold leading-tight tracking-tight text-white sm:text-3xl md:text-[34px]">
                     Temukan Buku Referensimu
                 </h1>
 
-                <p class="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50">
-                    Katalog siswa hanya menampilkan buku Referensi. Buku yang belum punya kode buku tidak bisa dipinjam.
+                <p class="mt-3 max-w-xl text-[13.5px] leading-relaxed text-white/80 sm:text-sm">
+                    Katalog siswa hanya menampilkan buku referensi. Buku yang belum punya kode buku tidak bisa dipinjam.
                 </p>
             </div>
 
-            <div class="w-full lg:w-[260px]">
-                <div class="rounded-2xl bg-white/15 px-4 py-4 ring-1 ring-white/20 backdrop-blur-md">
-                    <p class="text-xs font-semibold text-emerald-50">
+            <div class="w-full shrink-0 sm:w-64">
+                <div class="rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-md">
+                    <p class="catalog-eyebrow uppercase text-white/70">
                         Total Referensi
                     </p>
 
-                    <p class="mt-1 text-3xl font-extrabold tracking-tight text-white">
+                    <p class="font-mono-stat mt-1 text-[32px] font-semibold leading-none text-white">
                         {{ $books->total() }}
                     </p>
 
-                    <p class="mt-1 text-xs font-medium text-emerald-50">
+                    <p class="mt-2 text-xs font-medium text-white/70">
                         buku tersedia di katalog
                     </p>
                 </div>
@@ -78,22 +78,27 @@
         <form
             method="GET"
             action="{{ route('peminjam.list-buku') }}"
-            class="relative z-10 mt-6 rounded-2xl bg-white/15 p-3 ring-1 ring-white/20 backdrop-blur-md"
+            class="relative z-10 mt-6"
         >
-            <div class="flex flex-col gap-3 lg:flex-row">
-                <input
-                    type="text"
-                    name="search"
-                    value="{{ request('search') }}"
-                    placeholder="Cari judul buku atau penulis..."
-                    autocomplete="off"
-                    class="h-11 min-w-0 flex-1 rounded-lg border border-white/40 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-emerald-200 focus:ring-4 focus:ring-white/30"
-                >
+            <div class="flex flex-col gap-2.5 rounded-2xl border border-white/15 bg-white/10 p-2.5 backdrop-blur-md sm:flex-row sm:items-center sm:gap-2">
+                <div class="relative flex-1">
+                    <i class="fas fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400"></i>
+
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ request('search') }}"
+                        placeholder="Cari judul buku atau penulis..."
+                        autocomplete="off"
+                        class="h-12 w-full min-w-0 rounded-xl border border-white/40 bg-white pl-11 pr-4 text-sm font-medium text-[var(--text)] shadow-sm outline-none transition placeholder:text-slate-400 focus:border-white focus:ring-4 focus:ring-white/25"
+                    >
+                </div>
 
                 <button
                     type="submit"
-                    class="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg bg-white px-5 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-50 focus:outline-none focus:ring-4 focus:ring-white/30"
+                    class="inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[var(--gold)] px-6 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 focus:outline-none focus:ring-4 focus:ring-white/25 sm:w-auto"
                 >
+                    <i class="fas fa-search text-xs"></i>
                     Cari
                 </button>
             </div>
@@ -104,11 +109,11 @@
     <div class="space-y-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-                <h2 class="text-xl font-extrabold tracking-tight text-slate-900">
+                <h2 class="font-display text-xl font-semibold tracking-tight text-[var(--forest)]">
                     Koleksi Referensi Terbaru
                 </h2>
 
-                <p class="mt-1 text-sm text-slate-500">
+                <p class="mt-1 text-sm text-[var(--muted)]">
                     Tampilan dibuat tanpa foto buku agar sesuai dengan data yang tersedia.
                 </p>
             </div>
@@ -116,15 +121,16 @@
             @if(request('search'))
                 <a
                     href="{{ route('peminjam.list-buku') }}"
-                    class="inline-flex h-10 w-fit items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                    class="inline-flex h-10 w-fit items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
                 >
+                    <i class="fas fa-rotate-left text-xs"></i>
                     Reset Filter
                 </a>
             @endif
         </div>
 
-        {{-- GRID 4 KOLOM --}}
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {{-- GRID --}}
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             @forelse($books as $book)
                 @php
                     $availableCount = (int) ($book->stok_tersedia ?? $book->bookItems->filter(function ($item) {
@@ -132,18 +138,18 @@
                     })->count());
                 @endphp
 
-                <div class="group flex min-h-[215px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-100/60">
+                <div class="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--emerald)]/30 hover:shadow-lg hover:shadow-[var(--emerald)]/10">
                     <div class="flex flex-1 flex-col p-4">
 
                         {{-- Top --}}
-                        <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-start justify-between gap-3 border-b border-dashed border-[var(--hairline)] pb-3">
                             <div class="min-w-0">
-                                <p class="text-[11px] font-bold uppercase tracking-wide text-emerald-700">
+                                <p class="catalog-eyebrow font-semibold uppercase text-[var(--emerald-deep)]">
                                     Referensi
                                 </p>
 
                                 <h3
-                                    class="mt-2 line-clamp-2 text-lg font-extrabold leading-snug text-slate-900 transition group-hover:text-emerald-700"
+                                    class="font-display mt-2 line-clamp-2 text-[17px] font-semibold leading-snug text-[var(--text)] transition group-hover:text-[var(--emerald-deep)]"
                                     title="{{ $book->judul }}"
                                 >
                                     {{ $book->judul }}
@@ -152,60 +158,60 @@
 
                             <div class="shrink-0 text-right">
                                 @if($availableCount > 0)
-                                    <p class="text-[11px] font-bold text-emerald-700">
+                                    <span class="inline-flex items-center rounded-full bg-[var(--emerald-tint)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--emerald-deep)]">
                                         Tersedia
-                                    </p>
+                                    </span>
                                 @else
-                                    <p class="text-[11px] font-bold text-red-700">
-                                        Belum Ada Kode
-                                    </p>
+                                    <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600">
+                                        Belum&nbsp;Ada
+                                    </span>
                                 @endif
 
-                                <p class="mt-1 text-lg font-extrabold leading-none text-slate-900">
+                                <p class="font-mono-stat mt-1.5 text-lg font-semibold leading-none text-[var(--text)]">
                                     {{ $availableCount }}
                                 </p>
 
-                                <p class="text-xs text-slate-400">
+                                <p class="text-[10px] uppercase tracking-wide text-[var(--muted)]">
                                     stok
                                 </p>
                             </div>
                         </div>
 
                         {{-- Info --}}
-                        <div class="mt-4 space-y-2 text-sm">
-                            <div>
-                                <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                        <div class="mt-3 grid flex-1 grid-cols-2 gap-x-3 gap-y-3 text-sm">
+                            <div class="col-span-2">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">
                                     Penulis
                                 </p>
 
-                                <p class="mt-0.5 line-clamp-1 font-semibold text-slate-700">
+                                <p class="mt-0.5 line-clamp-1 font-medium text-[var(--text)]">
                                     {{ $book->penulis ?? 'Penulis tidak tersedia' }}
                                 </p>
                             </div>
 
-                            <div>
-                                <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                            <div class="col-span-2">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">
                                     Penerbit
                                 </p>
 
-                                <p class="mt-0.5 line-clamp-1 font-semibold text-slate-700">
+                                <p class="mt-0.5 line-clamp-1 font-medium text-[var(--text)]">
                                     {{ $book->penerbit ?? '-' }}
                                 </p>
                             </div>
 
                             <div>
-                                <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-[var(--muted)]">
                                     Tahun
                                 </p>
 
-                                <p class="mt-0.5 font-semibold text-slate-700">
+                                <p class="font-mono-stat mt-0.5 font-medium text-[var(--text)]">
                                     {{ $book->tahun ?? '-' }}
                                 </p>
                             </div>
                         </div>
 
                         {{-- Buttons --}}
-                        <div class="mt-auto flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                        <div class="mt-4 flex items-center gap-2 border-t border-[var(--hairline)] pt-3">
                             <button
                                 type="button"
                                 @click="selectedBook = {
@@ -218,19 +224,19 @@
                                     stok: {{ $availableCount }},
                                     synopsis: @js($book->synopsis ?? '-')
                                 }; showDetail = true"
-                                class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                                class="inline-flex h-9 flex-1 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
                             >
                                 Detail
                             </button>
 
                             @auth
                                 @if($availableCount > 0)
-                                    <form action="{{ route('cart.store', $book->id) }}" method="POST">
+                                    <form action="{{ route('cart.store', $book->id) }}" method="POST" class="flex-1">
                                         @csrf
 
                                         <button
                                             type="submit"
-                                            class="inline-flex h-9 items-center justify-center rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                            class="inline-flex h-9 w-full items-center justify-center rounded-lg bg-[var(--emerald-deep)] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
                                         >
                                             Tambah
                                         </button>
@@ -239,7 +245,7 @@
                                     <button
                                         type="button"
                                         disabled
-                                        class="inline-flex h-9 cursor-not-allowed items-center justify-center rounded-lg bg-slate-300 px-4 text-sm font-semibold text-white shadow-sm"
+                                        class="inline-flex h-9 flex-1 cursor-not-allowed items-center justify-center rounded-lg bg-slate-200 px-3 text-sm font-semibold text-slate-400 shadow-sm"
                                     >
                                         Tidak Tersedia
                                     </button>
@@ -248,7 +254,7 @@
                                 @if($availableCount > 0)
                                     <a
                                         href="{{ route('login') }}"
-                                        class="inline-flex h-9 items-center justify-center rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                        class="inline-flex h-9 flex-1 items-center justify-center rounded-lg bg-[var(--emerald-deep)] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
                                     >
                                         Login
                                     </a>
@@ -256,7 +262,7 @@
                                     <button
                                         type="button"
                                         disabled
-                                        class="inline-flex h-9 cursor-not-allowed items-center justify-center rounded-lg bg-slate-300 px-4 text-sm font-semibold text-white shadow-sm"
+                                        class="inline-flex h-9 flex-1 cursor-not-allowed items-center justify-center rounded-lg bg-slate-200 px-3 text-sm font-semibold text-slate-400 shadow-sm"
                                     >
                                         Tidak Tersedia
                                     </button>
@@ -266,12 +272,12 @@
                     </div>
                 </div>
             @empty
-                <div class="col-span-full rounded-3xl border border-dashed border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
-                    <p class="text-base font-bold text-slate-700">
+                <div class="col-span-full rounded-2xl border border-dashed border-[var(--hairline)] bg-white px-6 py-16 text-center shadow-sm">
+                    <p class="font-display text-base font-semibold text-[var(--text)]">
                         Belum ada buku Referensi
                     </p>
 
-                    <p class="mt-1 text-sm text-slate-400">
+                    <p class="mt-1 text-sm text-[var(--muted)]">
                         Buku Paket tidak ditampilkan di halaman siswa.
                     </p>
                 </div>
@@ -280,25 +286,25 @@
 
         {{-- Pagination --}}
         @if($books->hasPages())
-            <div class="mt-8 rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <div class="mt-8 rounded-2xl border border-[var(--hairline)] bg-white px-4 py-4 shadow-sm sm:px-5">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p class="text-sm text-slate-500">
+                    <p class="text-center text-sm text-[var(--muted)] sm:text-left">
                         Menampilkan
-                        <span class="font-semibold text-slate-700">{{ $books->firstItem() }}</span>&ndash;<span class="font-semibold text-slate-700">{{ $books->lastItem() }}</span>
+                        <span class="font-semibold text-[var(--text)]">{{ $books->firstItem() }}</span>&ndash;<span class="font-semibold text-[var(--text)]">{{ $books->lastItem() }}</span>
                         dari
-                        <span class="font-semibold text-slate-700">{{ $books->total() }}</span>
+                        <span class="font-semibold text-[var(--text)]">{{ $books->total() }}</span>
                         data
                     </p>
 
-                    <div class="flex flex-wrap items-center gap-1">
+                    <div class="flex flex-wrap items-center justify-center gap-1 sm:justify-end">
                         @if($books->onFirstPage())
-                            <span class="flex h-9 min-w-9 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-300">
+                            <span class="flex h-9 min-w-9 cursor-not-allowed items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm text-slate-300">
                                 Prev
                             </span>
                         @else
                             <a
                                 href="{{ $books->previousPageUrl() }}"
-                                class="flex h-9 min-w-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                                class="flex h-9 min-w-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--text)]/80 transition hover:bg-[var(--sand)]/60"
                             >
                                 Prev
                             </a>
@@ -306,13 +312,13 @@
 
                         @foreach($books->getUrlRange(1, $books->lastPage()) as $page => $url)
                             @if($page == $books->currentPage())
-                                <span class="flex h-9 min-w-9 items-center justify-center rounded-lg bg-emerald-600 px-3 text-sm font-semibold text-white">
+                                <span class="font-mono-stat flex h-9 min-w-9 items-center justify-center rounded-lg bg-[var(--emerald-deep)] px-3 text-sm font-semibold text-white">
                                     {{ $page }}
                                 </span>
                             @else
                                 <a
                                     href="{{ $url }}"
-                                    class="flex h-9 min-w-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                                    class="font-mono-stat flex h-9 min-w-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--text)]/80 transition hover:bg-[var(--sand)]/60"
                                 >
                                     {{ $page }}
                                 </a>
@@ -322,12 +328,12 @@
                         @if($books->hasMorePages())
                             <a
                                 href="{{ $books->nextPageUrl() }}"
-                                class="flex h-9 min-w-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                                class="flex h-9 min-w-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--text)]/80 transition hover:bg-[var(--sand)]/60"
                             >
                                 Next
                             </a>
                         @else
-                            <span class="flex h-9 min-w-9 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-300">
+                            <span class="flex h-9 min-w-9 cursor-not-allowed items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm text-slate-300">
                                 Next
                             </span>
                         @endif
@@ -342,7 +348,8 @@
         <div class="fixed bottom-6 right-6 z-50">
             <a
                 href="{{ route('cart.index') }}"
-                class="relative flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-xl shadow-emerald-200 transition hover:-translate-y-1 hover:bg-emerald-600"
+                class="relative flex h-14 w-14 items-center justify-center rounded-full text-white shadow-xl shadow-[var(--forest)]/25 transition hover:-translate-y-1"
+                style="background-image: linear-gradient(135deg, var(--emerald) 0%, var(--emerald-deep) 100%);"
             >
                 <i class="fas fa-shopping-cart text-xl"></i>
 
@@ -351,7 +358,7 @@
                 @endphp
 
                 @if($cartCount > 0)
-                    <span class="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white ring-2 ring-white">
+                    <span class="font-mono-stat absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white ring-2 ring-white">
                         {{ $cartCount }}
                     </span>
                 @endif

@@ -120,10 +120,9 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 $q->whereIn('kelas', $kelasFilter);
             });
         }
-
         $pinjamItems = $pinjamQuery
-            ->orderBy('tanggal_pinjam')
-            ->get();
+           ->orderBy('id', 'asc')
+        ->get();
 
         $pinjamMap = [];
 
