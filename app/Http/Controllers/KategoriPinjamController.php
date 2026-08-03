@@ -8,9 +8,11 @@ use App\Models\BookItem;
 use App\Models\Kelas;
 use App\Models\PinjamKelas;
 use App\Models\User;
+use App\Services\PinjamKelasBulkImportService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class KategoriPinjamController extends Controller
@@ -140,6 +142,38 @@ class KategoriPinjamController extends Controller
             ->with('error', 'Buku Paket tidak ditemukan.');
     }
 
+    public function formPinjam(Request $request)
+    {
+        $siswas = User::where('role', 'siswa')
+            ->orderBy('name')
+            ->get();
+
+        $booksPaketRaw = Book::query()
+            ->withCount([
+                'bookItems as stok_tersedia' => function ($q) {
+                    $q->where('status', 'available')
+                        ->whereNotNull('kode_buku')
+                        ->where('kode_buku', '!=', '');
+                },
+            ])
+            ->where(function ($q) {
+                $this->filterPaket($q);
+            })
+            ->orderBy('judul')
+            ->get();
+
+        $booksPaket = $booksPaketRaw->groupBy(function ($item) {
+            return strtolower(trim($item->judul));
+        })->map(function ($group) {
+            $first = $group->first();
+            $first->stok_tersedia = $group->sum('stok_tersedia');
+            $first->all_ids = $group->pluck('id')->implode(',');
+            return $first;
+        })->values();
+
+        return view('admin.pinjamkelas.input.peminjaman', compact('siswas', 'booksPaket'));
+    }
+
     public function prosesPinjam(Request $request)
     {
         $request->validate([
@@ -153,19 +187,14 @@ class KategoriPinjamController extends Controller
         try {
             DB::beginTransaction();
 
-            $book = Book::where('id', $request->book_id)
-                ->where(function ($q) {
-                    $this->filterPaket($q);
-                })
-                ->first();
+            $bookDropdown = Book::where('id', $request->book_id)->first();
 
-            if (!$book) {
+            if (!$bookDropdown) {
                 DB::rollBack();
-
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->with('error', 'Buku yang dipilih bukan Buku Paket.');
+                    ->with('error', 'Buku yang dipilih tidak ditemukan.');
             }
 
             $user = User::where('id', $request->user_id)
@@ -174,14 +203,23 @@ class KategoriPinjamController extends Controller
 
             if (!$user) {
                 DB::rollBack();
-
                 return redirect()
                     ->back()
                     ->withInput()
                     ->with('error', 'User siswa tidak ditemukan.');
             }
 
-            $bookItem = BookItem::where('book_id', $book->id)
+            // Dropdown di-grouping by judul (banyak book_id bisa berjudul sama),
+            // jadi cari SEMUA id buku yang judulnya persis sama dengan yang dipilih,
+            // bukan cuma id tunggal dari dropdown.
+            $relatedBookIds = Book::where(function ($q) {
+                    $this->filterPaket($q);
+                })
+                ->whereRaw('LOWER(TRIM(judul)) = ?', [strtolower(trim($bookDropdown->judul))])
+                ->pluck('id');
+
+            $bookItem = BookItem::with('book')
+                ->whereIn('book_id', $relatedBookIds)
                 ->whereNotNull('kode_buku')
                 ->where('kode_buku', '!=', '')
                 ->whereRaw('UPPER(kode_buku) = ?', [$kodeBuku])
@@ -190,30 +228,28 @@ class KategoriPinjamController extends Controller
 
             if (!$bookItem) {
                 DB::rollBack();
-
                 return redirect()
                     ->back()
                     ->withInput()
-                    ->with('error', 'Kode buku tidak valid atau tidak cocok dengan judul Buku Paket.');
+                    ->with('error', 'Kode buku fisik tidak ditemukan untuk judul buku yang dipilih di dropdown.');
             }
 
             if ($bookItem->status !== 'available') {
                 DB::rollBack();
-
                 return redirect()
                     ->back()
                     ->withInput()
                     ->with('error', 'Kode buku ini sudah dipinjam atau tidak tersedia.');
             }
 
-            $sedangDipinjam = PinjamKelas::where('kode_buku', $bookItem->kode_buku)
+            $sedangDipinjam = PinjamKelas::where('book_id', $bookItem->book_id)
+                ->where('kode_buku', $bookItem->kode_buku)
                 ->whereIn('status', ['pending', 'disetujui'])
                 ->lockForUpdate()
                 ->exists();
 
             if ($sedangDipinjam) {
                 DB::rollBack();
-
                 return redirect()
                     ->back()
                     ->withInput()
@@ -221,10 +257,11 @@ class KategoriPinjamController extends Controller
             }
 
             PinjamKelas::create([
-                'kategori_pinjam_id' => null,
-                'book_id' => $book->id,
+                'book_id' => $bookItem->book_id,
                 'user_id' => $user->id,
                 'kode_buku' => $bookItem->kode_buku,
+                'tanggal_pinjam' => now(),
+                'tanggal_kembali' => now()->addDays(7),
                 'status' => 'pending',
             ]);
 
@@ -239,7 +276,6 @@ class KategoriPinjamController extends Controller
                 ->with('success', 'Peminjaman Buku Paket berhasil ditambahkan.');
         } catch (\Throwable $e) {
             DB::rollBack();
-
             return redirect()
                 ->back()
                 ->withInput()
@@ -247,9 +283,114 @@ class KategoriPinjamController extends Controller
         }
     }
 
+    public function previewImport(Request $request)
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls'],
+        ]);
+
+        $path = $request->file('file')->store('temp-import', 'local');
+        $fullPath = Storage::disk('local')->path($path);
+
+        $service = new PinjamKelasBulkImportService();
+        $found = $service->extractSubjectLabels($fullPath);
+
+        if (empty($found)) {
+            @unlink($fullPath);
+
+            return redirect()
+                ->route('admin.pinjamkelas.input-peminjaman')
+                ->with('error', 'Format file tidak dikenali. Pastikan file sesuai template data siswa peminjam.');
+        }
+
+        // Selalu tanya ke admin setiap kali import, tidak pernah dilewati
+        // dan tidak ada yang disimpan permanen ke database.
+        $booksPaket = Book::query()
+            ->where(function ($q) {
+                $this->filterPaket($q);
+            })
+            ->orderBy('judul')
+            ->get();
+
+        return view('admin.pinjamkelas.input.mapping', [
+            'tempFile' => $path,
+            'unmapped' => $found,
+            'booksPaket' => $booksPaket,
+        ]);
+    }
+
+    public function confirmImport(Request $request)
+    {
+        $request->validate([
+            'temp_file' => ['required', 'string'],
+            'keys' => ['required', 'array'],
+            'book_ids' => ['required', 'array'],
+        ]);
+
+        $fullPath = Storage::disk('local')->path($request->temp_file);
+
+        if (!file_exists($fullPath)) {
+            return redirect()
+                ->route('admin.pinjamkelas.input-peminjaman')
+                ->with('error', 'File sementara sudah tidak ditemukan, silakan upload ulang.');
+        }
+
+        // Mapping ini HANYA dipakai untuk sesi import saat ini, tidak disimpan ke database.
+        $subjectBookMap = [];
+
+        foreach ($request->keys as $i => $key) {
+            $bookId = $request->book_ids[$i] ?? null;
+
+            if ($bookId) {
+                $subjectBookMap[$key] = (int) $bookId;
+            }
+        }
+
+        return $this->runImport($fullPath, $subjectBookMap);
+    }
+
+    protected function runImport(string $fullPath, array $subjectBookMap)
+    {
+        try {
+            $service = new PinjamKelasBulkImportService();
+            $service->import($fullPath, $subjectBookMap);
+
+            @unlink($fullPath);
+
+            $success = $service->getSuccessCount();
+            $errors = $service->getErrors();
+
+            if (count($errors) > 0) {
+                $errorMessage = $success > 0
+                    ? "{$success} peminjaman berhasil diimport. "
+                    : '';
+
+                $errorMessage .= count($errors) . ' baris/kolom gagal: ' . implode('; ', array_slice($errors, 0, 5));
+
+                if (count($errors) > 5) {
+                    $errorMessage .= ' ... dan ' . (count($errors) - 5) . ' lainnya.';
+                }
+
+                return redirect()
+                    ->route('admin.pinjamkelas.input-peminjaman')
+                    ->with('error', $errorMessage);
+            }
+
+            return redirect()
+                ->route('admin.pinjamkelas.input-peminjaman')
+                ->with('success', "{$success} peminjaman Buku Paket berhasil diimport, kode buku otomatis terisi.");
+        } catch (\Throwable $e) {
+            @unlink($fullPath);
+
+            return redirect()
+                ->route('admin.pinjamkelas.input-peminjaman')
+                ->with('error', 'Gagal mengimport file: ' . $e->getMessage());
+        }
+    }
+
     public function kelasPinjam(Request $request)
     {
-        $query = PinjamKelas::with(['user', 'book', 'kategori.kelasData']);
+        $query = PinjamKelas::with(['user', 'book']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -348,7 +489,7 @@ class KategoriPinjamController extends Controller
 
     public function formDendaKelas($id)
     {
-        $pinjam = PinjamKelas::with(['user', 'book', 'kategori.kelasData'])
+        $pinjam = PinjamKelas::with(['user', 'book'])
             ->findOrFail($id);
 
         if ($pinjam->status === 'dikembalikan') {

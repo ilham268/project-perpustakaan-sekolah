@@ -28,12 +28,12 @@ $maxWidthClass = [
         x-transition:leave="ease-in duration-200"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-black/70 backdrop-blur-sm p-4"
+        class="fixed inset-0 bg-[var(--ink,#0E2620)]/60 p-4 backdrop-blur-sm"
         @click="show = false"
     ></div>
 
     <!-- Modal Content -->
-    <div class="flex items-center justify-center min-h-screen px-4">
+    <div class="flex min-h-screen items-center justify-center px-4">
         <div
             x-show="show"
             x-transition:enter="ease-out duration-300"
@@ -42,16 +42,20 @@ $maxWidthClass = [
             x-transition:leave="ease-in duration-200"
             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
             x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            class="bg-white rounded-lg shadow-xl w-full {{ $maxWidthClass }} relative"
+            class="relative w-full {{ $maxWidthClass }} overflow-hidden rounded-[1.5rem] border border-[var(--hairline,#E7E2D6)] bg-white shadow-2xl shadow-[var(--forest,#0F3D2E)]/10"
         >
             <!-- Header -->
-            <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-cyan-500 rounded-t-lg">
-                <h3 class="text-lg font-semibold text-white">{{ $title }}</h3>
+            <div
+                class="flex items-center justify-between px-6 py-4"
+                style="background-image: linear-gradient(135deg, var(--forest,#0F3D2E) 0%, var(--emerald-deep,#0C5E40) 55%, var(--emerald,#147A54) 100%);"
+            >
+                <h3 class="font-display text-lg font-semibold tracking-tight text-white">{{ $title }}</h3>
+
                 <button
                     @click="show = false"
-                    class="text-white hover:text-gray-200 transition-colors"
+                    class="flex h-8 w-8 items-center justify-center rounded-lg text-white/80 transition-colors hover:bg-white/15 hover:text-white"
                 >
-                    <i class="fas fa-times w-6 h-6 text-2xl"></i>
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
 

@@ -8,6 +8,7 @@ class GuestBook extends Model
 {
     protected $fillable = [
         'nama',
+        'kelas',
         'keperluan',
     ];
 }

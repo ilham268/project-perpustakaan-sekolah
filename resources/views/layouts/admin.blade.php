@@ -312,6 +312,17 @@
 
                     <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1 border-l border-[var(--hairline)] pl-3">
                         <a
+    href="{{ route('admin.pinjamkelas.input-peminjaman') }}"
+    class="sub-link
+    {{ request()->routeIs('admin.pinjamkelas.input-peminjaman')
+        ? 'bg-[var(--emerald-tint)] font-medium text-[var(--forest)]'
+        : 'text-[var(--muted)] hover:bg-[var(--sand)]/60 hover:text-[var(--emerald-deep)]'
+    }}"
+>
+    <i class="fas fa-pen-to-square"></i>
+    <span>Input Peminjaman Paket</span>
+</a>
+                        <a
                             href="{{ route('admin.pinjamkelas.kategori') }}"
                             class="sub-link
                             {{ request()->routeIs('admin.pinjamkelas.kategori')

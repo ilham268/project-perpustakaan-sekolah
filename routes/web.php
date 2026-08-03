@@ -21,6 +21,9 @@ use App\Http\Controllers\Admin\KelasController;
 Route::get('/', [BookController::class, 'list'])->name('home');
 Route::get('list-buku', [BookController::class, 'list'])->name('peminjam.list-buku');
 
+Route::get('/pinjam-cepat', [LoanController::class, 'quickCreate'])->name('peminjam.loan.quick-create');
+Route::post('/pinjam-cepat', [LoanController::class, 'quickStore'])->name('peminjam.loan.quick-store');
+
 Route::get('/buku-tamu', [GuestBookController::class, 'create'])->name('guest-book.create');
 Route::post('/buku-tamu', [GuestBookController::class, 'store'])->name('guest-book.store');
 
@@ -120,6 +123,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
         Route::post('/kelas/{id}/setujui', [KategoriPinjamController::class, 'setujuiKelas'])->name('admin.pinjamkelas.kelas.setujui');
         Route::get('/kelas/{id}/denda', [KategoriPinjamController::class, 'formDendaKelas'])->name('admin.pinjamkelas.kelas.denda');
         Route::post('/kelas/{id}/denda', [KategoriPinjamController::class, 'simpanDendaKelas'])->name('admin.pinjamkelas.kelas.denda.store');
+
+        Route::get('/input-peminjaman', [KategoriPinjamController::class, 'formPinjam'])
+            ->name('admin.pinjamkelas.input-peminjaman');
+        Route::post('/import/preview', [KategoriPinjamController::class, 'previewImport'])
+            ->name('admin.pinjamkelas.import.preview');
+        Route::post('/import/confirm', [KategoriPinjamController::class, 'confirmImport'])
+            ->name('admin.pinjamkelas.import.confirm');
+
         Route::view('/', 'admin.pinjamkelas.index')->name('admin.pinjamkelas.index');
         Route::view('/create', 'admin.pinjamkelas.create-kelas')->name('admin.pinjamkelas.create');
         Route::view('/edit', 'admin.pinjamkelas.edit-kelas')->name('admin.pinjamkelas.edit');

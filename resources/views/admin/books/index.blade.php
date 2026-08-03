@@ -46,21 +46,22 @@
         </div>
     @endif
 
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-6 py-6 shadow-md shadow-emerald-100/60">
-        <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
-        <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
+    {{-- Header --}}
+    <div class="relative overflow-hidden rounded-[28px] px-5 py-6 shadow-lg shadow-[var(--forest)]/10 sm:px-7 sm:py-7" style="background-image: linear-gradient(135deg, var(--forest) 0%, var(--emerald-deep) 48%, var(--emerald) 100%);">
+        <div class="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-white/[0.06]"></div>
+        <div class="pointer-events-none absolute -bottom-24 right-10 h-64 w-64 rounded-full bg-white/[0.05]"></div>
 
-        <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div class="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-                <p class="text-xs font-bold uppercase tracking-wide text-emerald-50">
+                <p class="catalog-eyebrow font-semibold uppercase text-white/70">
                     Referensi
                 </p>
 
-                <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+                <h1 class="font-display mt-3 text-[26px] font-semibold leading-tight tracking-tight text-white sm:text-3xl md:text-[32px]">
                     Kelola Buku Referensi
                 </h1>
 
-                <p class="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50">
+                <p class="mt-3 max-w-xl text-[13.5px] leading-relaxed text-white/80 sm:text-sm">
                     Halaman ini hanya menampilkan Buku Referensi. Filter data cukup berdasarkan tahun pengadaan.
                 </p>
             </div>
@@ -68,14 +69,14 @@
             <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <a
                     href="{{ route('books.import.form') }}"
-                    class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg bg-white px-4 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-50 focus:outline-none focus:ring-4 focus:ring-white/30"
+                    class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-xl bg-white px-4 text-sm font-semibold text-[var(--emerald-deep)] shadow-sm transition hover:bg-white/90 focus:outline-none focus:ring-4 focus:ring-white/30"
                 >
                     Import Excel
                 </a>
 
                 <a
                     href="{{ route('categories.index') }}"
-                    class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg border border-white/25 bg-white/15 px-4 text-sm font-semibold text-white shadow-sm backdrop-blur-md transition hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-white/20"
+                    class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-xl border border-white/25 bg-white/15 px-4 text-sm font-semibold text-white shadow-sm backdrop-blur-md transition hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-white/20"
                 >
                     Kategori BOS
                 </a>
@@ -83,50 +84,52 @@
         </div>
     </div>
 
+    {{-- Stat cards --}}
     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-semibold text-slate-500">
+        <div class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm">
+            <p class="text-sm font-medium text-[var(--muted)]">
                 Total Judul Referensi
             </p>
 
-            <p class="mt-2 text-2xl font-extrabold text-slate-900">
+            <p class="font-mono-stat mt-2 text-2xl font-semibold text-[var(--text)]">
                 {{ $totalJudulReferensi }}
-                <span class="text-sm font-semibold text-slate-400">buku</span>
+                <span class="text-sm font-medium text-[var(--muted)]">buku</span>
             </p>
         </div>
 
-        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-semibold text-slate-500">
+        <div class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm">
+            <p class="text-sm font-medium text-[var(--muted)]">
                 Total Eksemplar
             </p>
 
-            <p class="mt-2 text-2xl font-extrabold text-slate-900">
+            <p class="font-mono-stat mt-2 text-2xl font-semibold text-[var(--text)]">
                 {{ $totalEksemplarReferensi }}
-                <span class="text-sm font-semibold text-slate-400">item</span>
+                <span class="text-sm font-medium text-[var(--muted)]">item</span>
             </p>
         </div>
 
-        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm font-semibold text-slate-500">
+        <div class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm">
+            <p class="text-sm font-medium text-[var(--muted)]">
                 Data Tampil
             </p>
 
-            <p class="mt-2 text-2xl font-extrabold text-slate-900">
+            <p class="font-mono-stat mt-2 text-2xl font-semibold text-[var(--text)]">
                 {{ $booksReferensi->count() }}
-                <span class="text-sm font-semibold text-slate-400">buku</span>
+                <span class="text-sm font-medium text-[var(--muted)]">buku</span>
             </p>
         </div>
     </div>
 
-    <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    {{-- Filter --}}
+    <div class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm">
         <form method="GET" action="{{ route('books.index') }}" id="filter-form">
             <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                    <h2 class="text-lg font-extrabold text-slate-900">
+                    <h2 class="font-display text-lg font-semibold text-[var(--forest)]">
                         Filter Tahun Data
                     </h2>
 
-                    <p class="mt-1 text-sm text-slate-500">
+                    <p class="mt-1 text-sm text-[var(--muted)]">
                         Pilih tahun pengadaan untuk melihat Buku Referensi berdasarkan tahun import.
                     </p>
                 </div>
@@ -135,7 +138,7 @@
                     <select
                         name="tahun_pengadaan"
                         id="tahun-select"
-                        class="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 sm:w-56"
+                        class="h-11 w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-4 text-sm font-medium text-[var(--text)] transition focus:border-[var(--emerald)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)] sm:w-56"
                     >
                         <option value="">Semua Tahun</option>
 
@@ -148,7 +151,7 @@
 
                     <a
                         href="{{ route('books.index') }}"
-                        class="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                        class="inline-flex h-11 items-center justify-center whitespace-nowrap rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:bg-[var(--sand)]/50 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
                     >
                         Reset
                     </a>
@@ -157,33 +160,34 @@
         </form>
     </div>
 
+    {{-- Table --}}
     <form
         id="bulk-delete-form"
         action="{{ route('books.bulk-delete') }}"
         method="POST"
-        class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+        class="overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white shadow-sm"
     >
         @csrf
 
-        <div class="border-b border-slate-100 bg-white px-5 py-4">
+        <div class="border-b border-[var(--hairline)] px-5 py-4">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                    <h2 class="text-lg font-extrabold text-slate-900">
+                    <h2 class="font-display text-lg font-semibold text-[var(--forest)]">
                         Buku Referensi
                     </h2>
 
-                    <p class="mt-1 text-sm text-slate-500">
+                    <p class="mt-1 text-sm text-[var(--muted)]">
                         Data buku Referensi yang berada di dalam kategori BOS.
                     </p>
 
-                    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-slate-500">
+                    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold text-[var(--muted)]">
                         @if($selectedTahun)
                             <span>Tahun {{ $selectedTahun }}</span>
-                            <span class="text-slate-300">•</span>
+                            <span class="text-[var(--hairline)]">•</span>
                         @endif
 
                         <span>Referensi</span>
-                        <span class="text-slate-300">•</span>
+                        <span class="text-[var(--hairline)]">•</span>
                         <span>{{ $booksReferensi->count() }} buku</span>
                     </div>
                 </div>
@@ -192,10 +196,10 @@
                     type="submit"
                     id="bulk-delete-button"
                     disabled
-                    class="inline-flex h-10 w-full items-center justify-center whitespace-nowrap rounded-lg bg-red-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:hover:bg-slate-100 sm:w-auto"
+                    class="inline-flex h-10 w-full items-center justify-center whitespace-nowrap rounded-xl bg-red-600 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:hover:bg-slate-100 sm:w-auto"
                 >
                     Hapus Dipilih
-                    <span class="ml-1">
+                    <span class="font-mono-stat ml-1">
                         (<span id="selected-count">0</span>)
                     </span>
                 </button>
@@ -205,52 +209,52 @@
         <div class="overflow-x-auto">
             <table class="w-full min-w-[1220px] border-collapse text-sm">
                 <thead>
-                    <tr class="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
-                        <th class="w-12 border border-slate-200 px-4 py-3 text-center">
+                    <tr class="catalog-eyebrow bg-[var(--sand)]/40 uppercase text-[var(--muted)]">
+                        <th class="w-12 border border-[var(--hairline)] px-4 py-3 text-center">
                             <input
                                 type="checkbox"
                                 id="select-all-books"
-                                class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                class="h-4 w-4 rounded border-[var(--hairline)] text-[var(--emerald)] focus:ring-[var(--emerald)]"
                             >
                         </th>
 
-                        <th class="w-14 border border-slate-200 px-4 py-3 text-left">
+                        <th class="w-14 border border-[var(--hairline)] px-4 py-3 text-left font-semibold">
                             No
                         </th>
 
-                        <th class="border border-slate-200 px-4 py-3 text-left">
+                        <th class="border border-[var(--hairline)] px-4 py-3 text-left font-semibold">
                             Buku
                         </th>
 
-                        <th class="w-28 border border-slate-200 px-4 py-3 text-center">
+                        <th class="w-28 border border-[var(--hairline)] px-4 py-3 text-center font-semibold">
                             Tahun Data
                         </th>
 
-                        <th class="w-52 border border-slate-200 px-4 py-3 text-left">
+                        <th class="w-52 border border-[var(--hairline)] px-4 py-3 text-left font-semibold">
                             Pengarang / Penerbit
                         </th>
 
-                        <th class="w-24 border border-slate-200 px-4 py-3 text-center">
+                        <th class="w-24 border border-[var(--hairline)] px-4 py-3 text-center font-semibold">
                             Terbit
                         </th>
 
-                        <th class="w-28 border border-slate-200 px-4 py-3 text-center">
+                        <th class="w-28 border border-[var(--hairline)] px-4 py-3 text-center font-semibold">
                             Jenis
                         </th>
 
-                        <th class="w-28 border border-slate-200 px-4 py-3 text-center">
+                        <th class="w-28 border border-[var(--hairline)] px-4 py-3 text-center font-semibold">
                             Sumber
                         </th>
 
-                        <th class="w-28 border border-slate-200 px-4 py-3 text-center">
+                        <th class="w-28 border border-[var(--hairline)] px-4 py-3 text-center font-semibold">
                             Eksemplar
                         </th>
 
-                        <th class="w-28 border border-slate-200 px-4 py-3 text-center">
+                        <th class="w-28 border border-[var(--hairline)] px-4 py-3 text-center font-semibold">
                             Kode
                         </th>
 
-                        <th class="w-44 border border-slate-200 px-4 py-3 text-center">
+                        <th class="w-44 border border-[var(--hairline)] px-4 py-3 text-center font-semibold">
                             Aksi
                         </th>
                     </tr>
@@ -263,84 +267,84 @@
                             $kodeTerisi = $book->bookItems->filter(fn($item) => !empty($item->kode_buku))->count();
                         @endphp
 
-                        <tr class="transition-colors hover:bg-slate-50">
-                            <td class="border border-slate-200 px-4 py-4 text-center">
+                        <tr class="transition-colors hover:bg-[var(--sand)]/30">
+                            <td class="border border-[var(--hairline)] px-4 py-4 text-center">
                                 <input
                                     type="checkbox"
                                     name="selected_books[]"
                                     value="{{ $book->id }}"
-                                    class="book-checkbox h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                    class="book-checkbox h-4 w-4 rounded border-[var(--hairline)] text-[var(--emerald)] focus:ring-[var(--emerald)]"
                                 >
                             </td>
 
-                            <td class="border border-slate-200 px-4 py-4 font-semibold text-slate-600">
+                            <td class="border border-[var(--hairline)] px-4 py-4 font-semibold text-[var(--muted)]">
                                 {{ $loop->iteration }}
                             </td>
 
-                            <td class="border border-slate-200 px-4 py-4">
-                                <div class="max-w-[360px] font-bold leading-snug text-slate-800">
+                            <td class="border border-[var(--hairline)] px-4 py-4">
+                                <div class="max-w-[360px] font-semibold leading-snug text-[var(--text)]">
                                     {{ $book->judul }}
                                 </div>
 
-                                <div class="mt-1 text-xs font-medium text-slate-400">
+                                <div class="mt-1 text-xs font-medium text-[var(--muted)]">
                                     No. Klasifikasi: {{ $book->nomor_klasifikasi ?? '-' }}
                                 </div>
                             </td>
 
-                            <td class="border border-slate-200 px-4 py-4 text-center">
-                                <span class="font-semibold text-slate-700">
+                            <td class="border border-[var(--hairline)] px-4 py-4 text-center">
+                                <span class="font-semibold text-[var(--text)]/80">
                                     {{ $book->tahun_pengadaan ?? '-' }}
                                 </span>
                             </td>
 
-                            <td class="border border-slate-200 px-4 py-4">
-                                <div class="font-semibold text-slate-700">
+                            <td class="border border-[var(--hairline)] px-4 py-4">
+                                <div class="font-semibold text-[var(--text)]/80">
                                     {{ $book->penulis ?? '-' }}
                                 </div>
 
-                                <div class="mt-1 text-xs text-slate-400">
+                                <div class="mt-1 text-xs text-[var(--muted)]">
                                     {{ $book->penerbit ?? '-' }}
                                 </div>
                             </td>
 
-                            <td class="border border-slate-200 px-4 py-4 text-center text-slate-600">
+                            <td class="border border-[var(--hairline)] px-4 py-4 text-center text-[var(--muted)]">
                                 {{ $book->tahun ?? '-' }}
                             </td>
 
-                            <td class="border border-slate-200 px-4 py-4 text-center">
-                                <span class="font-semibold text-emerald-700">
+                            <td class="border border-[var(--hairline)] px-4 py-4 text-center">
+                                <span class="font-semibold text-[var(--emerald-deep)]">
                                     {{ $book->jenis_koleksi ?? 'Referensi' }}
                                 </span>
                             </td>
 
-                            <td class="border border-slate-200 px-4 py-4 text-center text-slate-600">
+                            <td class="border border-[var(--hairline)] px-4 py-4 text-center text-[var(--muted)]">
                                 {{ $book->sumber_buku ?? '-' }}
                             </td>
 
-                            <td class="border border-slate-200 px-4 py-4 text-center">
-                                <span class="font-bold text-slate-700">
+                            <td class="border border-[var(--hairline)] px-4 py-4 text-center">
+                                <span class="font-mono-stat font-semibold text-[var(--text)]/80">
                                     {{ $totalItems }}
                                 </span>
                             </td>
 
-                            <td class="border border-slate-200 px-4 py-4 text-center">
+                            <td class="border border-[var(--hairline)] px-4 py-4 text-center">
                                 @if($kodeTerisi == $totalItems && $totalItems > 0)
-                                    <span class="font-bold text-emerald-700">
+                                    <span class="font-mono-stat font-semibold text-[var(--emerald-deep)]">
                                         {{ $kodeTerisi }}/{{ $totalItems }}
                                     </span>
                                 @else
-                                    <span class="font-bold text-amber-700">
+                                    <span class="font-mono-stat font-semibold text-amber-600">
                                         {{ $kodeTerisi }}/{{ $totalItems }}
                                     </span>
                                 @endif
                             </td>
 
-                            <td class="border border-slate-200 px-4 py-4">
+                            <td class="border border-[var(--hairline)] px-4 py-4">
                                 <div class="flex items-center justify-center gap-2">
                                     <a
                                         href="{{ route('books.show', $book->id) }}"
                                         title="Detail / Input Kode Buku"
-                                        class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                        class="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-xs font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:bg-[var(--emerald-tint)] hover:text-[var(--emerald-deep)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
                                     >
                                         Detail
                                     </a>
@@ -348,7 +352,7 @@
                                     <a
                                         href="{{ route('books.edit', $book->id) }}"
                                         title="Edit Buku"
-                                        class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 focus:outline-none focus:ring-4 focus:ring-amber-100"
+                                        class="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-xs font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 focus:outline-none focus:ring-4 focus:ring-amber-100"
                                     >
                                         Edit
                                     </a>
@@ -357,7 +361,7 @@
                                         type="button"
                                         title="Hapus Buku"
                                         @click="$dispatch('open-confirm-delete', { url: '{{ route('books.destroy', $book->id) }}' })"
-                                        class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
+                                        class="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-xs font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
                                     >
                                         Hapus
                                     </button>
@@ -366,16 +370,16 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="11" class="border border-slate-200 px-6 py-16 text-center">
-                                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
+                            <td colspan="11" class="border border-[var(--hairline)] px-6 py-16 text-center">
+                                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--sand)]/60 text-[var(--muted)]">
                                     <i class="fas fa-bookmark text-2xl"></i>
                                 </div>
 
-                                <p class="mt-4 text-base font-bold text-slate-700">
+                                <p class="font-display mt-4 text-base font-semibold text-[var(--text)]">
                                     Tidak ada data Buku Referensi
                                 </p>
 
-                                <p class="mt-1 text-sm text-slate-400">
+                                <p class="mt-1 text-sm text-[var(--muted)]">
                                     Import Excel dulu atau ubah filter tahun data.
                                 </p>
                             </td>

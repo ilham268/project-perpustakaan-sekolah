@@ -42,53 +42,58 @@
             <x-flash-message type="error" message="{{ session('error') }}" />
         @endif
 
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-5 py-5 shadow-md shadow-emerald-100/60 md:px-7 md:py-6">
-            <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
-            <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
+        {{-- Header --}}
+        <div class="relative overflow-hidden rounded-[28px] px-5 py-6 shadow-lg shadow-[var(--forest)]/10 sm:px-7 sm:py-7" style="background-image: linear-gradient(135deg, var(--forest) 0%, var(--emerald-deep) 48%, var(--emerald) 100%);">
+            <div class="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-white/[0.06]"></div>
+            <div class="pointer-events-none absolute -bottom-24 right-10 h-64 w-64 rounded-full bg-white/[0.05]"></div>
 
-            <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div class="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                    <h1 class="text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+                    <p class="catalog-eyebrow font-semibold uppercase text-white/70">
+                        Manajemen&nbsp;Akun
+                    </p>
+
+                    <h1 class="font-display mt-3 text-[26px] font-semibold leading-tight tracking-tight text-white sm:text-3xl md:text-[32px]">
                         Kelola User
                     </h1>
 
-                    <p class="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50">
+                    <p class="mt-3 max-w-xl text-[13.5px] leading-relaxed text-white/80 sm:text-sm">
                         Atur data admin, petugas, siswa, kelas, dan jurusan perpustakaan dengan lebih mudah.
                     </p>
                 </div>
 
                 <div class="grid w-full grid-cols-2 gap-3 lg:w-[360px]">
-                    <div class="rounded-2xl bg-white/15 px-4 py-3 ring-1 ring-white/20 backdrop-blur-md">
+                    <div class="rounded-2xl border border-white/15 bg-white/10 px-4 py-3.5 backdrop-blur-md">
                         <div class="flex items-center justify-between gap-3">
                             <div>
-                                <p class="text-xs font-semibold text-emerald-50">
+                                <p class="catalog-eyebrow uppercase text-white/70">
                                     Data User
                                 </p>
 
-                                <p class="mt-1 text-2xl font-extrabold tracking-tight text-white">
+                                <p class="font-mono-stat mt-1 text-2xl font-semibold leading-none text-white">
                                     {{ $totalUsers }}
                                 </p>
                             </div>
 
-                            <div class="hidden h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white ring-1 ring-white/20 sm:flex">
+                            <div class="hidden h-9 w-9 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/20 sm:flex">
                                 <i class="fas fa-users text-sm"></i>
                             </div>
                         </div>
                     </div>
 
-                    <div class="rounded-2xl bg-white/15 px-4 py-3 ring-1 ring-white/20 backdrop-blur-md">
+                    <div class="rounded-2xl border border-white/15 bg-white/10 px-4 py-3.5 backdrop-blur-md">
                         <div class="flex items-center justify-between gap-3">
                             <div>
-                                <p class="text-xs font-semibold text-emerald-50">
+                                <p class="catalog-eyebrow uppercase text-white/70">
                                     Kelas User
                                 </p>
 
-                                <p class="mt-1 text-2xl font-extrabold tracking-tight text-white">
+                                <p class="font-mono-stat mt-1 text-2xl font-semibold leading-none text-white">
                                     {{ $kelasFilterList->count() }}
                                 </p>
                             </div>
 
-                            <div class="hidden h-9 w-9 items-center justify-center rounded-xl bg-white/20 text-white ring-1 ring-white/20 sm:flex">
+                            <div class="hidden h-9 w-9 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/20 sm:flex">
                                 <i class="fas fa-school text-sm"></i>
                             </div>
                         </div>
@@ -97,15 +102,16 @@
             </div>
         </div>
 
-        <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-sm">
-            <div class="border-b border-slate-100 bg-white/80 p-5 md:p-6">
+        {{-- Card --}}
+        <div class="overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white shadow-sm">
+            <div class="border-b border-[var(--hairline)] p-5 md:p-6">
                 <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                     <div>
-                        <h2 class="text-lg font-bold text-slate-900 md:text-xl">
+                        <h2 class="font-display text-lg font-semibold text-[var(--forest)] md:text-xl">
                             Daftar User
                         </h2>
 
-                        <p class="mt-1 max-w-lg text-sm leading-relaxed text-slate-500">
+                        <p class="mt-1 max-w-lg text-sm leading-relaxed text-[var(--muted)]">
                             Kelola akun pengguna berdasarkan role, kelas, dan jurusan.
                         </p>
                     </div>
@@ -116,7 +122,7 @@
                             <button
                                 type="button"
                                 @click="$dispatch('open-modal', 'promote-classes')"
-                                class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg border border-violet-200 bg-white px-4 text-sm font-semibold text-violet-700 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 focus:outline-none focus:ring-4 focus:ring-violet-100"
+                                class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-xl border border-[var(--gold)]/40 bg-white px-4 text-sm font-semibold text-[var(--gold)] shadow-sm transition hover:bg-[#F6EEE0] focus:outline-none focus:ring-4 focus:ring-[#F6EEE0]"
                             >
                                 Naik Kelas Rombel
                             </button>
@@ -125,7 +131,7 @@
                                 type="submit"
                                 form="promote-selected-form"
                                 id="promote-selected-button"
-                                class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:hover:border-slate-200 disabled:hover:bg-slate-100 disabled:hover:text-slate-400"
+                                class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:bg-[var(--sand)]/50 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)] disabled:cursor-not-allowed disabled:border-[var(--hairline)] disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:hover:border-[var(--hairline)] disabled:hover:bg-slate-100 disabled:hover:text-slate-400"
                                 disabled
                             >
                                 Naikkan Dipilih
@@ -135,7 +141,7 @@
                                 type="submit"
                                 form="bulk-delete-form"
                                 id="bulk-delete-button"
-                                class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-4 focus:ring-red-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:hover:border-slate-200 disabled:hover:bg-slate-100 disabled:hover:text-slate-400"
+                                class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-4 focus:ring-red-100 disabled:cursor-not-allowed disabled:border-[var(--hairline)] disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:hover:border-[var(--hairline)] disabled:hover:bg-slate-100 disabled:hover:text-slate-400"
                                 disabled
                             >
                                 Hapus Dipilih
@@ -144,7 +150,7 @@
                             <button
                                 type="button"
                                 @click="$dispatch('open-modal', 'import-user-excel')"
-                                class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                                class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-xl border border-sky-200 bg-white px-4 text-sm font-semibold text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50 focus:outline-none focus:ring-4 focus:ring-sky-100"
                             >
                                 Import Excel
                             </button>
@@ -152,7 +158,7 @@
                             <button
                                 type="button"
                                 @click="$dispatch('open-modal', 'create-user')"
-                                class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                class="inline-flex h-10 items-center justify-center whitespace-nowrap rounded-xl bg-[var(--emerald-deep)] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
                             >
                                 Tambah User
                             </button>
@@ -168,7 +174,7 @@
 
                     <div class="grid grid-cols-1 gap-3 lg:grid-cols-12">
                         <div class="relative lg:col-span-5">
-                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400"></i>
+                            <i class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]"></i>
 
                             <input
                                 type="text"
@@ -177,7 +183,7 @@
                                 value="{{ request('search') }}"
                                 placeholder="Cari nama atau nomor identitas..."
                                 autocomplete="off"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-100/80 py-3 pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                class="w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] py-3 pl-10 pr-4 text-sm text-[var(--text)] placeholder:text-[var(--muted)] transition focus:border-[var(--emerald)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
                             >
                         </div>
 
@@ -185,7 +191,7 @@
                             <select
                                 name="role"
                                 id="role-select"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-100/80 px-4 py-3 text-sm text-slate-700 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                class="w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-4 py-3 text-sm text-[var(--text)] transition focus:border-[var(--emerald)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
                             >
                                 <option value="">Semua Role</option>
                                 <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
@@ -198,7 +204,7 @@
                             <select
                                 name="kelas"
                                 id="kelas-select"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-100/80 px-4 py-3 text-sm text-slate-700 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                class="w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-4 py-3 text-sm text-[var(--text)] transition focus:border-[var(--emerald)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
                             >
                                 <option value="">Semua Kelas</option>
 
@@ -214,7 +220,7 @@
                             <select
                                 name="jurusan"
                                 id="jurusan-select"
-                                class="w-full rounded-2xl border border-slate-200 bg-slate-100/80 px-4 py-3 text-sm text-slate-700 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                                class="w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-4 py-3 text-sm text-[var(--text)] transition focus:border-[var(--emerald)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
                             >
                                 <option value="">Semua Jurusan</option>
 
@@ -230,7 +236,7 @@
                             <a
                                 href="{{ route('users.index') }}"
                                 title="Reset Filter"
-                                class="flex h-full min-h-[46px] items-center justify-center rounded-2xl border border-slate-200 bg-slate-100/80 px-4 text-sm font-semibold text-slate-500 transition hover:bg-slate-200/70 hover:text-slate-700"
+                                class="flex h-full min-h-[46px] items-center justify-center rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-4 text-sm font-semibold text-[var(--muted)] transition hover:bg-[var(--sand)] hover:text-[var(--forest)]"
                             >
                                 <i class="fas fa-rotate-left"></i>
                             </a>
@@ -255,117 +261,117 @@
                 @csrf
             </form>
 
-            <div class="overflow-x-auto bg-white/90">
+            <div class="overflow-x-auto">
                 <table class="w-full min-w-[1040px] border-collapse text-sm">
                     <thead>
-                        <tr class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            <th class="w-12 border border-slate-200 px-4 py-4 text-center">
+                        <tr class="catalog-eyebrow bg-[var(--sand)]/40 uppercase text-[var(--muted)]">
+                            <th class="w-12 border border-[var(--hairline)] px-4 py-4 text-center">
                                 <input
                                     type="checkbox"
                                     id="select-all-users"
-                                    class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                    class="h-4 w-4 rounded border-[var(--hairline)] text-[var(--emerald)] focus:ring-[var(--emerald)]"
                                 >
                             </th>
 
-                            <th class="w-16 border border-slate-200 px-5 py-4 text-left">
+                            <th class="w-16 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                                 No
                             </th>
 
-                            <th class="border border-slate-200 px-5 py-4 text-left">
+                            <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                                 Nama
                             </th>
 
-                            <th class="border border-slate-200 px-5 py-4 text-left">
+                            <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                                 Nomor Identitas
                             </th>
 
-                            <th class="border border-slate-200 px-5 py-4 text-left">
+                            <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                                 Kelas
                             </th>
 
-                            <th class="border border-slate-200 px-5 py-4 text-left">
+                            <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                                 Jurusan
                             </th>
 
-                            <th class="border border-slate-200 px-5 py-4 text-left">
+                            <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                                 Role
                             </th>
 
-                            <th class="border border-slate-200 px-5 py-4 text-center">
+                            <th class="border border-[var(--hairline)] px-5 py-4 text-center font-semibold">
                                 Tanggal Daftar
                             </th>
 
-                            <th class="w-32 border border-slate-200 px-5 py-4 text-center">
+                            <th class="w-32 border border-[var(--hairline)] px-5 py-4 text-center font-semibold">
                                 Aksi
                             </th>
                         </tr>
                     </thead>
 
-                    <tbody>
+                    <tbody class="bg-white">
                         @forelse($users as $index => $user)
-                            <tr class="transition-colors hover:bg-slate-50">
-                                <td class="border border-slate-200 px-4 py-4 text-center">
+                            <tr class="transition-colors hover:bg-[var(--sand)]/30">
+                                <td class="border border-[var(--hairline)] px-4 py-4 text-center">
                                     <input
                                         type="checkbox"
                                         value="{{ $user->id }}"
-                                        class="user-checkbox h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                                        class="user-checkbox h-4 w-4 rounded border-[var(--hairline)] text-[var(--emerald)] focus:ring-[var(--emerald)]"
                                         {{ auth()->id() === $user->id ? 'disabled' : '' }}
                                     >
                                 </td>
 
-                                <td class="border border-slate-200 px-5 py-4 font-medium text-slate-600">
+                                <td class="border border-[var(--hairline)] px-5 py-4 font-medium text-[var(--muted)]">
                                     {{ $isPaginator ? ($users->firstItem() + $index) : ($index + 1) }}
                                 </td>
 
-                                <td class="border border-slate-200 px-5 py-4">
-                                    <span class="font-semibold text-slate-800">
+                                <td class="border border-[var(--hairline)] px-5 py-4">
+                                    <span class="font-semibold text-[var(--text)]">
                                         {{ $user->name }}
                                     </span>
                                 </td>
 
-                                <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--muted)]">
                                     {{ $user->nomor_identitas ?? '-' }}
                                 </td>
 
-                                <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--muted)]">
                                     {{ $user->kelas ?? '-' }}
                                 </td>
 
-                                <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                                <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--muted)]">
                                     {{ $user->jurusan ?? '-' }}
                                 </td>
 
-                                <td class="border border-slate-200 px-5 py-4">
+                                <td class="border border-[var(--hairline)] px-5 py-4">
                                     @if($user->role == 'admin')
                                         <span class="font-semibold text-red-600">
                                             Admin
                                         </span>
                                     @elseif($user->role == 'petugas')
-                                        <span class="font-semibold text-emerald-600">
+                                        <span class="font-semibold text-[var(--emerald-deep)]">
                                             Petugas
                                         </span>
                                     @elseif($user->role == 'siswa' || $user->role == 'peminjam')
-                                        <span class="font-semibold text-blue-600">
+                                        <span class="font-semibold text-sky-600">
                                             Siswa
                                         </span>
                                     @else
-                                        <span class="font-semibold text-slate-600">
+                                        <span class="font-semibold text-[var(--text)]/70">
                                             {{ ucfirst($user->role) }}
                                         </span>
                                     @endif
                                 </td>
 
-                                <td class="border border-slate-200 px-5 py-4 text-center text-slate-500">
+                                <td class="border border-[var(--hairline)] px-5 py-4 text-center text-[var(--muted)]">
                                     {{ $user->created_at ? $user->created_at->format('d/m/Y') : '-' }}
                                 </td>
 
-                                <td class="border border-slate-200 px-5 py-4">
+                                <td class="border border-[var(--hairline)] px-5 py-4">
                                     <div class="flex items-center justify-center gap-2">
                                         <button
                                             type="button"
                                             @click="$dispatch('open-modal', 'update-user-{{ $user->id }}')"
                                             title="Edit User"
-                                            class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 ring-1 ring-amber-100 transition hover:bg-amber-100"
+                                            class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-600 ring-1 ring-amber-100 transition hover:bg-amber-100"
                                         >
                                             <i class="fas fa-pen text-sm"></i>
                                         </button>
@@ -374,7 +380,7 @@
                                             type="button"
                                             @click="$dispatch('open-confirm-delete', { url: '{{ route('users.destroy', $user->id) }}' })"
                                             title="Hapus User"
-                                            class="flex h-9 w-9 items-center justify-center rounded-xl bg-red-50 text-red-600 ring-1 ring-red-100 transition hover:bg-red-100"
+                                            class="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600 ring-1 ring-red-100 transition hover:bg-red-100"
                                         >
                                             <i class="fas fa-trash text-sm"></i>
                                         </button>
@@ -390,16 +396,16 @@
                             </x-modal>
                         @empty
                             <tr>
-                                <td colspan="9" class="border border-slate-200 px-6 py-16 text-center">
-                                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-slate-100 text-slate-400">
+                                <td colspan="9" class="border border-[var(--hairline)] px-6 py-16 text-center">
+                                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--sand)]/60 text-[var(--muted)]">
                                         <i class="fas fa-users text-2xl"></i>
                                     </div>
 
-                                    <p class="mt-4 text-base font-bold text-slate-700">
+                                    <p class="font-display mt-4 text-base font-semibold text-[var(--text)]">
                                         Tidak ada data user
                                     </p>
 
-                                    <p class="mt-1 text-sm text-slate-400">
+                                    <p class="mt-1 text-sm text-[var(--muted)]">
                                         Klik tombol "Tambah User" untuk menambahkan user baru.
                                     </p>
                                 </td>
@@ -409,15 +415,15 @@
                 </table>
             </div>
 
-            <div class="border-t border-slate-100 bg-white/80 px-5 py-4">
+            <div class="border-t border-[var(--hairline)] px-5 py-4">
                 <div class="flex flex-col items-center justify-between gap-3 lg:flex-row">
-                    <p class="text-sm text-slate-500">
+                    <p class="text-sm text-[var(--muted)]">
                         Menampilkan
-                        <span class="font-semibold text-slate-700">{{ $firstItem }}</span>
+                        <span class="font-semibold text-[var(--text)]">{{ $firstItem }}</span>
                         &ndash;
-                        <span class="font-semibold text-slate-700">{{ $lastItem }}</span>
+                        <span class="font-semibold text-[var(--text)]">{{ $lastItem }}</span>
                         dari
-                        <span class="font-semibold text-slate-700">{{ $totalUsers }}</span>
+                        <span class="font-semibold text-[var(--text)]">{{ $totalUsers }}</span>
                         data
                     </p>
 
@@ -425,33 +431,33 @@
                         @if($isShowAll)
                             <a
                                 href="{{ $showPagedUrl }}"
-                                class="inline-flex min-h-[40px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-100 hover:text-slate-800"
+                                class="inline-flex min-h-[40px] items-center justify-center rounded-xl border border-[var(--hairline)] bg-white px-4 py-2 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:bg-[var(--sand)]/50 hover:text-[var(--forest)]"
                             >
                                 Tampilkan Ringkas
                             </a>
                         @else
                             <a
                                 href="{{ $showAllUrl }}"
-                                class="inline-flex min-h-[40px] items-center justify-center rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-emerald-100 transition hover:bg-emerald-700"
+                                class="inline-flex min-h-[40px] items-center justify-center rounded-xl bg-[var(--emerald-deep)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--forest)]"
                             >
                                 Lihat Semua Data
                             </a>
                         @endif
 
                         @if($isPaginator && !$isShowAll && $lastPage > 1)
-                            <div class="flex flex-wrap items-center justify-center gap-1 rounded-2xl border border-slate-200 bg-white px-2 py-1 shadow-sm">
+                            <div class="flex flex-wrap items-center justify-center gap-1 rounded-xl border border-[var(--hairline)] bg-white px-2 py-1 shadow-sm">
                                 @php
                                     $start = max(1, $currentPage - 1);
                                     $end = min($lastPage, $currentPage + 1);
                                 @endphp
 
                                 @if($start > 1)
-                                    <a href="{{ $users->url(1) }}" class="flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100">
+                                    <a href="{{ $users->url(1) }}" class="font-mono-stat flex h-9 min-w-9 items-center justify-center rounded-lg px-3 text-sm font-semibold text-[var(--text)]/80 transition hover:bg-[var(--sand)]/60">
                                         1
                                     </a>
 
                                     @if($start > 2)
-                                        <span class="flex h-9 min-w-9 items-center justify-center px-2 text-sm text-slate-400">
+                                        <span class="flex h-9 min-w-9 items-center justify-center px-2 text-sm text-[var(--muted)]">
                                             ...
                                         </span>
                                     @endif
@@ -459,11 +465,11 @@
 
                                 @for ($i = $start; $i <= $end; $i++)
                                     @if ($i == $currentPage)
-                                        <span class="flex h-9 min-w-9 items-center justify-center rounded-xl bg-emerald-600 px-3 text-sm font-bold text-white shadow-sm">
+                                        <span class="font-mono-stat flex h-9 min-w-9 items-center justify-center rounded-lg bg-[var(--emerald-deep)] px-3 text-sm font-semibold text-white shadow-sm">
                                             {{ $i }}
                                         </span>
                                     @else
-                                        <a href="{{ $users->url($i) }}" class="flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100">
+                                        <a href="{{ $users->url($i) }}" class="font-mono-stat flex h-9 min-w-9 items-center justify-center rounded-lg px-3 text-sm font-semibold text-[var(--text)]/80 transition hover:bg-[var(--sand)]/60">
                                             {{ $i }}
                                         </a>
                                     @endif
@@ -471,12 +477,12 @@
 
                                 @if($end < $lastPage)
                                     @if($end < $lastPage - 1)
-                                        <span class="flex h-9 min-w-9 items-center justify-center px-2 text-sm text-slate-400">
+                                        <span class="flex h-9 min-w-9 items-center justify-center px-2 text-sm text-[var(--muted)]">
                                             ...
                                         </span>
                                     @endif
 
-                                    <a href="{{ $users->url($lastPage) }}" class="flex h-9 min-w-9 items-center justify-center rounded-xl px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100">
+                                    <a href="{{ $users->url($lastPage) }}" class="font-mono-stat flex h-9 min-w-9 items-center justify-center rounded-lg px-3 text-sm font-semibold text-[var(--text)]/80 transition hover:bg-[var(--sand)]/60">
                                         {{ $lastPage }}
                                     </a>
                                 @endif
@@ -492,14 +498,14 @@
                 @csrf
 
                 <div>
-                    <label class="mb-2 block text-sm font-semibold text-slate-700">
+                    <label class="mb-2 block text-sm font-semibold text-[var(--text)]">
                         Kelas <span class="text-red-500">*</span>
                     </label>
 
                     <select
                         name="kelas"
                         required
-                        class="block w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                        class="block w-full rounded-xl border border-[var(--hairline)] px-4 py-3 text-sm shadow-sm focus:border-[var(--emerald)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
                     >
                         <option value="">Pilih Kelas</option>
                         <option value="X">X</option>
@@ -509,7 +515,7 @@
                 </div>
 
                 <div>
-                    <label class="mb-2 block text-sm font-semibold text-slate-700">
+                    <label class="mb-2 block text-sm font-semibold text-[var(--text)]">
                         File Excel <span class="text-red-500">*</span>
                     </label>
 
@@ -518,17 +524,17 @@
                         name="file"
                         accept=".xlsx,.xls"
                         required
-                        class="block w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                        class="block w-full rounded-xl border border-[var(--hairline)] px-4 py-3 text-sm shadow-sm focus:border-[var(--emerald)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
                     >
                 </div>
 
-                <div class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3">
+                <div class="rounded-xl border border-sky-100 bg-sky-50 px-4 py-3">
                     <div class="flex items-start gap-3">
-                        <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 ring-1 ring-blue-100">
+                        <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-sky-600 ring-1 ring-sky-100">
                             <i class="fas fa-circle-info text-xs"></i>
                         </div>
 
-                        <p class="text-xs leading-relaxed text-slate-600">
+                        <p class="text-xs leading-relaxed text-[var(--text)]/70">
                             Upload Excel asli daftar absen. Sistem akan mencari header <strong>NISN</strong> dan <strong>NAMA</strong> otomatis di setiap sheet. Nama sheet akan dijadikan jurusan atau rombel.
                         </p>
                     </div>
@@ -537,7 +543,7 @@
                 <div class="flex justify-end gap-3 pt-2">
                     <button
                         type="submit"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
                     >
                         <i class="fas fa-upload text-xs"></i>
                         Import
@@ -550,14 +556,14 @@
             <form action="{{ route('users.promote-classes') }}" method="POST" class="space-y-5">
                 @csrf
 
-                <div class="rounded-2xl border border-red-100 bg-red-50 px-4 py-4">
+                <div class="rounded-xl border border-red-100 bg-red-50 px-4 py-4">
                     <div class="flex items-start gap-3">
-                        <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-red-600 ring-1 ring-red-100">
+                        <div class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-red-600 ring-1 ring-red-100">
                             <i class="fas fa-triangle-exclamation text-sm"></i>
                         </div>
 
-                        <div class="text-sm leading-relaxed text-slate-700">
-                            <p class="font-bold text-slate-900">
+                        <div class="text-sm leading-relaxed text-[var(--text)]/80">
+                            <p class="font-semibold text-[var(--text)]">
                                 Pilih kelas/rombel yang ingin dinaikkan.
                             </p>
 
@@ -566,7 +572,7 @@
                                 Kalau dalam satu rombel ada siswa tidak naik, gunakan tombol <strong>Naikkan Dipilih</strong> dari tabel user.
                             </p>
 
-                            <p class="mt-2 text-xs text-slate-500">
+                            <p class="mt-2 text-xs text-[var(--muted)]">
                                 Aturan: X naik ke XI, XI naik ke XII, XII dihapus karena dianggap lulus.
                             </p>
                         </div>
@@ -574,25 +580,25 @@
                 </div>
 
                 <div>
-                    <label class="mb-3 block text-sm font-semibold text-slate-700">
+                    <label class="mb-3 block text-sm font-semibold text-[var(--text)]">
                         Pilih Kelas/Rombel <span class="text-red-500">*</span>
                     </label>
 
-                    <div class="max-h-72 space-y-4 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div class="max-h-72 space-y-4 overflow-y-auto rounded-xl border border-[var(--hairline)] bg-[var(--paper)] p-4">
                         @forelse($kelasRombelList->groupBy('nama_kelas') as $namaKelas => $rombels)
                             <div>
-                                <p class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                                <p class="catalog-eyebrow mb-2 uppercase text-[var(--muted)]">
                                     Kelas {{ $namaKelas }}
                                 </p>
 
                                 <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                     @foreach($rombels as $rombel)
-                                        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition hover:border-purple-200 hover:bg-purple-50">
+                                        <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-[var(--hairline)] bg-white px-3 py-2 text-sm text-[var(--text)]/80 transition hover:border-[var(--gold)]/40 hover:bg-[#F6EEE0]/50">
                                             <input
                                                 type="checkbox"
                                                 name="rombels[]"
                                                 value="{{ $rombel->nama_kelas }}|{{ $rombel->jurusan }}"
-                                                class="h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                                                class="h-4 w-4 rounded border-[var(--hairline)] text-[var(--gold)] focus:ring-[var(--gold)]"
                                             >
 
                                             <span class="font-medium">
@@ -603,23 +609,23 @@
                                 </div>
                             </div>
                         @empty
-                            <div class="rounded-xl bg-white px-4 py-6 text-center text-sm text-slate-500">
+                            <div class="rounded-lg bg-white px-4 py-6 text-center text-sm text-[var(--muted)]">
                                 Belum ada data kelas/rombel.
                             </div>
                         @endforelse
                     </div>
                 </div>
 
-                <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-4 py-3">
                     <input
                         type="checkbox"
                         name="confirm"
                         value="1"
                         required
-                        class="mt-1 h-4 w-4 rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                        class="mt-1 h-4 w-4 rounded border-[var(--hairline)] text-[var(--gold)] focus:ring-[var(--gold)]"
                     >
 
-                    <span class="text-sm leading-relaxed text-slate-600">
+                    <span class="text-sm leading-relaxed text-[var(--text)]/70">
                         Saya yakin ingin menjalankan proses naik kelas untuk kelas/rombel yang dipilih.
                     </span>
                 </label>
@@ -627,7 +633,8 @@
                 <div class="flex justify-end gap-3 pt-2">
                     <button
                         type="submit"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-purple-700"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95"
+                        style="background-color: var(--gold);"
                     >
                         <i class="fas fa-check text-xs"></i>
                         Jalankan Naik Kelas

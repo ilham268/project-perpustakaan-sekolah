@@ -3,9 +3,9 @@
 namespace App\Exports;
 
 use App\Models\PinjamKelas;
-use App\Models\KategoriPinjam;
 use App\Models\User;
 use App\Models\Kelas;
+use App\Models\Book;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -61,29 +61,6 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
 
         /*
         |--------------------------------------------------------------------------
-        | Ambil daftar kategori buku untuk heading kolom buku
-        |--------------------------------------------------------------------------
-        */
-        $kategoriQuery = KategoriPinjam::query();
-
-        if (!empty($kelasFilter)) {
-            $kategoriQuery->whereIn('kelas', $kelasFilter);
-        }
-
-        $this->bookHeadings = $kategoriQuery
-            ->orderBy('id')
-            ->pluck('nama_kategori')
-            ->filter()
-            ->unique()
-            ->values()
-            ->toArray();
-
-        if (empty($this->bookHeadings)) {
-            $this->bookHeadings = ['BUKU'];
-        }
-
-        /*
-        |--------------------------------------------------------------------------
         | Ambil daftar siswa
         |--------------------------------------------------------------------------
         */
@@ -110,31 +87,47 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
 
         /*
         |--------------------------------------------------------------------------
-        | Ambil data pinjam untuk isi kode buku
+        | Ambil data pinjam
         |--------------------------------------------------------------------------
         */
-        $pinjamQuery = PinjamKelas::with(['user', 'kategori']);
+        $pinjamQuery = PinjamKelas::with(['user', 'book']);
 
         if (!empty($kelasFilter)) {
             $pinjamQuery->whereHas('user', function ($q) use ($kelasFilter) {
                 $q->whereIn('kelas', $kelasFilter);
             });
         }
+        
         $pinjamItems = $pinjamQuery
-           ->orderBy('id', 'asc')
-        ->get();
+            ->orderBy('id', 'asc')
+            ->get();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Susun mapping data pinjam & Ambil HANYA buku yang dipinjam
+        |--------------------------------------------------------------------------
+        */
         $pinjamMap = [];
+        $tempHeadings = []; 
 
         foreach ($pinjamItems as $item) {
-            if (!$item->user || !$item->kategori) {
+            if (!$item->user || !$item->book) {
                 continue;
             }
 
             $userId = $item->user->id;
-            $bookName = $item->kategori->nama_kategori ?? 'BUKU';
+            $bookName = $item->book->judul;
+
+            $tempHeadings[$bookName] = true;
 
             $pinjamMap[$userId][$bookName][] = $item->kode_buku ?? '';
+        }
+
+        $this->bookHeadings = array_keys($tempHeadings);
+        sort($this->bookHeadings);
+
+        if (empty($this->bookHeadings)) {
+            $this->bookHeadings = ['BUKU'];
         }
 
         /*
@@ -161,7 +154,6 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
     public function collection()
     {
         $this->prepareData();
-
         return collect($this->rows);
     }
 
@@ -217,7 +209,6 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 : '';
         }
 
-        // Kolom tanggal dan keterangan sengaja dikosongkan.
         $data[] = '';
         $data[] = '';
         $data[] = '';
@@ -248,18 +239,8 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 $tanggalKembaliColumn = Coordinate::stringFromColumnIndex($lastBookColumnIndex + 2);
                 $ketColumn = Coordinate::stringFromColumnIndex($lastBookColumnIndex + 3);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Tambah 8 baris untuk kop sekolah dan identitas kelas
-                |--------------------------------------------------------------------------
-                */
                 $sheet->insertNewRowBefore(1, 8);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Setup halaman
-                |--------------------------------------------------------------------------
-                */
                 $sheet->getPageSetup()
                     ->setOrientation(PageSetup::ORIENTATION_LANDSCAPE)
                     ->setPaperSize(PageSetup::PAPERSIZE_A4)
@@ -274,20 +255,10 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 $sheet->setShowGridlines(true);
                 $sheet->getSheetView()->setZoomScale(90);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Font default seluruh sheet
-                |--------------------------------------------------------------------------
-                */
                 $sheet->getParent()->getDefaultStyle()->getFont()
                     ->setName('Times New Roman')
                     ->setSize(11);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Kop sekolah
-                |--------------------------------------------------------------------------
-                */
                 for ($row = 1; $row <= 5; $row++) {
                     $sheet->mergeCells("A{$row}:{$lastColumn}{$row}");
                 }
@@ -299,9 +270,6 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 $sheet->setCellValue('A5', 'Telepon (031) 7992471; Fax. (031) 7994569');
 
                 $sheet->getStyle("A1:{$lastColumn}5")->applyFromArray([
-                    'font' => [
-                        'name' => 'Times New Roman',
-                    ],
                     'alignment' => [
                         'horizontal' => Alignment::HORIZONTAL_CENTER,
                         'vertical' => Alignment::VERTICAL_CENTER,
@@ -309,32 +277,14 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 ]);
 
                 $sheet->getStyle('A1:A2')->applyFromArray([
-                    'font' => [
-                        'bold' => true,
-                        'size' => 16,
-                    ],
+                    'font' => ['bold' => true, 'size' => 16],
                 ]);
 
                 $sheet->getStyle('A3')->applyFromArray([
-                    'font' => [
-                        'bold' => true,
-                        'size' => 20,
-                    ],
+                    'font' => ['bold' => true, 'size' => 20],
                 ]);
 
-                $sheet->getStyle('A4:A5')->applyFromArray([
-                    'font' => [
-                        'size' => 11,
-                    ],
-                ]);
-
-                /*
-                |--------------------------------------------------------------------------
-                | Identitas kelas dan jurusan di kiri
-                |--------------------------------------------------------------------------
-                */
                 $kelasText = $this->kelas ?: 'SEMUA KELAS';
-
                 $jurusanText = $this->jurusan;
 
                 if (!$jurusanText && $this->kelas) {
@@ -354,11 +304,7 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 $sheet->setCellValue('D7', $jurusanText);
 
                 $sheet->getStyle('B6:D7')->applyFromArray([
-                    'font' => [
-                        'bold' => true,
-                        'size' => 11,
-                        'name' => 'Times New Roman',
-                    ],
+                    'font' => ['bold' => true],
                     'alignment' => [
                         'horizontal' => Alignment::HORIZONTAL_LEFT,
                         'vertical' => Alignment::VERTICAL_CENTER,
@@ -368,24 +314,13 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 $sheet->getStyle('C6:C7')->applyFromArray([
                     'alignment' => [
                         'horizontal' => Alignment::HORIZONTAL_CENTER,
-                        'vertical' => Alignment::VERTICAL_CENTER,
                     ],
                 ]);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Posisi tabel
-                |--------------------------------------------------------------------------
-                */
                 $headerRow1 = 9;
                 $headerRow2 = 10;
                 $dataStartRow = 11;
 
-                /*
-                |--------------------------------------------------------------------------
-                | Merge header tabel
-                |--------------------------------------------------------------------------
-                */
                 $sheet->mergeCells("A{$headerRow1}:A{$headerRow2}");
                 $sheet->mergeCells("B{$headerRow1}:B{$headerRow2}");
                 $sheet->mergeCells("C{$headerRow1}:C{$headerRow2}");
@@ -399,17 +334,8 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 $sheet->mergeCells("{$tanggalKembaliColumn}{$headerRow1}:{$tanggalKembaliColumn}{$headerRow2}");
                 $sheet->mergeCells("{$ketColumn}{$headerRow1}:{$ketColumn}{$headerRow2}");
 
-                /*
-                |--------------------------------------------------------------------------
-                | Style header tabel
-                |--------------------------------------------------------------------------
-                */
                 $sheet->getStyle("A{$headerRow1}:{$lastColumn}{$headerRow2}")->applyFromArray([
-                    'font' => [
-                        'bold' => true,
-                        'size' => 10,
-                        'name' => 'Times New Roman',
-                    ],
+                    'font' => ['bold' => true, 'size' => 10],
                     'fill' => [
                         'fillType' => Fill::FILL_SOLID,
                         'startColor' => ['rgb' => 'F2F2F2'],
@@ -420,58 +346,37 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                         'wrapText' => true,
                     ],
                     'borders' => [
-                        'allBorders' => [
-                            'borderStyle' => Border::BORDER_THIN,
-                            'color' => ['rgb' => '000000'],
-                        ],
-                        'outline' => [
-                            'borderStyle' => Border::BORDER_MEDIUM,
-                            'color' => ['rgb' => '000000'],
-                        ],
+                        'allBorders' => ['borderStyle' => Border::BORDER_THIN],
+                        'outline' => ['borderStyle' => Border::BORDER_MEDIUM],
                     ],
                 ]);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Style isi data
-                |--------------------------------------------------------------------------
-                */
                 $highestRow = $sheet->getHighestRow();
 
                 if ($highestRow >= $dataStartRow) {
                     $sheet->getStyle("A{$dataStartRow}:{$lastColumn}{$highestRow}")->applyFromArray([
-                        'font' => [
-                            'size' => 11,
-                            'name' => 'Times New Roman',
-                        ],
                         'alignment' => [
                             'vertical' => Alignment::VERTICAL_CENTER,
                             'wrapText' => true,
                         ],
                         'borders' => [
-                            'allBorders' => [
-                                'borderStyle' => Border::BORDER_THIN,
-                                'color' => ['rgb' => '000000'],
-                            ],
+                            'allBorders' => ['borderStyle' => Border::BORDER_THIN],
                         ],
                     ]);
 
                     $sheet->getStyle("A{$dataStartRow}:B{$highestRow}")
-                        ->getAlignment()
-                        ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                        ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
                     $sheet->getStyle("D{$dataStartRow}:{$lastColumn}{$highestRow}")
-                        ->getAlignment()
-                        ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                        ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
                     $sheet->getStyle("C{$dataStartRow}:C{$highestRow}")
-                        ->getAlignment()
-                        ->setHorizontal(Alignment::HORIZONTAL_LEFT);
+                        ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
                 }
 
                 /*
                 |--------------------------------------------------------------------------
-                | Tinggi baris
+                | Tinggi baris (Diperbarui menjadi -1 / Auto-fit)
                 |--------------------------------------------------------------------------
                 */
                 $sheet->getRowDimension(1)->setRowHeight(23);
@@ -482,50 +387,31 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 $sheet->getRowDimension(6)->setRowHeight(20);
                 $sheet->getRowDimension(7)->setRowHeight(20);
                 $sheet->getRowDimension(8)->setRowHeight(8);
-                $sheet->getRowDimension(9)->setRowHeight(32);
-                $sheet->getRowDimension(10)->setRowHeight(30);
+                
+                $sheet->getRowDimension(9)->setRowHeight(-1);
+                $sheet->getRowDimension(10)->setRowHeight(-1);
 
                 for ($row = $dataStartRow; $row <= $highestRow; $row++) {
-                    $sheet->getRowDimension($row)->setRowHeight(28);
+                    $sheet->getRowDimension($row)->setRowHeight(-1);
                 }
 
-                /*
-                |--------------------------------------------------------------------------
-                | Lebar kolom
-                |--------------------------------------------------------------------------
-                */
                 $sheet->getColumnDimension('A')->setWidth(5);
                 $sheet->getColumnDimension('B')->setWidth(16);
                 $sheet->getColumnDimension('C')->setWidth(34);
 
                 for ($col = $firstBookColumnIndex; $col <= $lastBookColumnIndex; $col++) {
                     $colLetter = Coordinate::stringFromColumnIndex($col);
-                    $sheet->getColumnDimension($colLetter)->setWidth(13);
+                    $sheet->getColumnDimension($colLetter)->setWidth(16); 
                 }
 
                 $sheet->getColumnDimension($tanggalPinjamColumn)->setWidth(18);
                 $sheet->getColumnDimension($tanggalKembaliColumn)->setWidth(18);
                 $sheet->getColumnDimension($ketColumn)->setWidth(12);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Border luar tabel
-                |--------------------------------------------------------------------------
-                */
                 $sheet->getStyle("A{$headerRow1}:{$lastColumn}{$highestRow}")->applyFromArray([
-                    'borders' => [
-                        'outline' => [
-                            'borderStyle' => Border::BORDER_MEDIUM,
-                            'color' => ['rgb' => '000000'],
-                        ],
-                    ],
+                    'borders' => ['outline' => ['borderStyle' => Border::BORDER_MEDIUM]],
                 ]);
 
-                /*
-                |--------------------------------------------------------------------------
-                | Print area
-                |--------------------------------------------------------------------------
-                */
                 $sheet->setSelectedCell('A1');
                 $sheet->getPageSetup()->setPrintArea("A1:{$lastColumn}{$highestRow}");
             },

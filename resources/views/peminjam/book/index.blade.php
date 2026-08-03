@@ -119,7 +119,7 @@
             </div>
 
             @if(request('search'))
-                <a
+                <a 
                     href="{{ route('peminjam.list-buku') }}"
                     class="inline-flex h-10 w-fit items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
                 >
@@ -252,11 +252,12 @@
                                 @endif
                             @else
                                 @if($availableCount > 0)
-                                    <a
-                                        href="{{ route('login') }}"
-                                        class="inline-flex h-9 flex-1 items-center justify-center rounded-lg bg-[var(--emerald-deep)] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                                    <a 
+                                        href="{{ route('peminjam.loan.quick-create', ['book_id' => $book->id]) }}"
+                                        class="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[var(--emerald-deep)] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
                                     >
-                                        Login
+                                        <i class="fas fa-pen text-xs"></i>
+                                        Pinjam
                                     </a>
                                 @else
                                     <button
@@ -302,7 +303,7 @@
                                 Prev
                             </span>
                         @else
-                            <a
+                            <a 
                                 href="{{ $books->previousPageUrl() }}"
                                 class="flex h-9 min-w-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--text)]/80 transition hover:bg-[var(--sand)]/60"
                             >
@@ -316,7 +317,7 @@
                                     {{ $page }}
                                 </span>
                             @else
-                                <a
+                                <a 
                                     href="{{ $url }}"
                                     class="font-mono-stat flex h-9 min-w-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--text)]/80 transition hover:bg-[var(--sand)]/60"
                                 >
@@ -326,7 +327,7 @@
                         @endforeach
 
                         @if($books->hasMorePages())
-                            <a
+                            <a 
                                 href="{{ $books->nextPageUrl() }}"
                                 class="flex h-9 min-w-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--text)]/80 transition hover:bg-[var(--sand)]/60"
                             >
@@ -346,7 +347,7 @@
     {{-- Keranjang tetap seperti sebelumnya --}}
     @auth
         <div class="fixed bottom-6 right-6 z-50">
-            <a
+            <a 
                 href="{{ route('cart.index') }}"
                 class="relative flex h-14 w-14 items-center justify-center rounded-full text-white shadow-xl shadow-[var(--forest)]/25 transition hover:-translate-y-1"
                 style="background-image: linear-gradient(135deg, var(--emerald) 0%, var(--emerald-deep) 100%);"

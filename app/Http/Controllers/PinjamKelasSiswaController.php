@@ -14,7 +14,7 @@ class PinjamKelasSiswaController extends Controller
     {
         $user = auth()->user();
 
-        $pinjamKelas = PinjamKelas::with(['kategori', 'book'])
+        $pinjamKelas = PinjamKelas::with('book')
             ->where('user_id', $user->id)
             ->latest()
             ->paginate(10);
@@ -38,11 +38,14 @@ class PinjamKelasSiswaController extends Controller
                     ->orWhere('jenis_koleksi', 'like', '%PKT%');
             })
             ->orderBy('judul')
-            ->get();
+            ->get()
+            ->unique(function ($book) {
+                // Filter lebih ketat: abaikan huruf besar/kecil dan spasi tambahan
+                // Jadi "MATEMATIKA", "Matematika", dan "Matematika " akan dianggap 1 buku yang sama
+                return strtolower(trim($book->judul));
+            });
 
-        $kategoris = collect();
-
-        return view('peminjam.pinjamkelas.create', compact('booksPaket', 'kategoris'));
+        return view('peminjam.pinjamkelas.create', compact('booksPaket'));
     }
 
     public function store(Request $request)
@@ -116,7 +119,6 @@ class PinjamKelasSiswaController extends Controller
             }
 
             PinjamKelas::create([
-                'kategori_pinjam_id' => null,
                 'book_id' => $book->id,
                 'user_id' => $user->id,
                 'kode_buku' => $bookItem->kode_buku,

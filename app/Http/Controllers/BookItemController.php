@@ -6,6 +6,7 @@ use App\Models\Book;
 use App\Models\BookItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class BookItemController extends Controller
@@ -59,7 +60,9 @@ class BookItemController extends Controller
                 ], 422);
             }
 
+            // Cek duplikat HANYA di dalam buku yang sama, bukan ke semua buku.
             $existingCodes = BookItem::query()
+                ->where('book_id', $book->id)
                 ->whereIn('kode_buku', $kodeBukuList)
                 ->whereNotNull('kode_buku')
                 ->where('kode_buku', '!=', '')
@@ -71,7 +74,7 @@ class BookItemController extends Controller
                     'success' => false,
                     'message' => 'Validasi gagal',
                     'errors' => [
-                        'kode_buku' => ['Kode buku sudah digunakan: ' . $existingCodes->implode(', ')],
+                        'kode_buku' => ['Kode buku sudah digunakan di buku ini: ' . $existingCodes->implode(', ')],
                     ],
                 ], 422);
             }
@@ -127,8 +130,17 @@ class BookItemController extends Controller
     {
         try {
             $validated = $request->validate([
-                'kode_buku' => 'required|string|max:50|unique:book_items,kode_buku,' . $bookItem->id,
+                'kode_buku' => [
+                    'required',
+                    'string',
+                    'max:50',
+                    Rule::unique('book_items', 'kode_buku')
+                        ->where(fn ($query) => $query->where('book_id', $bookItem->book_id))
+                        ->ignore($bookItem->id),
+                ],
                 'status' => 'required|in:available,borrowed,damaged,lost',
+            ], [
+                'kode_buku.unique' => 'Kode buku ini sudah dipakai di buku yang sama.',
             ]);
 
             $bookItem->update($validated);

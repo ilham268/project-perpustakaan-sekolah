@@ -1,41 +1,32 @@
 @extends('layouts.admin')
 
-@section('title', 'Input Peminjaman Buku')
-@section('page-title', 'Input Peminjaman Buku')
+@section('title', 'Input Peminjaman Paket')
+@section('page-title', 'Input Peminjaman Paket')
 
 @section('content')
 
 @php
-    $tanggalPinjamDefault = old('tanggal_pinjam', now()->format('Y-m-d'));
-    $tanggalKembaliDefault = old('tanggal_kembali', now()->addDays($lamaPinjamDefault ?? 7)->format('Y-m-d'));
-
     $selectedSiswa = $siswas->firstWhere('id', (int) old('user_id'));
-    $selectedBook = $books->firstWhere('id', (int) old('book_id'));
+    $selectedBook = $booksPaket->firstWhere('id', (int) old('book_id'));
 @endphp
 
 <div class="space-y-6">
 
     @if(session('success'))
         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800 shadow-sm">
-            <span class="text-sm font-medium">
-                {{ session('success') }}
-            </span>
+            <span class="text-sm font-medium">{{ session('success') }}</span>
         </div>
     @endif
 
     @if(session('error'))
         <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
-            <span class="text-sm font-medium">
-                {{ session('error') }}
-            </span>
+            <span class="text-sm font-medium">{{ session('error') }}</span>
         </div>
     @endif
 
     @if($errors->any())
         <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
-            <span class="text-sm font-medium">
-                {{ $errors->first() }}
-            </span>
+            <span class="text-sm font-medium">{{ $errors->first() }}</span>
         </div>
     @endif
 
@@ -46,26 +37,28 @@
 
         <div class="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-                <p class="catalog-eyebrow font-semibold uppercase text-white/70">
-                    Peminjaman&nbsp;Manual
-                </p>
+                <p class="catalog-eyebrow font-semibold uppercase text-white/70">Peminjaman&nbsp;Kelas</p>
 
                 <h1 class="font-display mt-3 text-[26px] font-semibold leading-tight tracking-tight text-white sm:text-3xl md:text-[32px]">
-                    Input Peminjaman Buku
+                    Input Peminjaman Paket
                 </h1>
 
                 <p class="mt-3 max-w-2xl text-[13.5px] leading-relaxed text-white/80 sm:text-sm">
-                    Admin dapat menginput peminjaman buku untuk siswa secara langsung tanpa menunggu siswa mengajukan.
+                    Admin dapat menginput peminjaman Buku Paket untuk siswa secara langsung, satu per satu atau lewat import Excel.
                 </p>
             </div>
 
-            <a
-                href="{{ route('admin.peminjaman.index') }}"
-                class="inline-flex h-10 w-fit shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-white px-4 text-sm font-semibold text-[var(--emerald-deep)] shadow-sm transition hover:bg-white/90 focus:outline-none focus:ring-4 focus:ring-white/30"
-            >
-                <i class="fas fa-arrow-left text-xs"></i>
-                <span>Kembali</span>
-            </a>
+            <div class="flex shrink-0 flex-wrap items-center gap-2">
+                <button type="button" @click="$dispatch('open-modal', 'import-pinjam-paket')" class="inline-flex h-10 w-fit items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-white/30 bg-white/10 px-4 text-sm font-semibold text-white shadow-sm backdrop-blur-md transition hover:bg-white/20 focus:outline-none focus:ring-4 focus:ring-white/30">
+                    <i class="fas fa-file-excel text-xs"></i>
+                    <span>Import Excel</span>
+                </button>
+
+                <a href="{{ route('admin.pinjamkelas.kelas') }}" class="inline-flex h-10 w-fit items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-white px-4 text-sm font-semibold text-[var(--emerald-deep)] shadow-sm transition hover:bg-white/90 focus:outline-none focus:ring-4 focus:ring-white/30">
+                    <i class="fas fa-arrow-left text-xs"></i>
+                    <span>Kembali</span>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -75,15 +68,15 @@
             <div class="overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white shadow-sm">
                 <div class="border-b border-[var(--hairline)] px-6 py-5">
                     <h2 class="font-display text-lg font-semibold text-[var(--forest)]">
-                        Form Input Peminjaman
+                        Form Input Peminjaman Paket
                     </h2>
 
                     <p class="mt-1 text-sm text-[var(--muted)]">
-                        Pilih siswa, pilih buku, masukkan kode buku fisik, lalu simpan peminjaman.
+                        Pilih siswa, pilih Buku Paket, masukkan kode buku fisik, lalu simpan peminjaman.
                     </p>
                 </div>
 
-                <form action="{{ route('admin.peminjaman.store') }}" method="POST" class="space-y-5 p-6" id="form-peminjaman">
+                <form action="{{ route('admin.pinjamkelas.kategori.proses') }}" method="POST" class="space-y-5 p-6" id="form-pinjam-paket">
                     @csrf
 
                     {{-- ===================== SISWA (searchable: nama & NISN) ===================== --}}
@@ -107,10 +100,7 @@
 
                             <input type="hidden" name="user_id" data-search-value value="{{ old('user_id') }}">
 
-                            <div
-                                data-search-dropdown
-                                class="absolute z-20 mt-2 hidden max-h-64 w-full overflow-y-auto rounded-xl border border-[var(--hairline)] bg-white p-1 shadow-lg"
-                            >
+                            <div data-search-dropdown class="absolute z-20 mt-2 hidden max-h-64 w-full overflow-y-auto rounded-xl border border-[var(--hairline)] bg-white p-1 shadow-lg">
                                 @foreach($siswas as $siswa)
                                     <button
                                         type="button"
@@ -132,10 +122,10 @@
                         </div>
                     </div>
 
-                    {{-- ===================== BUKU (searchable: judul) ===================== --}}
+                    {{-- ===================== BUKU PAKET (searchable: judul) ===================== --}}
                     <div>
                         <label class="mb-2 block text-sm font-semibold text-[var(--text)]">
-                            Buku Referensi <span class="text-red-500">*</span>
+                            Buku Paket <span class="text-red-500">*</span>
                         </label>
 
                         <div class="relative" data-searchable-select>
@@ -144,7 +134,7 @@
                                     type="text"
                                     data-search-input
                                     autocomplete="off"
-                                    placeholder="Cari judul buku..."
+                                    placeholder="Cari judul Buku Paket..."
                                     value="{{ $selectedBook ? $selectedBook->judul.' - Stok tersedia: '.($selectedBook->stok_tersedia ?? 0) : '' }}"
                                     class="h-12 w-full rounded-xl border border-[var(--hairline)] bg-white px-4 pr-10 text-sm font-medium text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)]"
                                 >
@@ -153,11 +143,8 @@
 
                             <input type="hidden" name="book_id" data-search-value value="{{ old('book_id') }}">
 
-                            <div
-                                data-search-dropdown
-                                class="absolute z-20 mt-2 hidden max-h-64 w-full overflow-y-auto rounded-xl border border-[var(--hairline)] bg-white p-1 shadow-lg"
-                            >
-                                @foreach($books as $book)
+                            <div data-search-dropdown class="absolute z-20 mt-2 hidden max-h-64 w-full overflow-y-auto rounded-xl border border-[var(--hairline)] bg-white p-1 shadow-lg">
+                                @foreach($booksPaket as $book)
                                     <button
                                         type="button"
                                         data-search-option
@@ -172,7 +159,7 @@
                                 @endforeach
 
                                 <p data-search-empty class="hidden px-3 py-2 text-sm text-[var(--muted)]">
-                                    Buku tidak ditemukan
+                                    Buku Paket tidak ditemukan
                                 </p>
                             </div>
                         </div>
@@ -193,53 +180,12 @@
                         >
 
                         <p class="mt-2 text-xs text-[var(--muted)]">
-                            Kode buku harus sesuai dengan judul buku yang dipilih dan statusnya masih tersedia.
+                            Kode buku harus sesuai dengan Buku Paket yang dipilih dan statusnya masih tersedia.
                         </p>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-[var(--text)]">
-                                Tanggal Pinjam <span class="text-red-500">*</span>
-                            </label>
-
-                            <input
-                                type="date"
-                                name="tanggal_pinjam"
-                                id="tanggal_pinjam"
-                                value="{{ $tanggalPinjamDefault }}"
-                                required
-                                class="h-12 w-full rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-medium text-[var(--text)] outline-none transition focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)]"
-                            >
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-[var(--text)]">
-                                Tanggal Kembali <span class="text-red-500">*</span>
-                            </label>
-
-                            <input
-                                type="date"
-                                name="tanggal_kembali"
-                                id="tanggal_kembali"
-                                value="{{ $tanggalKembaliDefault }}"
-                                required
-                                class="h-12 w-full rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-medium text-[var(--text)] outline-none transition focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)]"
-                            >
-
-                            <p class="mt-2 text-xs text-[var(--muted)]">
-                                Otomatis {{ $lamaPinjamDefault ?? 7 }} hari dari tanggal pinjam, tapi tetap bisa diedit.
-                            </p>
-                        </div>
-                    </div>
-
                     <div class="flex flex-col gap-3 border-t border-[var(--hairline)] pt-5 sm:flex-row sm:justify-end">
-                        <a
-                            href="{{ route('admin.peminjaman.index') }}"
-                            class="inline-flex h-11 items-center justify-center rounded-xl border border-[var(--hairline)] bg-white px-5 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:bg-[var(--sand)]/50"
-                        >
-                            Batal
-                        </a>
+                        <a href="{{ route('admin.pinjamkelas.kelas') }}" class="inline-flex h-11 items-center justify-center rounded-xl border border-[var(--hairline)] bg-white px-5 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:bg-[var(--sand)]/50">Batal</a>
 
                         <button
                             type="submit"
@@ -261,12 +207,10 @@
                     </div>
 
                     <div>
-                        <h3 class="font-display text-sm font-semibold text-[var(--forest)]">
-                            Cara Kerja
-                        </h3>
+                        <h3 class="font-display text-sm font-semibold text-[var(--forest)]">Cara Kerja</h3>
 
                         <p class="mt-2 text-sm leading-relaxed text-[var(--emerald-deep)]">
-                            Peminjaman yang diinput admin akan langsung berstatus disetujui.
+                            Peminjaman Buku Paket yang diinput admin akan berstatus pending menunggu persetujuan.
                         </p>
 
                         <p class="mt-2 text-sm leading-relaxed text-[var(--emerald-deep)]">
@@ -274,7 +218,23 @@
                         </p>
 
                         <p class="mt-2 text-sm leading-relaxed text-[var(--emerald-deep)]">
-                            Tanggal kembali mengikuti setting lama pinjam default.
+                            Tidak ada tanggal pinjam/kembali untuk peminjaman paket.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-sky-200 bg-sky-50 p-5 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-sky-600 ring-1 ring-sky-100">
+                        <i class="fas fa-file-excel"></i>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-semibold text-sky-800">Import Massal</h3>
+
+                        <p class="mt-2 text-sm leading-relaxed text-sky-700">
+                            Punya banyak data peminjaman sekaligus? Gunakan tombol "Import Excel" di atas untuk input otomatis.
                         </p>
                     </div>
                 </div>
@@ -287,12 +247,10 @@
                     </div>
 
                     <div>
-                        <h3 class="text-sm font-semibold text-amber-800">
-                            Catatan
-                        </h3>
+                        <h3 class="text-sm font-semibold text-amber-800">Catatan</h3>
 
                         <p class="mt-2 text-sm leading-relaxed text-amber-700">
-                            Jika kode buku tidak cocok dengan judul buku, sistem akan menolak input peminjaman.
+                            Jika kode buku tidak cocok dengan Buku Paket, sistem akan menolak input peminjaman.
                         </p>
                     </div>
                 </div>
@@ -303,31 +261,56 @@
 
 </div>
 
+{{-- ===================== MODAL IMPORT EXCEL ===================== --}}
+<x-modal name="import-pinjam-paket" title="Import Peminjaman Paket dari Excel" maxWidth="md">
+    <form action="{{ route('admin.pinjamkelas.import.preview') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
+        @csrf
+
+        <div>
+            <label class="mb-2 block text-sm font-semibold text-[var(--text)]">
+                File Excel <span class="text-red-500">*</span>
+            </label>
+
+            <input
+                type="file"
+                name="file"
+                accept=".xlsx,.xls"
+                required
+                class="block w-full rounded-xl border border-[var(--hairline)] px-4 py-3 text-sm shadow-sm focus:border-[var(--emerald)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+            >
+        </div>
+
+        <div class="rounded-xl border border-sky-100 bg-sky-50 px-4 py-3">
+            <div class="flex items-start gap-3">
+                <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-sky-600 ring-1 ring-sky-100">
+                    <i class="fas fa-circle-info text-xs"></i>
+                </div>
+
+                <div class="text-xs leading-relaxed text-[var(--text)]/70">
+                    <p>File Excel wajib punya header <strong>NISN</strong> dan <strong>KODE_BUKU</strong> pada baris pertama.</p>
+
+                    <p class="mt-1">
+                        Sistem otomatis mencocokkan kode buku dengan Buku Paket yang sesuai. Baris dengan NISN/kode tidak valid akan dilewati dan dilaporkan.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+            <button
+                type="submit"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
+            >
+                <i class="fas fa-upload text-xs"></i>
+                Import
+            </button>
+        </div>
+    </form>
+</x-modal>
+
 <script>
     (function () {
-        // ---------- Tanggal kembali otomatis ----------
-        var tanggalPinjam = document.getElementById('tanggal_pinjam');
-        var tanggalKembali = document.getElementById('tanggal_kembali');
-        var lamaPinjamDefault = {{ (int) ($lamaPinjamDefault ?? 7) }};
-
-        if (tanggalPinjam && tanggalKembali) {
-            tanggalPinjam.addEventListener('change', function () {
-                if (!tanggalPinjam.value) {
-                    return;
-                }
-
-                var date = new Date(tanggalPinjam.value);
-                date.setDate(date.getDate() + lamaPinjamDefault);
-
-                var year = date.getFullYear();
-                var month = String(date.getMonth() + 1).padStart(2, '0');
-                var day = String(date.getDate()).padStart(2, '0');
-
-                tanggalKembali.value = year + '-' + month + '-' + day;
-            });
-        }
-
-        // ---------- Searchable select (siswa & buku) ----------
+        // ---------- Searchable select (siswa & buku paket) ----------
         var wrappers = document.querySelectorAll('[data-searchable-select]');
 
         wrappers.forEach(function (wrapper) {
@@ -392,7 +375,6 @@
             });
 
             input.addEventListener('input', function () {
-                // Mengetik ulang berarti pilihan sebelumnya dianggap belum final
                 hidden.value = '';
                 filterOptions();
                 openDropdown();
@@ -432,7 +414,7 @@
         });
 
         // ---------- Validasi ringan sebelum submit ----------
-        var form = document.getElementById('form-peminjaman');
+        var form = document.getElementById('form-pinjam-paket');
         if (form) {
             form.addEventListener('submit', function (e) {
                 var missing = [];

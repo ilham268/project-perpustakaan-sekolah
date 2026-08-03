@@ -9,10 +9,11 @@ class PinjamKelas extends Model
     protected $table = 'pinjam_kelas';
 
     protected $fillable = [
-        'kategori_pinjam_id',
         'user_id',
         'book_id',
         'kode_buku',
+        'tanggal_pinjam',
+        'tanggal_kembali',
         'status',
         'kondisi',
         'denda',
@@ -20,13 +21,10 @@ class PinjamKelas extends Model
     ];
 
     protected $casts = [
+        'tanggal_pinjam' => 'datetime',
+        'tanggal_kembali' => 'datetime',
         'denda' => 'integer',
     ];
-
-    public function kategori()
-    {
-        return $this->belongsTo(KategoriPinjam::class, 'kategori_pinjam_id');
-    }
 
     public function user()
     {

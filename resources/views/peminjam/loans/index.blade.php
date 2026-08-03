@@ -9,103 +9,95 @@
 
     {{-- Alert Success --}}
     @if(session('success'))
-        <div class="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-800 shadow-sm">
-            <span class="text-sm font-medium">
-                {{ session('success') }}
-            </span>
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800 shadow-sm">
+            <span class="text-sm font-medium">{{ session('success') }}</span>
         </div>
     @endif
 
     {{-- Alert Deleted --}}
     @if(session('deleted'))
         <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
-            <span class="text-sm font-medium">
-                {{ session('deleted') }}
-            </span>
+            <span class="text-sm font-medium">{{ session('deleted') }}</span>
         </div>
     @endif
 
     {{-- Alert Updated --}}
     @if(session('updated'))
-        <div class="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-blue-800 shadow-sm">
-            <span class="text-sm font-medium">
-                {{ session('updated') }}
-            </span>
+        <div class="rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4 text-sky-800 shadow-sm">
+            <span class="text-sm font-medium">{{ session('updated') }}</span>
         </div>
     @endif
 
     {{-- Alert Error --}}
     @if(session('error'))
         <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
-            <span class="text-sm font-medium">
-                {{ session('error') }}
-            </span>
+            <span class="text-sm font-medium">{{ session('error') }}</span>
         </div>
     @endif
 
     {{-- Header --}}
-    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-5 py-5 shadow-md shadow-emerald-100/60 md:px-7 md:py-6">
-        <div class="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10"></div>
-        <div class="pointer-events-none absolute right-20 -bottom-20 h-48 w-48 rounded-full bg-white/10"></div>
+    <div class="relative overflow-hidden rounded-[28px] px-5 py-6 shadow-lg shadow-[var(--forest)]/10 sm:px-7 sm:py-7" style="background-image: linear-gradient(135deg, var(--forest) 0%, var(--emerald-deep) 48%, var(--emerald) 100%);">
+        <div class="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-white/[0.06]"></div>
+        <div class="pointer-events-none absolute -bottom-24 right-10 h-64 w-64 rounded-full bg-white/[0.05]"></div>
 
-        <div class="relative">
-            <p class="text-xs font-bold uppercase tracking-wide text-emerald-50">
-                Data Peminjaman
+        <div class="relative z-10">
+            <p class="catalog-eyebrow font-semibold uppercase text-white/70">
+                Data&nbsp;Peminjaman
             </p>
 
-            <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl">
+            <h1 class="font-display mt-3 text-[26px] font-semibold leading-tight tracking-tight text-white sm:text-3xl md:text-[32px]">
                 Riwayat Peminjaman Saya
             </h1>
 
-            <p class="mt-2 max-w-2xl text-sm leading-relaxed text-emerald-50">
+            <p class="mt-3 max-w-2xl text-[13.5px] leading-relaxed text-white/80 sm:text-sm">
                 Daftar semua riwayat pengajuan, persetujuan, penolakan, dan pengembalian buku Anda.
             </p>
         </div>
     </div>
 
-    {{-- Stat Cards - kotak dipertahankan --}}
+    {{-- Stat Cards --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 
         {{-- Total Riwayat --}}
-        <div class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60">
-            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-emerald-50 transition group-hover:bg-emerald-100"></div>
+        <div class="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[var(--emerald)]/10">
+            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-[var(--emerald-tint)] transition group-hover:bg-[var(--emerald-tint)]"></div>
 
             <div class="relative flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-sm font-medium text-slate-500">
+                    <p class="catalog-eyebrow font-semibold uppercase text-[var(--muted)]">
                         Total Riwayat
                     </p>
 
-                    <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                    <p class="font-mono-stat mt-2 text-3xl font-semibold tracking-tight text-[var(--text)]">
                         {{ $loans->count() }}
                     </p>
 
-                    <p class="mt-1 text-xs font-medium text-slate-400">
+                    <p class="mt-1 text-xs font-medium text-[var(--muted)]">
                         data
                     </p>
                 </div>
 
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--emerald-tint)] text-[var(--emerald-deep)] ring-1 ring-[var(--emerald)]/15">
                     <i class="fas fa-book-open text-xl"></i>
                 </div>
             </div>
         </div>
 
         {{-- Menunggu --}}
-        <div class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60">
+        <div class="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-amber-100/60">
             <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-amber-50 transition group-hover:bg-amber-100"></div>
 
             <div class="relative flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-sm font-medium text-slate-500">
+                    <p class="catalog-eyebrow font-semibold uppercase text-[var(--muted)]">
                         Menunggu
                     </p>
 
-                    <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                    <p class="font-mono-stat mt-2 text-3xl font-semibold tracking-tight text-[var(--text)]">
                         {{ $loans->where('status', 'pending')->count() }}
                     </p>
 
-                    <p class="mt-1 text-xs font-medium text-slate-400">
+                    <p class="mt-1 text-xs font-medium text-[var(--muted)]">
                         data
                     </p>
                 </div>
@@ -117,25 +109,25 @@
         </div>
 
         {{-- Dikembalikan --}}
-        <div class="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-100/60">
-            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-blue-50 transition group-hover:bg-blue-100"></div>
+        <div class="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-sky-100/60">
+            <div class="absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-sky-50 transition group-hover:bg-sky-100"></div>
 
             <div class="relative flex items-start justify-between gap-4">
                 <div>
-                    <p class="text-sm font-medium text-slate-500">
+                    <p class="catalog-eyebrow font-semibold uppercase text-[var(--muted)]">
                         Dikembalikan
                     </p>
 
-                    <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+                    <p class="font-mono-stat mt-2 text-3xl font-semibold tracking-tight text-[var(--text)]">
                         {{ $loans->where('status', 'dikembalikan')->count() }}
                     </p>
 
-                    <p class="mt-1 text-xs font-medium text-slate-400">
+                    <p class="mt-1 text-xs font-medium text-[var(--muted)]">
                         data
                     </p>
                 </div>
 
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
                     <i class="fas fa-check-double text-xl"></i>
                 </div>
             </div>
@@ -144,13 +136,13 @@
     </div>
 
     {{-- Table --}}
-    <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div class="border-b border-slate-100 bg-white px-5 py-4">
-            <h2 class="text-lg font-extrabold text-slate-900">
+    <div class="overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white shadow-sm">
+        <div class="border-b border-[var(--hairline)] px-6 py-5">
+            <h2 class="font-display text-lg font-semibold text-[var(--forest)]">
                 Data Riwayat Peminjaman
             </h2>
 
-            <p class="mt-1 text-sm text-slate-500">
+            <p class="mt-1 text-sm text-[var(--muted)]">
                 Riwayat pengajuan, persetujuan, penolakan, dan pengembalian buku.
             </p>
         </div>
@@ -158,36 +150,36 @@
         <div class="overflow-x-auto">
             <table class="w-full min-w-[1180px] border-collapse text-sm">
                 <thead>
-                    <tr class="bg-slate-50 text-xs font-bold uppercase tracking-wide text-slate-500">
-                        <th class="w-16 border border-slate-200 px-5 py-4 text-left">
+                    <tr class="catalog-eyebrow bg-[var(--sand)]/40 uppercase text-[var(--muted)]">
+                        <th class="w-16 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                             No
                         </th>
 
-                        <th class="border border-slate-200 px-5 py-4 text-left">
+                        <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                             Judul Buku
                         </th>
 
-                        <th class="w-36 border border-slate-200 px-5 py-4 text-left">
+                        <th class="w-36 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                             Kode Buku
                         </th>
 
-                        <th class="border border-slate-200 px-5 py-4 text-left">
+                        <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                             Kategori
                         </th>
 
-                        <th class="w-36 border border-slate-200 px-5 py-4 text-center">
+                        <th class="w-36 border border-[var(--hairline)] px-5 py-4 text-center font-semibold">
                             Status
                         </th>
 
-                        <th class="border border-slate-200 px-5 py-4 text-left">
+                        <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                             Petugas
                         </th>
 
-                        <th class="w-36 border border-slate-200 px-5 py-4 text-center">
+                        <th class="w-36 border border-[var(--hairline)] px-5 py-4 text-center font-semibold">
                             Tgl Pinjam
                         </th>
 
-                        <th class="w-40 border border-slate-200 px-5 py-4 text-center">
+                        <th class="w-40 border border-[var(--hairline)] px-5 py-4 text-center font-semibold">
                             Tgl Kembali
                         </th>
                     </tr>
@@ -195,36 +187,36 @@
 
                 <tbody class="bg-white">
                     @forelse($loans as $index => $loan)
-                        <tr class="transition-colors hover:bg-slate-50">
-                            <td class="border border-slate-200 px-5 py-4 font-medium text-slate-600">
+                        <tr class="transition-colors hover:bg-[var(--sand)]/30">
+                            <td class="border border-[var(--hairline)] px-5 py-4 font-medium text-[var(--muted)]">
                                 {{ $index + 1 }}
                             </td>
 
-                            <td class="border border-slate-200 px-5 py-4">
-                                <span class="block max-w-[280px] truncate font-semibold text-slate-800">
+                            <td class="border border-[var(--hairline)] px-5 py-4">
+                                <span class="block max-w-[280px] truncate font-semibold text-[var(--text)]">
                                     {{ $loan->bookItem->book->judul ?? '-' }}
                                 </span>
                             </td>
 
-                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                            <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--muted)]">
                                 {{ $loan->bookItem->kode_buku ?? '-' }}
                             </td>
 
-                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                            <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--muted)]">
                                 {{ $loan->bookItem->book->category->nama_kategori ?? '-' }}
                             </td>
 
-                            <td class="border border-slate-200 px-5 py-4 text-center">
+                            <td class="border border-[var(--hairline)] px-5 py-4 text-center">
                                 @if($loan->status == 'pending')
                                     <span class="font-semibold text-amber-600">
                                         Pending
                                     </span>
                                 @elseif($loan->status == 'disetujui')
-                                    <span class="font-semibold text-emerald-600">
+                                    <span class="font-semibold text-[var(--emerald-deep)]">
                                         Disetujui
                                     </span>
                                 @elseif($loan->status == 'dikembalikan')
-                                    <span class="font-semibold text-blue-600">
+                                    <span class="font-semibold text-sky-600">
                                         Dikembalikan
                                     </span>
                                 @elseif($loan->status == 'ditolak')
@@ -232,27 +224,27 @@
                                         Ditolak
                                     </span>
                                 @else
-                                    <span class="font-semibold text-slate-500">
+                                    <span class="font-semibold text-[var(--text)]/70">
                                         {{ ucfirst($loan->status ?? '-') }}
                                     </span>
                                 @endif
                             </td>
 
-                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
+                            <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--muted)]">
                                 {{ $loan->petugas->name ?? '-' }}
                             </td>
 
-                            <td class="border border-slate-200 px-5 py-4 text-center text-slate-500">
+                            <td class="border border-[var(--hairline)] px-5 py-4 text-center text-[var(--muted)]">
                                 {{ $loan->tanggal_pinjam ? \Carbon\Carbon::parse($loan->tanggal_pinjam)->format('d M Y') : '-' }}
                             </td>
 
-                            <td class="border border-slate-200 px-5 py-4 text-center">
+                            <td class="border border-[var(--hairline)] px-5 py-4 text-center">
                                 @if($loan->tanggal_kembali)
-                                    <span class="text-slate-500">
+                                    <span class="text-[var(--muted)]">
                                         {{ \Carbon\Carbon::parse($loan->tanggal_kembali)->format('d M Y') }}
                                     </span>
                                 @else
-                                    <span class="italic text-slate-400">
+                                    <span class="italic text-[var(--muted)]/70">
                                         Belum dikembalikan
                                     </span>
                                 @endif
@@ -275,12 +267,16 @@
                         @endif
                     @empty
                         <tr>
-                            <td colspan="8" class="border border-slate-200 px-6 py-16 text-center">
-                                <p class="text-sm font-bold text-slate-700">
+                            <td colspan="8" class="border border-[var(--hairline)] px-6 py-16 text-center">
+                                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--sand)]/60 text-[var(--muted)]">
+                                    <i class="fas fa-book-open text-2xl"></i>
+                                </div>
+
+                                <p class="font-display mt-4 text-base font-semibold text-[var(--text)]">
                                     Belum Ada Riwayat Peminjaman
                                 </p>
 
-                                <p class="mt-1 text-sm text-slate-400">
+                                <p class="mt-1 text-sm text-[var(--muted)]">
                                     Anda belum memiliki riwayat peminjaman buku.
                                 </p>
                             </td>

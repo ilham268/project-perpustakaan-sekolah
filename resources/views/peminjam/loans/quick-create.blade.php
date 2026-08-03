@@ -1,41 +1,32 @@
-@extends('layouts.admin')
+@extends('layouts.peminjam')
 
-@section('title', 'Input Peminjaman Buku')
-@section('page-title', 'Input Peminjaman Buku')
+@section('title', 'Input Peminjaman Cepat')
+@section('page-title', 'Input Peminjaman Cepat')
 
 @section('content')
 
 @php
-    $tanggalPinjamDefault = old('tanggal_pinjam', now()->format('Y-m-d'));
-    $tanggalKembaliDefault = old('tanggal_kembali', now()->addDays($lamaPinjamDefault ?? 7)->format('Y-m-d'));
-
     $selectedSiswa = $siswas->firstWhere('id', (int) old('user_id'));
-    $selectedBook = $books->firstWhere('id', (int) old('book_id'));
+    $selectedBook = $books->firstWhere('id', (int) old('book_id', $selectedBookId));
 @endphp
 
 <div class="space-y-6">
 
     @if(session('success'))
         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800 shadow-sm">
-            <span class="text-sm font-medium">
-                {{ session('success') }}
-            </span>
+            <span class="text-sm font-medium">{{ session('success') }}</span>
         </div>
     @endif
 
     @if(session('error'))
         <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
-            <span class="text-sm font-medium">
-                {{ session('error') }}
-            </span>
+            <span class="text-sm font-medium">{{ session('error') }}</span>
         </div>
     @endif
 
     @if($errors->any())
         <div class="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-800 shadow-sm">
-            <span class="text-sm font-medium">
-                {{ $errors->first() }}
-            </span>
+            <span class="text-sm font-medium">{{ $errors->first() }}</span>
         </div>
     @endif
 
@@ -46,26 +37,18 @@
 
         <div class="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-                <p class="catalog-eyebrow font-semibold uppercase text-white/70">
-                    Peminjaman&nbsp;Manual
-                </p>
+                <p class="catalog-eyebrow font-semibold uppercase text-white/70">Peminjaman&nbsp;Mandiri</p>
 
                 <h1 class="font-display mt-3 text-[26px] font-semibold leading-tight tracking-tight text-white sm:text-3xl md:text-[32px]">
-                    Input Peminjaman Buku
+                    Input Peminjaman Cepat
                 </h1>
 
                 <p class="mt-3 max-w-2xl text-[13.5px] leading-relaxed text-white/80 sm:text-sm">
-                    Admin dapat menginput peminjaman buku untuk siswa secara langsung tanpa menunggu siswa mengajukan.
+                    Cari nama siswa, pilih buku, lalu masukkan kode buku fisik yang tertera di buku. Peminjaman langsung tercatat di sistem perpustakaan.
                 </p>
             </div>
 
-            <a
-                href="{{ route('admin.peminjaman.index') }}"
-                class="inline-flex h-10 w-fit shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-white px-4 text-sm font-semibold text-[var(--emerald-deep)] shadow-sm transition hover:bg-white/90 focus:outline-none focus:ring-4 focus:ring-white/30"
-            >
-                <i class="fas fa-arrow-left text-xs"></i>
-                <span>Kembali</span>
-            </a>
+            <a href="{{ route('peminjam.list-buku') }}" class="inline-flex h-10 w-fit shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-white px-4 text-sm font-semibold text-[var(--emerald-deep)] shadow-sm transition hover:bg-white/90 focus:outline-none focus:ring-4 focus:ring-white/30"><i class="fas fa-arrow-left text-xs"></i> <span>Kembali ke Katalog</span></a>
         </div>
     </div>
 
@@ -75,15 +58,15 @@
             <div class="overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white shadow-sm">
                 <div class="border-b border-[var(--hairline)] px-6 py-5">
                     <h2 class="font-display text-lg font-semibold text-[var(--forest)]">
-                        Form Input Peminjaman
+                        Form Peminjaman
                     </h2>
 
                     <p class="mt-1 text-sm text-[var(--muted)]">
-                        Pilih siswa, pilih buku, masukkan kode buku fisik, lalu simpan peminjaman.
+                        Pastikan nama siswa dan kode buku fisik sudah benar sebelum menyimpan.
                     </p>
                 </div>
 
-                <form action="{{ route('admin.peminjaman.store') }}" method="POST" class="space-y-5 p-6" id="form-peminjaman">
+                <form action="{{ route('peminjam.loan.quick-store') }}" method="POST" class="space-y-5 p-6" id="form-quick-peminjaman">
                     @csrf
 
                     {{-- ===================== SISWA (searchable: nama & NISN) ===================== --}}
@@ -107,10 +90,7 @@
 
                             <input type="hidden" name="user_id" data-search-value value="{{ old('user_id') }}">
 
-                            <div
-                                data-search-dropdown
-                                class="absolute z-20 mt-2 hidden max-h-64 w-full overflow-y-auto rounded-xl border border-[var(--hairline)] bg-white p-1 shadow-lg"
-                            >
+                            <div data-search-dropdown class="absolute z-20 mt-2 hidden max-h-64 w-full overflow-y-auto rounded-xl border border-[var(--hairline)] bg-white p-1 shadow-lg">
                                 @foreach($siswas as $siswa)
                                     <button
                                         type="button"
@@ -132,7 +112,7 @@
                         </div>
                     </div>
 
-                    {{-- ===================== BUKU (searchable: judul) ===================== --}}
+                    {{-- ===================== BUKU (searchable: judul, otomatis kepilih dari katalog) ===================== --}}
                     <div>
                         <label class="mb-2 block text-sm font-semibold text-[var(--text)]">
                             Buku Referensi <span class="text-red-500">*</span>
@@ -151,12 +131,9 @@
                                 <i class="fas fa-magnifying-glass pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-[var(--muted)]"></i>
                             </div>
 
-                            <input type="hidden" name="book_id" data-search-value value="{{ old('book_id') }}">
+                            <input type="hidden" name="book_id" data-search-value value="{{ $selectedBook->id ?? old('book_id') }}">
 
-                            <div
-                                data-search-dropdown
-                                class="absolute z-20 mt-2 hidden max-h-64 w-full overflow-y-auto rounded-xl border border-[var(--hairline)] bg-white p-1 shadow-lg"
-                            >
+                            <div data-search-dropdown class="absolute z-20 mt-2 hidden max-h-64 w-full overflow-y-auto rounded-xl border border-[var(--hairline)] bg-white p-1 shadow-lg">
                                 @foreach($books as $book)
                                     <button
                                         type="button"
@@ -176,6 +153,12 @@
                                 </p>
                             </div>
                         </div>
+
+                        @if($selectedBook)
+                            <p class="mt-2 text-xs text-[var(--emerald-deep)]">
+                                <i class="fas fa-circle-check"></i> Buku otomatis terpilih dari katalog. Bisa diganti dengan mencari judul lain kalau perlu.
+                            </p>
+                        @endif
                     </div>
 
                     <div>
@@ -193,53 +176,12 @@
                         >
 
                         <p class="mt-2 text-xs text-[var(--muted)]">
-                            Kode buku harus sesuai dengan judul buku yang dipilih dan statusnya masih tersedia.
+                            Kode buku harus sesuai dengan label yang ditempel pada buku fisik dan statusnya masih tersedia.
                         </p>
                     </div>
 
-                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-[var(--text)]">
-                                Tanggal Pinjam <span class="text-red-500">*</span>
-                            </label>
-
-                            <input
-                                type="date"
-                                name="tanggal_pinjam"
-                                id="tanggal_pinjam"
-                                value="{{ $tanggalPinjamDefault }}"
-                                required
-                                class="h-12 w-full rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-medium text-[var(--text)] outline-none transition focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)]"
-                            >
-                        </div>
-
-                        <div>
-                            <label class="mb-2 block text-sm font-semibold text-[var(--text)]">
-                                Tanggal Kembali <span class="text-red-500">*</span>
-                            </label>
-
-                            <input
-                                type="date"
-                                name="tanggal_kembali"
-                                id="tanggal_kembali"
-                                value="{{ $tanggalKembaliDefault }}"
-                                required
-                                class="h-12 w-full rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-medium text-[var(--text)] outline-none transition focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)]"
-                            >
-
-                            <p class="mt-2 text-xs text-[var(--muted)]">
-                                Otomatis {{ $lamaPinjamDefault ?? 7 }} hari dari tanggal pinjam, tapi tetap bisa diedit.
-                            </p>
-                        </div>
-                    </div>
-
                     <div class="flex flex-col gap-3 border-t border-[var(--hairline)] pt-5 sm:flex-row sm:justify-end">
-                        <a
-                            href="{{ route('admin.peminjaman.index') }}"
-                            class="inline-flex h-11 items-center justify-center rounded-xl border border-[var(--hairline)] bg-white px-5 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:bg-[var(--sand)]/50"
-                        >
-                            Batal
-                        </a>
+                        <a href="{{ route('peminjam.list-buku') }}" class="inline-flex h-11 items-center justify-center rounded-xl border border-[var(--hairline)] bg-white px-5 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:bg-[var(--sand)]/50">Batal</a>
 
                         <button
                             type="submit"
@@ -266,15 +208,15 @@
                         </h3>
 
                         <p class="mt-2 text-sm leading-relaxed text-[var(--emerald-deep)]">
-                            Peminjaman yang diinput admin akan langsung berstatus disetujui.
+                            Peminjaman langsung berstatus disetujui begitu disimpan.
                         </p>
 
                         <p class="mt-2 text-sm leading-relaxed text-[var(--emerald-deep)]">
-                            Kode buku yang dipilih otomatis berubah menjadi dipinjam.
+                            Tanggal kembali otomatis mengikuti setting lama pinjam default ({{ $lamaPinjamDefault }} hari).
                         </p>
 
                         <p class="mt-2 text-sm leading-relaxed text-[var(--emerald-deep)]">
-                            Tanggal kembali mengikuti setting lama pinjam default.
+                            Data langsung tercatat di sistem perpustakaan.
                         </p>
                     </div>
                 </div>
@@ -292,7 +234,7 @@
                         </h3>
 
                         <p class="mt-2 text-sm leading-relaxed text-amber-700">
-                            Jika kode buku tidak cocok dengan judul buku, sistem akan menolak input peminjaman.
+                            Pastikan kode buku fisik sesuai dengan judul yang dipilih, dan hanya bisa dipakai jika buku masih tersedia.
                         </p>
                     </div>
                 </div>
@@ -305,29 +247,6 @@
 
 <script>
     (function () {
-        // ---------- Tanggal kembali otomatis ----------
-        var tanggalPinjam = document.getElementById('tanggal_pinjam');
-        var tanggalKembali = document.getElementById('tanggal_kembali');
-        var lamaPinjamDefault = {{ (int) ($lamaPinjamDefault ?? 7) }};
-
-        if (tanggalPinjam && tanggalKembali) {
-            tanggalPinjam.addEventListener('change', function () {
-                if (!tanggalPinjam.value) {
-                    return;
-                }
-
-                var date = new Date(tanggalPinjam.value);
-                date.setDate(date.getDate() + lamaPinjamDefault);
-
-                var year = date.getFullYear();
-                var month = String(date.getMonth() + 1).padStart(2, '0');
-                var day = String(date.getDate()).padStart(2, '0');
-
-                tanggalKembali.value = year + '-' + month + '-' + day;
-            });
-        }
-
-        // ---------- Searchable select (siswa & buku) ----------
         var wrappers = document.querySelectorAll('[data-searchable-select]');
 
         wrappers.forEach(function (wrapper) {
@@ -392,7 +311,6 @@
             });
 
             input.addEventListener('input', function () {
-                // Mengetik ulang berarti pilihan sebelumnya dianggap belum final
                 hidden.value = '';
                 filterOptions();
                 openDropdown();
@@ -431,13 +349,12 @@
             });
         });
 
-        // ---------- Validasi ringan sebelum submit ----------
-        var form = document.getElementById('form-peminjaman');
+        var form = document.getElementById('form-quick-peminjaman');
         if (form) {
             form.addEventListener('submit', function (e) {
                 var missing = [];
 
-                wrappers.forEach(function (wrapper) {
+                document.querySelectorAll('[data-searchable-select]').forEach(function (wrapper) {
                     var hidden = wrapper.querySelector('[data-search-value]');
                     var input = wrapper.querySelector('[data-search-input]');
                     if (!hidden.value) {

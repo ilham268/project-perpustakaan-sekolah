@@ -246,6 +246,148 @@ class LoanController extends Controller
         }
     }
 
+    public function quickCreate(Request $request)
+    {
+        $siswas = User::where('role', 'siswa')
+            ->orderBy('name')
+            ->get();
+
+        $books = Book::withCount([
+                'bookItems as stok_tersedia' => function ($q) {
+                    $q->where('status', 'available')
+                        ->whereNotNull('kode_buku')
+                        ->where('kode_buku', '!=', '');
+                }
+            ])
+            ->where(function ($q) {
+                $q->where('jenis_koleksi', 'like', '%Referensi%')
+                    ->orWhere('jenis_koleksi', 'like', '%Reference%')
+                    ->orWhere('jenis_koleksi', 'like', '%Referance%')
+                    ->orWhere('jenis_koleksi', 'like', '%Raferance%')
+                    ->orWhere('jenis_koleksi', 'like', '%Referen%')
+                    ->orWhere('jenis_koleksi', 'like', '%Ref%');
+            })
+            ->orderBy('judul')
+            ->get();
+
+        $selectedBookId = (int) $request->query('book_id');
+        $lamaPinjamDefault = $this->lamaPinjamDefault();
+
+        return view('peminjam.loans.quick-create', compact(
+            'siswas',
+            'books',
+            'selectedBookId',
+            'lamaPinjamDefault'
+        ));
+    }
+
+    public function quickStore(Request $request)
+    {
+        $request->validate([
+            'user_id' => ['required', 'exists:users,id'],
+            'book_id' => ['required', 'exists:books,id'],
+            'kode_buku' => ['required', 'string', 'max:100'],
+        ], [
+            'user_id.required' => 'Siswa wajib dipilih.',
+            'book_id.required' => 'Buku wajib dipilih.',
+            'kode_buku.required' => 'Kode buku wajib diisi.',
+        ]);
+
+        $kodeBuku = strtoupper(trim($request->kode_buku));
+
+        try {
+            DB::beginTransaction();
+
+            $user = User::where('id', $request->user_id)
+                ->where('role', 'siswa')
+                ->first();
+
+            if (!$user) {
+                DB::rollBack();
+
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'User yang dipilih bukan siswa.');
+            }
+
+            $book = Book::where('id', $request->book_id)
+                ->where(function ($q) {
+                    $q->where('jenis_koleksi', 'like', '%Referensi%')
+                        ->orWhere('jenis_koleksi', 'like', '%Reference%')
+                        ->orWhere('jenis_koleksi', 'like', '%Referance%')
+                        ->orWhere('jenis_koleksi', 'like', '%Raferance%')
+                        ->orWhere('jenis_koleksi', 'like', '%Referen%')
+                        ->orWhere('jenis_koleksi', 'like', '%Ref%');
+                })
+                ->first();
+
+            if (!$book) {
+                DB::rollBack();
+
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Buku yang dipilih bukan Buku Referensi.');
+            }
+
+            $bookItem = BookItem::where('book_id', $book->id)
+                ->whereNotNull('kode_buku')
+                ->where('kode_buku', '!=', '')
+                ->whereRaw('UPPER(kode_buku) = ?', [$kodeBuku])
+                ->lockForUpdate()
+                ->first();
+
+            if (!$bookItem) {
+                DB::rollBack();
+
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Kode buku tidak valid atau tidak cocok dengan judul buku yang dipilih.');
+            }
+
+            if ($bookItem->status !== 'available') {
+                DB::rollBack();
+
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('error', 'Kode buku ini sudah dipinjam atau tidak tersedia.');
+            }
+
+            $lamaPinjamDefault = $this->lamaPinjamDefault();
+            $tanggalPinjam = now();
+            $tanggalKembali = $tanggalPinjam->copy()->addDays($lamaPinjamDefault);
+
+            Loan::create([
+                'user_id' => $user->id,
+                'book_item_id' => $bookItem->id,
+                'tanggal_pinjam' => $tanggalPinjam->format('Y-m-d'),
+                'tanggal_kembali' => $tanggalKembali->format('Y-m-d'),
+                'status' => 'disetujui',
+                'petugas_id' => Auth::id(),
+            ]);
+
+            $bookItem->update([
+                'status' => 'borrowed',
+            ]);
+
+            DB::commit();
+
+            return redirect()
+                ->route('peminjam.list-buku')
+                ->with('success', 'Peminjaman berhasil dicatat. Silakan ambil buku di meja perpustakaan.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal input peminjaman: ' . $e->getMessage());
+        }
+    }
+
     public function index()
     {
         $user = Auth::user();

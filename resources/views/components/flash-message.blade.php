@@ -3,22 +3,38 @@
 @php
     $config = [
         'success' => [
-            'icon' => '<div class="w-20 h-20 rounded-full bg-sky-100 text-sky-500 flex items-center justify-center"><i class="fas fa-circle-check text-5xl"></i></div>',
+            'icon' => 'fa-circle-check',
+            'iconSize' => 'text-4xl',
+            'accent' => 'var(--emerald,#147A54)',
+            'iconBg' => 'var(--emerald-tint,#E9F3EE)',
+            'iconColor' => 'var(--emerald-deep,#0C5E40)',
             'title' => 'Data berhasil disimpan!',
             'message' => 'Data Anda telah tersimpan dengan aman'
         ],
         'deleted' => [
-            'icon' => '<div class="w-20 h-20 rounded-full bg-red-100 text-red-500 flex items-center justify-center"><i class="fas fa-trash-can text-4xl"></i></div>',
+            'icon' => 'fa-trash-can',
+            'iconSize' => 'text-3xl',
+            'accent' => '#DC2626',
+            'iconBg' => '#FEF2F2',
+            'iconColor' => '#DC2626',
             'title' => 'Data berhasil dihapus!',
             'message' => 'Data Anda telah dihapus dari sistem'
         ],
         'updated' => [
-            'icon' => '<div class="w-20 h-20 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center"><i class="fas fa-pen-to-square text-4xl"></i></div>',
+            'icon' => 'fa-pen-to-square',
+            'iconSize' => 'text-3xl',
+            'accent' => 'var(--gold,#AC8752)',
+            'iconBg' => '#F6EEE0',
+            'iconColor' => 'var(--gold,#AC8752)',
             'title' => 'Perubahan Berhasil!',
             'message' => 'Perubahan yang Anda buat telah disimpan dengan sukses'
         ],
         'error' => [
-            'icon' => '<div class="w-20 h-20 rounded-full bg-red-100 text-red-600 flex items-center justify-center"><i class="fas fa-circle-xmark text-5xl"></i></div>',
+            'icon' => 'fa-circle-xmark',
+            'iconSize' => 'text-4xl',
+            'accent' => '#DC2626',
+            'iconBg' => '#FEF2F2',
+            'iconColor' => '#DC2626',
             'title' => 'Terjadi Kesalahan!',
             'message' => 'Mohon coba lagi atau hubungi administrator'
         ]
@@ -38,37 +54,47 @@
     x-transition:leave-start="opacity-100 transform scale-100"
     x-transition:leave-end="opacity-0 transform scale-90"
     x-init="setTimeout(() => show = false, 5000)"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--ink,#0E2620)]/60 px-4 backdrop-blur-sm"
     style="display: none;"
 >
-    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-8 text-center relative">
-        <!-- Close Button -->
+    <div class="relative w-full max-w-sm overflow-hidden rounded-[1.75rem] border border-[var(--hairline,#E7E2D6)] bg-white p-8 text-center shadow-2xl shadow-[var(--forest,#0F3D2E)]/10">
+
+        {{-- Thin accent line --}}
+        <div class="absolute inset-x-0 top-0 h-1" style="background-color: {{ $current['accent'] }};"></div>
+
+        {{-- Close Button --}}
         <button
             @click="show = false"
-            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            class="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-[var(--muted,#6E7770)] transition-colors hover:bg-[var(--sand,#F1ECE0)]/60"
         >
-            <i class="fas fa-times w-5 h-5"></i>
+            <i class="fas fa-times"></i>
         </button>
 
-        <!-- Icon -->
-        <div class="flex justify-center mb-4">
-            {!! $current['icon'] !!}
+        {{-- Icon --}}
+        <div class="mb-4 flex justify-center">
+            <div
+                class="relative flex h-20 w-20 items-center justify-center rounded-full"
+                style="background-color: {{ $current['iconBg'] }}; color: {{ $current['iconColor'] }};"
+            >
+                <i class="fas {{ $current['icon'] }} {{ $current['iconSize'] }}"></i>
+            </div>
         </div>
 
-        <!-- Title -->
-        <h3 class="text-xl font-bold text-gray-900 mb-2">
+        {{-- Title --}}
+        <h3 class="font-display mb-2 text-xl font-semibold tracking-tight text-[var(--forest,#0F3D2E)]">
             {{ $slot->isEmpty() ? $current['title'] : $slot }}
         </h3>
 
-        <!-- Message -->
-        <p class="text-sm text-gray-600">
+        {{-- Message --}}
+        <p class="text-sm leading-relaxed text-[var(--muted,#6E7770)]">
             {{ $attributes->get('message') ?? $current['message'] }}
         </p>
 
-        <!-- Button -->
+        {{-- Button --}}
         <button
             @click="show = false"
-            class="mt-6 px-8 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors font-medium"
+            class="mt-6 rounded-xl px-8 py-2.5 text-sm font-semibold text-white shadow-md shadow-[var(--forest,#0F3D2E)]/25 transition hover:-translate-y-0.5 hover:shadow-lg"
+            style="background-image: linear-gradient(180deg, var(--emerald,#147A54) 0%, var(--emerald-deep,#0C5E40) 100%);"
         >
             Kembali
         </button>

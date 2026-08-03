@@ -6,7 +6,6 @@ use App\Models\GuestBook;
 use App\Exports\GuestBookExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 
 class GuestBookController extends Controller
 {
@@ -19,15 +18,18 @@ class GuestBookController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:255',
+            'kelas' => 'required|string|max:255',
             'keperluan' => 'required|string',
         ]);
 
         GuestBook::create([
             'nama' => $request->nama,
+            'kelas' => $request->kelas,
             'keperluan' => $request->keperluan,
         ]);
 
-        return redirect()->route('guest-book.create')->with('success', 'Terima kasih telah mengisi buku tamu!');
+        return redirect()->route('guest-book.create')
+            ->with('success', 'Terima kasih telah mengisi buku tamu!');
     }
 
     public function adminIndex(Request $request)
@@ -36,8 +38,10 @@ class GuestBookController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
+
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', '%' . $search . '%')
+                  ->orWhere('kelas', 'like', '%' . $search . '%')
                   ->orWhere('keperluan', 'like', '%' . $search . '%');
             });
         }
@@ -51,21 +55,25 @@ class GuestBookController extends Controller
 
         $guestBooks = $query->latest()->paginate(10)->withQueryString();
 
-        $totalKunjungan   = GuestBook::count();
-        $todayKunjungan   = GuestBook::whereDate('created_at', today())->count();
-        $monthKunjungan   = GuestBook::whereMonth('created_at', now()->month)
-                                     ->whereYear('created_at', now()->year)->count();
+        $totalKunjungan = GuestBook::count();
+        $todayKunjungan = GuestBook::whereDate('created_at', today())->count();
+        $monthKunjungan = GuestBook::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
 
         return view('admin.guest-book.index', compact(
-            'guestBooks', 'totalKunjungan', 'todayKunjungan', 'monthKunjungan'
+            'guestBooks',
+            'totalKunjungan',
+            'todayKunjungan',
+            'monthKunjungan'
         ));
     }
 
     public function export(Request $request)
     {
         $startDate = $request->start_date;
-        $endDate   = $request->end_date;
-        $filename  = 'buku-tamu-' . now()->format('Ymd-His') . '.xlsx';
+        $endDate = $request->end_date;
+        $filename = 'buku-tamu-' . now()->format('Ymd-His') . '.xlsx';
 
         return Excel::download(new GuestBookExport($startDate, $endDate), $filename);
     }
@@ -75,6 +83,7 @@ class GuestBookController extends Controller
         $guestBook = GuestBook::findOrFail($id);
         $guestBook->delete();
 
-        return redirect()->route('admin.guest-book.index')->with('success', 'Data buku tamu berhasil dihapus');
+        return redirect()->route('admin.guest-book.index')
+            ->with('success', 'Data buku tamu berhasil dihapus');
     }
 }

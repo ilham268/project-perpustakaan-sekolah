@@ -11,13 +11,9 @@ return new class extends Migration
         Schema::create('pinjam_kelas', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('kategori_pinjam_id')
-                ->constrained('kategori_pinjams')
-                ->onDelete('cascade');
-
             $table->foreignId('user_id')
                 ->constrained('users')
-                ->onDelete('cascade');
+                ->cascadeOnDelete();
 
             $table->foreignId('book_id')
                 ->nullable()
@@ -25,6 +21,10 @@ return new class extends Migration
                 ->nullOnDelete();
 
             $table->string('kode_buku')->nullable();
+
+            $table->timestamp('tanggal_pinjam')->nullable();
+
+            $table->timestamp('tanggal_kembali')->nullable();
 
             $table->enum('status', [
                 'pending',
@@ -44,7 +44,7 @@ return new class extends Migration
             $table->enum('status_denda', [
                 'pending',
                 'paid',
-            ])->nullable()->default(null);
+            ])->nullable();
 
             $table->timestamps();
         });

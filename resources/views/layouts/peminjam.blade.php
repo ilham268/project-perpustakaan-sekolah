@@ -177,6 +177,19 @@
                 </a>
 
                 @guest
+                    {{-- Input Peminjaman Buku --}}
+                    <a
+                        href="{{ route('peminjam.loan.quick-create') }}"
+                        class="nav-link {{ request()->routeIs('peminjam.loan.quick-*') ? 'is-active' : '' }}
+                        {{ request()->routeIs('peminjam.loan.quick-*')
+                            ? 'bg-[var(--emerald-tint)] text-[var(--forest)]'
+                            : 'text-[var(--text)]/80 hover:bg-[var(--sand)]/60 hover:text-[var(--forest)]'
+                        }}"
+                    >
+                        <i class="fas fa-pen {{ request()->routeIs('peminjam.loan.quick-*') ? 'text-[var(--emerald)]' : 'text-[var(--muted)]' }}"></i>
+                        <span>Input Peminjaman Buku</span>
+                    </a>
+
                     {{-- Buku Tamu --}}
                     <a
                         href="{{ route('guest-book.create') }}"

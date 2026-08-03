@@ -37,7 +37,7 @@
 
     <!-- Nama Kategori -->
     <div>
-        <label for="nama_kategori_{{ $category->id }}" class="block text-sm font-medium text-gray-700 mb-2">
+        <label for="nama_kategori_{{ $category->id }}" class="mb-2 block text-sm font-semibold text-[var(--text)]">
             Nama Kategori<span class="text-red-500">*</span>
         </label>
         <input
@@ -46,8 +46,8 @@
             name="nama_kategori"
             value="{{ $category->nama_kategori }}"
             placeholder="Masukkan nama kategori"
-            class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 border-gray-300 focus:ring-cyan-500"
-            :class="errors.nama_kategori ? 'border-red-500 focus:ring-red-500' : ''"
+            class="w-full rounded-xl border border-[var(--hairline)] px-4 py-2 text-sm text-[var(--text)] outline-none transition focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)]"
+            :class="errors.nama_kategori ? 'border-red-500 focus:ring-red-100' : ''"
         >
         <p x-show="errors.nama_kategori" x-text="errors.nama_kategori ? errors.nama_kategori[0] : ''" class="mt-1 text-sm text-red-600"></p>
     </div>
@@ -57,7 +57,7 @@
         <button
             type="submit"
             :disabled="isSubmitting"
-            class="px-6 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            class="rounded-xl bg-[var(--emerald-deep)] px-6 py-2 text-sm font-semibold text-white transition hover:bg-[var(--forest)] disabled:cursor-not-allowed disabled:opacity-50"
         >
             <span x-show="!isSubmitting">Simpan</span>
             <span x-show="isSubmitting">Menyimpan...</span>
