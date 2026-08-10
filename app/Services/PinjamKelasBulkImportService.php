@@ -15,13 +15,13 @@ class PinjamKelasBulkImportService
     protected array $errors = [];
 
     /**
-     * Kumpulkan semua label mapel unik dari file (tanpa proses simpan apapun).
-     * Dipanggil setiap kali import, hasilnya SELALU ditanyakan ke admin.
+     * Daftar semua sheet (jurusan) yang terdeteksi di file, lengkap dengan
+     * kelas, jurusan, dan jumlah siswa -- dipakai untuk halaman "Pilih Jurusan".
      */
-    public function extractSubjectLabels(string $filePath): array
+    public function listSheetsInfo(string $filePath): array
     {
         $spreadsheet = IOFactory::load($filePath);
-        $labels = [];
+        $sheets = [];
 
         foreach ($spreadsheet->getSheetNames() as $sheetName) {
             $sheet = $spreadsheet->getSheetByName($sheetName);
@@ -31,11 +31,60 @@ class PinjamKelasBulkImportService
                 continue;
             }
 
-            foreach ($structure['subjectColumns'] as $label) {
-                $key = $label . '|' . ($structure['kelasLevel'] ?? '?');
+            $jumlahSiswa = 0;
+
+            foreach ($structure['rows'] as $rowIndex => $row) {
+                if ($rowIndex < $structure['dataStart']) {
+                    continue;
+                }
+
+                $nisn = trim((string) ($row[$structure['colNisn']] ?? ''));
+
+                if ($nisn !== '' && preg_match('/^\d+$/', $nisn)) {
+                    $jumlahSiswa++;
+                }
+            }
+
+            $sheets[] = [
+                'sheet_name' => $sheetName,
+                'kelas' => $structure['kelasLevel'],
+                'jurusan' => $structure['jurusan'],
+                'jumlah_siswa' => $jumlahSiswa,
+                'jumlah_mapel' => count($structure['subjectColumns']),
+            ];
+        }
+
+        return $sheets;
+    }
+
+    /**
+     * Ambil label mapel untuk SATU sheet saja.
+     */
+    public function extractSubjectLabelsForSheet(string $filePath, string $onlySheetName): array
+    {
+        $spreadsheet = IOFactory::load($filePath);
+        $labels = [];
+
+        $sheet = $spreadsheet->getSheetByName($onlySheetName);
+
+        if (!$sheet) {
+            return [];
+        }
+
+        $structure = $this->detectStructure($onlySheetName, $sheet);
+
+        if (!$structure) {
+            return [];
+        }
+
+        foreach ($structure['subjectColumns'] as $label) {
+            $key = $this->buildKey($label, $structure['kelasLevel'], null);
+
+            if (!isset($labels[$key])) {
                 $labels[$key] = [
                     'label' => $label,
                     'kelas' => $structure['kelasLevel'],
+                    'jurusan' => null,
                     'key' => $key,
                 ];
             }
@@ -45,18 +94,21 @@ class PinjamKelasBulkImportService
     }
 
     /**
-     * Proses import. $subjectBookMap adalah mapping SEMENTARA (key => book_id)
-     * yang dikirim dari form konfirmasi, dipakai hanya untuk sesi import ini,
-     * TIDAK disimpan ke database.
+     * Import hanya SATU sheet saja (jurusan yang dipilih admin).
+     * $subjectBookMap: key mapel (label|kelas|jurusan) => ARRAY of book_id.
      */
-    public function import(string $filePath, array $subjectBookMap): void
+    public function importSheet(string $filePath, string $onlySheetName, array $subjectBookMap): void
     {
         $spreadsheet = IOFactory::load($filePath);
 
-        foreach ($spreadsheet->getSheetNames() as $sheetName) {
-            $sheet = $spreadsheet->getSheetByName($sheetName);
-            $this->processSheet($sheetName, $sheet, $subjectBookMap);
+        $sheet = $spreadsheet->getSheetByName($onlySheetName);
+
+        if (!$sheet) {
+            $this->errors[] = "Sheet '{$onlySheetName}' tidak ditemukan di file.";
+            return;
         }
+
+        $this->processSheet($onlySheetName, $sheet, $subjectBookMap);
     }
 
     protected function processSheet(string $sheetName, $sheet, array $subjectBookMap): void
@@ -71,6 +123,7 @@ class PinjamKelasBulkImportService
         $colNisn = $structure['colNisn'];
         $subjectColumns = $structure['subjectColumns'];
         $kelasLevel = $structure['kelasLevel'];
+        $jurusan = $structure['jurusan'];
         $dataStart = $structure['dataStart'];
 
         foreach ($rows as $rowIndex => $row) {
@@ -99,7 +152,7 @@ class PinjamKelasBulkImportService
                 }
 
                 $kode = $this->normalizeCode($rawValue);
-                $this->processEntry($sheetName, $rowIndex, $user, $label, $kode, $kelasLevel, $subjectBookMap);
+                $this->processEntry($sheetName, $rowIndex, $user, $label, $kode, $kelasLevel, $jurusan, $subjectBookMap);
             }
         }
     }
@@ -138,7 +191,7 @@ class PinjamKelasBulkImportService
             }
 
             if (str_contains($val, 'BUKU YANG DIPINJAM') && $colStart === null) {
-                $colStart = $this->shiftColumn($col, 1);
+                $colStart = $col;
             }
 
             if (str_contains($val, 'TANGGAL PEMINJAMAN') && $colEnd === null) {
@@ -154,8 +207,10 @@ class PinjamKelasBulkImportService
             $colEnd = $this->shiftColumn($colStart, 9);
         }
 
-        preg_match('/\b(XII|XI|X)\b/', strtoupper($sheetName), $m);
+        $upperSheet = strtoupper($sheetName);
+        preg_match('/\b(XII|XI|X)\b\s*([A-Z]+)?/', $upperSheet, $m);
         $kelasLevel = $m[1] ?? null;
+        $jurusan = trim($m[2] ?? '') ?: null;
 
         $subjectColumns = [];
 
@@ -176,6 +231,7 @@ class PinjamKelasBulkImportService
             'colNisn' => $colNisn,
             'subjectColumns' => $subjectColumns,
             'kelasLevel' => $kelasLevel,
+            'jurusan' => $jurusan,
             'dataStart' => $headerRow + 2,
         ];
     }
@@ -190,16 +246,15 @@ class PinjamKelasBulkImportService
 
         return User::where('role', 'siswa')
             ->whereIn('nomor_identitas', $variants)
-            ->lockForUpdate()
             ->first();
     }
 
-    protected function processEntry(string $sheetName, int $rowIndex, User $user, string $label, string $kode, ?string $kelasLevel, array $subjectBookMap): void
+    protected function processEntry(string $sheetName, int $rowIndex, User $user, string $label, string $kode, ?string $kelasLevel, ?string $jurusan, array $subjectBookMap): void
     {
-        $key = $label . '|' . ($kelasLevel ?? '?');
-        $bookId = $subjectBookMap[$key] ?? null;
+        $key = $this->buildKey($label, $kelasLevel, null);
+        $bookIds = $subjectBookMap[$key] ?? null;
 
-        if (!$bookId) {
+        if (empty($bookIds)) {
             $this->errors[] = "{$sheetName} baris {$rowIndex}: Mapel '{$label}' (Kelas {$kelasLevel}) belum dipetakan ke Buku Paket.";
             return;
         }
@@ -207,22 +262,23 @@ class PinjamKelasBulkImportService
         try {
             DB::beginTransaction();
 
-            $bookItem = BookItem::where('book_id', $bookId)
+            $bookItem = BookItem::whereIn('book_id', $bookIds)
                 ->whereRaw('UPPER(kode_buku) = ?', [$kode])
                 ->lockForUpdate()
                 ->first();
 
             if (!$bookItem) {
-                $bookItem = BookItem::where('book_id', $bookId)
+                $bookItem = BookItem::whereIn('book_id', $bookIds)
                     ->where(function ($q) {
                         $q->whereNull('kode_buku')->orWhere('kode_buku', '');
                     })
+                    ->where('status', 'available')
                     ->lockForUpdate()
                     ->first();
 
                 if (!$bookItem) {
                     DB::rollBack();
-                    $this->errors[] = "{$sheetName} baris {$rowIndex}: Slot eksemplar buku '{$label}' sudah penuh, kode {$kode} tidak bisa ditambahkan.";
+                    $this->errors[] = "{$sheetName} baris {$rowIndex}: Slot eksemplar buku '{$label}' sudah penuh (seluruh salinan judul ini), kode {$kode} tidak bisa ditambahkan.";
                     return;
                 }
 
@@ -240,7 +296,7 @@ class PinjamKelasBulkImportService
                 $bookItem->update(['status' => 'borrowed']);
             }
 
-            $sedangDipinjam = PinjamKelas::where('book_id', $bookId)
+            $sedangDipinjam = PinjamKelas::whereIn('book_id', $bookIds)
                 ->where('kode_buku', $bookItem->kode_buku)
                 ->whereIn('status', ['pending', 'disetujui'])
                 ->lockForUpdate()
@@ -253,7 +309,7 @@ class PinjamKelasBulkImportService
             }
 
             PinjamKelas::create([
-                'book_id' => $bookId,
+                'book_id' => $bookItem->book_id,
                 'user_id' => $user->id,
                 'kode_buku' => $bookItem->kode_buku,
                 'tanggal_pinjam' => now(),
@@ -269,12 +325,28 @@ class PinjamKelasBulkImportService
         }
     }
 
+    protected function buildKey(string $label, ?string $kelas, ?string $jurusan): string
+    {
+        return $label . '|' . ($kelas ?? '?') . '|' . ($jurusan ?? '');
+    }
+
     protected function normalizeCode($value): string
     {
-        if (is_numeric($value)) {
+        // Sel Excel yang diformat sebagai angka murni (int/float) sampai ke PHP
+        // sebagai tipe int/float, bukan string -- leading zero-nya sudah hilang
+        // dari sisi Excel sendiri, jadi di sini kita hanya rapikan representasinya
+        // (buang ".0" pada float seperti 7.0 -> "7").
+        if (is_int($value)) {
+            return (string) $value;
+        }
+
+        if (is_float($value)) {
             return (string) (int) $value;
         }
 
+        // Untuk semua sel bertipe string (termasuk "007", "12A", "A12B", dst),
+        // kita PERTAHANKAN apa adanya (cuma trim + uppercase), jangan dikonversi
+        // ke angka -- supaya leading zero dan kode alfanumerik tidak rusak.
         return strtoupper(trim((string) $value));
     }
 

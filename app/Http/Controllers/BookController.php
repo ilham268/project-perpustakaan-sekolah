@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\BookItem;
 use App\Models\Category;
+use App\Models\PinjamKelas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -317,6 +318,89 @@ class BookController extends Controller
         return redirect()
             ->route('books.index')
             ->with('deleted', true);
+    }
+
+    /**
+     * Gabungkan beberapa Book (judul beda tapi sebenarnya buku yang sama) menjadi 1 buku utama.
+     * Semua BookItem dan riwayat PinjamKelas dipindah ke buku utama (target_id),
+     * lalu buku-buku sumber lainnya dihapus. Ditolak kalau ada kode buku yang bentrok
+     * antara buku utama dan buku sumber (karena constraint unik per book_id+kode_buku).
+     */
+    public function merge(Request $request)
+    {
+        $request->validate([
+            'book_ids' => ['required', 'array', 'min:2'],
+            'book_ids.*' => ['integer', 'exists:books,id'],
+            'target_id' => ['required', 'integer'],
+        ], [
+            'book_ids.min' => 'Pilih minimal 2 buku untuk digabung.',
+        ]);
+
+        $bookIds = array_values(array_unique(array_map('intval', $request->book_ids)));
+        $targetId = (int) $request->target_id;
+
+        if (!in_array($targetId, $bookIds)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Buku utama harus salah satu dari buku yang dipilih.');
+        }
+
+        $sourceIds = array_values(array_diff($bookIds, [$targetId]));
+
+        if (empty($sourceIds)) {
+            return redirect()
+                ->back()
+                ->with('error', 'Tidak ada buku lain yang perlu digabung.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Cek bentrok kode buku antara buku utama dan buku sumber.
+            $targetCodes = BookItem::where('book_id', $targetId)
+                ->whereNotNull('kode_buku')
+                ->where('kode_buku', '!=', '')
+                ->pluck('kode_buku')
+                ->map(fn ($c) => strtoupper(trim($c)))
+                ->toArray();
+
+            $conflicts = BookItem::whereIn('book_id', $sourceIds)
+                ->whereNotNull('kode_buku')
+                ->where('kode_buku', '!=', '')
+                ->get()
+                ->filter(fn ($item) => in_array(strtoupper(trim($item->kode_buku)), $targetCodes));
+
+            if ($conflicts->isNotEmpty()) {
+                DB::rollBack();
+
+                $codes = $conflicts->pluck('kode_buku')->unique()->implode(', ');
+
+                return redirect()
+                    ->back()
+                    ->with('error', "Gagal digabung: kode buku bentrok antar buku yang dipilih ({$codes}). Ganti salah satu kode itu dulu sebelum digabung.");
+            }
+
+            // Pindahkan semua eksemplar dari buku sumber ke buku utama.
+            BookItem::whereIn('book_id', $sourceIds)->update(['book_id' => $targetId]);
+
+            // Pindahkan riwayat peminjaman kelas yang masih menunjuk ke buku sumber.
+            PinjamKelas::whereIn('book_id', $sourceIds)->update(['book_id' => $targetId]);
+
+            // Buku sumber yang sudah kosong (semua eksemplarnya sudah pindah) dihapus.
+            Book::whereIn('id', $sourceIds)->delete();
+
+            DB::commit();
+
+            return redirect()
+                ->back()
+                ->with('success', count($sourceIds) . ' buku berhasil digabungkan ke buku utama.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return redirect()
+                ->back()
+                ->with('error', 'Gagal menggabungkan buku: ' . $e->getMessage());
+        }
     }
 
     public function list(Request $request)

@@ -242,7 +242,7 @@ class KategoriPinjamController extends Controller
                     ->with('error', 'Kode buku ini sudah dipinjam atau tidak tersedia.');
             }
 
-            $sedangDipinjam = PinjamKelas::where('book_id', $bookItem->book_id)
+            $sedangDipinjam = PinjamKelas::whereIn('book_id', $relatedBookIds)
                 ->where('kode_buku', $bookItem->kode_buku)
                 ->whereIn('status', ['pending', 'disetujui'])
                 ->lockForUpdate()
@@ -293,9 +293,9 @@ class KategoriPinjamController extends Controller
         $fullPath = Storage::disk('local')->path($path);
 
         $service = new PinjamKelasBulkImportService();
-        $found = $service->extractSubjectLabels($fullPath);
+        $sheets = $service->listSheetsInfo($fullPath);
 
-        if (empty($found)) {
+        if (empty($sheets)) {
             @unlink($fullPath);
 
             return redirect()
@@ -303,9 +303,39 @@ class KategoriPinjamController extends Controller
                 ->with('error', 'Format file tidak dikenali. Pastikan file sesuai template data siswa peminjam.');
         }
 
-        // Selalu tanya ke admin setiap kali import, tidak pernah dilewati
-        // dan tidak ada yang disimpan permanen ke database.
+        return view('admin.pinjamkelas.input.pilih-jurusan', [
+            'tempFile' => $path,
+            'sheets' => $sheets,
+            'doneSheets' => [],
+        ]);
+    }
+
+    public function selectSheet(Request $request)
+    {
+        $request->validate([
+            'temp_file' => ['required', 'string'],
+            'sheet_name' => ['required', 'string'],
+            'done_sheets' => ['nullable', 'string'],
+        ]);
+
+        $fullPath = Storage::disk('local')->path($request->temp_file);
+
+        if (!file_exists($fullPath)) {
+            return redirect()
+                ->route('admin.pinjamkelas.input-peminjaman')
+                ->with('error', 'File sementara sudah tidak ditemukan, silakan upload ulang.');
+        }
+
+        $service = new PinjamKelasBulkImportService();
+        $found = $service->extractSubjectLabelsForSheet($fullPath, $request->sheet_name);
+
+        if (empty($found)) {
+            // Sheet ini tidak ada mapel untuk dipetakan, langsung proses.
+            return $this->runImportSheet($fullPath, $request->temp_file, $request->sheet_name, [], $request->done_sheets);
+        }
+
         $booksPaket = Book::query()
+            ->withCount('bookItems')
             ->where(function ($q) {
                 $this->filterPaket($q);
             })
@@ -313,7 +343,9 @@ class KategoriPinjamController extends Controller
             ->get();
 
         return view('admin.pinjamkelas.input.mapping', [
-            'tempFile' => $path,
+            'tempFile' => $request->temp_file,
+            'sheetName' => $request->sheet_name,
+            'doneSheets' => $request->done_sheets,
             'unmapped' => $found,
             'booksPaket' => $booksPaket,
         ]);
@@ -323,6 +355,7 @@ class KategoriPinjamController extends Controller
     {
         $request->validate([
             'temp_file' => ['required', 'string'],
+            'sheet_name' => ['required', 'string'],
             'keys' => ['required', 'array'],
             'book_ids' => ['required', 'array'],
         ]);
@@ -336,56 +369,122 @@ class KategoriPinjamController extends Controller
         }
 
         // Mapping ini HANYA dipakai untuk sesi import saat ini, tidak disimpan ke database.
+        // Untuk tiap mapel, gabungkan (pool) SEMUA book_id yang judulnya persis sama dengan
+        // buku yang dipilih admin -- karena satu judul buku bisa tercatat di beberapa baris
+        // Book berbeda (misal hasil import Excel BOS tahun berbeda), sehingga stok eksemplarnya
+        // terpecah. Kalau tidak digabung, sistem bisa keliru bilang "slot penuh" padahal
+        // sebenarnya masih ada eksemplar kosong di book_id lain dengan judul sama.
         $subjectBookMap = [];
 
         foreach ($request->keys as $i => $key) {
             $bookId = $request->book_ids[$i] ?? null;
 
-            if ($bookId) {
-                $subjectBookMap[$key] = (int) $bookId;
+            if (!$bookId) {
+                continue;
             }
+
+            $selectedBook = Book::find($bookId);
+
+            if (!$selectedBook) {
+                continue;
+            }
+
+            $pooledIds = Book::where(function ($q) {
+                    $this->filterPaket($q);
+                })
+                ->whereRaw('LOWER(TRIM(judul)) = ?', [strtolower(trim($selectedBook->judul))])
+                ->pluck('id')
+                ->toArray();
+
+            $subjectBookMap[$key] = $pooledIds;
         }
 
-        return $this->runImport($fullPath, $subjectBookMap);
+        return $this->runImportSheet($fullPath, $request->temp_file, $request->sheet_name, $subjectBookMap, $request->done_sheets);
     }
 
-    protected function runImport(string $fullPath, array $subjectBookMap)
+    /**
+     * Proses SATU sheet (jurusan) saja, lalu kembali ke halaman "Pilih Jurusan"
+     * dengan status sheet ini ditandai sudah selesai.
+     */
+    protected function runImportSheet(string $fullPath, string $tempFileRelative, string $sheetName, array $subjectBookMap, ?string $doneSheetsStr)
     {
-        try {
-            $service = new PinjamKelasBulkImportService();
-            $service->import($fullPath, $subjectBookMap);
+        $service = new PinjamKelasBulkImportService();
+        $service->importSheet($fullPath, $sheetName, $subjectBookMap);
 
-            @unlink($fullPath);
+        $success = $service->getSuccessCount();
+        $errors = $service->getErrors();
 
-            $success = $service->getSuccessCount();
-            $errors = $service->getErrors();
+        $doneList = array_filter(explode(',', $doneSheetsStr ?? ''));
+        $doneList[] = $sheetName;
+        $doneList = array_unique($doneList);
+        $doneStr = implode(',', $doneList);
 
-            if (count($errors) > 0) {
-                $errorMessage = $success > 0
-                    ? "{$success} peminjaman berhasil diimport. "
-                    : '';
+        $message = "Sheet '{$sheetName}': {$success} peminjaman berhasil.";
 
-                $errorMessage .= count($errors) . ' baris/kolom gagal: ' . implode('; ', array_slice($errors, 0, 5));
+        if (count($errors) > 0) {
+            $message .= ' ' . count($errors) . ' baris/kolom gagal: ' . implode('; ', array_slice($errors, 0, 3));
 
-                if (count($errors) > 5) {
-                    $errorMessage .= ' ... dan ' . (count($errors) - 5) . ' lainnya.';
-                }
-
-                return redirect()
-                    ->route('admin.pinjamkelas.input-peminjaman')
-                    ->with('error', $errorMessage);
+            if (count($errors) > 3) {
+                $message .= ' ... dan ' . (count($errors) - 3) . ' lainnya.';
             }
-
-            return redirect()
-                ->route('admin.pinjamkelas.input-peminjaman')
-                ->with('success', "{$success} peminjaman Buku Paket berhasil diimport, kode buku otomatis terisi.");
-        } catch (\Throwable $e) {
-            @unlink($fullPath);
-
-            return redirect()
-                ->route('admin.pinjamkelas.input-peminjaman')
-                ->with('error', 'Gagal mengimport file: ' . $e->getMessage());
         }
+
+        return redirect()
+            ->route('admin.pinjamkelas.import.pilih-jurusan-view', [
+                'temp_file' => $tempFileRelative,
+                'done' => $doneStr,
+            ])
+            ->with(count($errors) > 0 ? 'error' : 'success', $message);
+    }
+
+    /**
+     * Halaman "Pilih Jurusan" -- daftar semua sheet di file, mana yang sudah
+     * diproses dan mana yang belum, supaya admin bisa proses satu per satu.
+     */
+    public function pilihJurusanView(Request $request)
+    {
+        $request->validate([
+            'temp_file' => ['required', 'string'],
+        ]);
+
+        $fullPath = Storage::disk('local')->path($request->temp_file);
+
+        if (!file_exists($fullPath)) {
+            return redirect()
+                ->route('admin.pinjamkelas.input-peminjaman')
+                ->with('error', 'File sementara sudah tidak ditemukan, silakan upload ulang.');
+        }
+
+        $service = new PinjamKelasBulkImportService();
+        $sheets = $service->listSheetsInfo($fullPath);
+
+        $doneSheets = array_filter(explode(',', $request->query('done', '')));
+
+        return view('admin.pinjamkelas.input.pilih-jurusan', [
+            'tempFile' => $request->temp_file,
+            'sheets' => $sheets,
+            'doneSheets' => $doneSheets,
+        ]);
+    }
+
+    /**
+     * Selesai import semua jurusan -- bersihkan file sementara.
+     */
+    public function finishImport(Request $request)
+    {
+        $request->validate([
+            'temp_file' => ['required', 'string'],
+        ]);
+
+        $fullPath = Storage::disk('local')->path($request->temp_file);
+
+        if (file_exists($fullPath)) {
+            @unlink($fullPath);
+        }
+
+        return redirect()
+            ->route('admin.pinjamkelas.input-peminjaman')
+            ->with('success', 'Import selesai. File sementara sudah dibersihkan.');
     }
 
     public function kelasPinjam(Request $request)

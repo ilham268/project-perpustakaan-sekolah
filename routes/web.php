@@ -70,6 +70,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/books', [BookController::class, 'index'])->name('books.index');
     Route::post('/books', [BookController::class, 'store'])->name('books.store');
     Route::post('/books/bulk-delete', [BookController::class, 'bulkDelete'])->name('books.bulk-delete');
+    Route::post('/books/merge', [BookController::class, 'merge'])->name('books.merge');
     Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
     Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
     Route::put('/books/{book}', [BookController::class, 'update'])->name('books.update');
@@ -126,10 +127,18 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
         Route::get('/input-peminjaman', [KategoriPinjamController::class, 'formPinjam'])
             ->name('admin.pinjamkelas.input-peminjaman');
+
+        // Route yang sudah diupdate
         Route::post('/import/preview', [KategoriPinjamController::class, 'previewImport'])
             ->name('admin.pinjamkelas.import.preview');
+        Route::get('/import/pilih-jurusan', [KategoriPinjamController::class, 'pilihJurusanView'])
+            ->name('admin.pinjamkelas.import.pilih-jurusan-view');
+        Route::post('/import/select-sheet', [KategoriPinjamController::class, 'selectSheet'])
+            ->name('admin.pinjamkelas.import.select-sheet');
         Route::post('/import/confirm', [KategoriPinjamController::class, 'confirmImport'])
             ->name('admin.pinjamkelas.import.confirm');
+        Route::post('/import/finish', [KategoriPinjamController::class, 'finishImport'])
+            ->name('admin.pinjamkelas.import.finish');
 
         Route::view('/', 'admin.pinjamkelas.index')->name('admin.pinjamkelas.index');
         Route::view('/create', 'admin.pinjamkelas.create-kelas')->name('admin.pinjamkelas.create');
