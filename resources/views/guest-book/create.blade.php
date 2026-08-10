@@ -14,7 +14,6 @@
                 <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
                     <i class="fas fa-check-circle"></i>
                 </div>
-
                 <span>{{ session('success') }}</span>
             </div>
         </div>
@@ -36,7 +35,7 @@
                 </h1>
 
                 <p class="mt-3 max-w-xl text-[13.5px] leading-relaxed text-white/80 sm:text-sm">
-                    Silakan isi identitas dan keperluan Anda mengunjungi perpustakaan.
+                    Silakan ketik nama/pilih identitas dan isi keperluan Anda mengunjungi perpustakaan.
                 </p>
             </div>
 
@@ -53,9 +52,8 @@
             <h3 class="font-display text-base font-semibold text-[var(--forest)]">
                 Form Buku Tamu
             </h3>
-
             <p class="mt-1 text-xs text-[var(--muted)]">
-                Lengkapi data berikut sebelum melanjutkan aktivitas di perpustakaan.
+                Ketik nama Anda di bawah ini (atau pilih dari saran yang muncul).
             </p>
         </div>
 
@@ -65,57 +63,85 @@
 
                 <div class="space-y-5">
 
-                    {{-- Nama --}}
-                    <div>
-                        <label for="nama" class="mb-2 block text-sm font-semibold text-[var(--text)]">
-                            Nama Lengkap
-                            <span class="text-red-500">*</span>
-                        </label>
+                    @if(auth()->check())
+                        {{-- Jika User Sudah Login --}}
+                        <div class="rounded-xl border border-[var(--hairline)] bg-[var(--paper)] p-4">
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">Identitas Pengunjung</label>
+                            <p class="mt-1 text-base font-bold text-[var(--text)]">{{ auth()->user()->name ?? auth()->user()->nama }}</p>
+                            <div class="mt-2 flex gap-4 text-xs font-medium text-[var(--muted)]">
+                                <span>Kelas: <strong class="text-[var(--text)]">{{ auth()->user()->kelas ?? '-' }}</strong></span>
+                                <span>Jurusan: <strong class="text-[var(--text)]">{{ auth()->user()->jurusan ?? '-' }}</strong></span>
+                            </div>
+                        </div>
+                        <input type="hidden" name="nama" value="{{ auth()->user()->name ?? auth()->user()->nama }}">
+                        <input type="hidden" name="kelas" value="{{ auth()->user()->kelas }}">
+                        <input type="hidden" name="jurusan" value="{{ auth()->user()->jurusan }}">
+                    @else
+                        {{-- Field Nama (Bisa Diketik & Auto Suggest) --}}
+                        <div>
+                            <label for="nama" class="mb-2 block text-sm font-semibold text-[var(--text)]">
+                                Nama Lengkap <span class="text-red-500">*</span>
+                            </label>
 
-                        <input
-                            type="text"
-                            id="nama"
-                            name="nama"
-                            value="{{ old('nama') }}"
-                            placeholder="Masukkan nama lengkap"
-                            required
-                            class="w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)] {{ $errors->has('nama') ? 'border-red-500' : 'border-[var(--hairline)]' }}"
-                        >
+                            <input
+                                type="text"
+                                id="nama"
+                                name="nama"
+                                list="siswa_list"
+                                autocomplete="off"
+                                value="{{ old('nama') }}"
+                                placeholder="Ketik nama Anda di sini..."
+                                required
+                                class="w-full rounded-xl border border-[var(--hairline)] bg-white px-4 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)] {{ $errors->has('nama') ? 'border-red-500' : '' }}"
+                            >
 
-                        @error('nama')
-                            <p class="mt-2 text-sm font-medium text-red-600">
-                                {{ $message }}
-                            </p>
-                        @enderror
-                    </div>
+                            <datalist id="siswa_list">
+                                @foreach($siswaList as $siswa)
+                                    <option value="{{ $siswa->name }}" data-kelas="{{ $siswa->kelas }}" data-jurusan="{{ $siswa->jurusan }}"></option>
+                                @endforeach
+                            </datalist>
 
-                    {{-- Kelas --}}
-                    <div>
-                        <label for="kelas" class="mb-2 block text-sm font-semibold text-[var(--text)]">
-                            Kelas
-                        </label>
+                            @error('nama')
+                                <p class="mt-2 text-sm font-medium text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                        <input
-                            type="text"
-                            id="kelas"
-                            name="kelas"
-                            value="{{ old('kelas') }}"
-                            placeholder="Contoh: XI RPL 2"
-                            class="w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)] {{ $errors->has('kelas') ? 'border-red-500' : 'border-[var(--hairline)]' }}"
-                        >
+                        {{-- Input Kelas & Jurusan (Otomatis Terisi saat nama terpilih / bisa diisi manual) --}}
+                        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                            <div>
+                                <label for="kelas" class="mb-2 block text-sm font-semibold text-[var(--text)]">
+                                    Kelas
+                                </label>
+                                <input
+                                    type="text"
+                                    id="kelas"
+                                    name="kelas"
+                                    value="{{ old('kelas') }}"
+                                    placeholder="Contoh: XI TOI 2"
+                                    class="w-full rounded-xl border border-[var(--hairline)] bg-white px-4 py-2.5 text-sm text-[var(--text)] outline-none transition focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                                >
+                            </div>
 
-                        @error('kelas')
-                            <p class="mt-2 text-sm font-medium text-red-600">
-                                {{ $message }}
-                            </p>
-                        @enderror
-                    </div>
+                            <div>
+                                <label for="jurusan" class="mb-2 block text-sm font-semibold text-[var(--text)]">
+                                    Jurusan
+                                </label>
+                                <input
+                                    type="text"
+                                    id="jurusan"
+                                    name="jurusan"
+                                    value="{{ old('jurusan') }}"
+                                    placeholder="Contoh: Teknik Otomasi"
+                                    class="w-full rounded-xl border border-[var(--hairline)] bg-white px-4 py-2.5 text-sm text-[var(--text)] outline-none transition focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                                >
+                            </div>
+                        </div>
+                    @endif
 
                     {{-- Keperluan --}}
                     <div>
                         <label for="keperluan" class="mb-2 block text-sm font-semibold text-[var(--text)]">
-                            Keperluan
-                            <span class="text-red-500">*</span>
+                            Keperluan <span class="text-red-500">*</span>
                         </label>
 
                         <textarea
@@ -124,13 +150,11 @@
                             rows="4"
                             placeholder="Contoh: Meminjam buku, membaca, mengerjakan tugas, dan lainnya."
                             required
-                            class="w-full resize-none rounded-xl border bg-white px-4 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)] {{ $errors->has('keperluan') ? 'border-red-500' : 'border-[var(--hairline)]' }}"
+                            class="w-full resize-none rounded-xl border border-[var(--hairline)] bg-white px-4 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)] {{ $errors->has('keperluan') ? 'border-red-500' : '' }}"
                         >{{ old('keperluan') }}</textarea>
 
                         @error('keperluan')
-                            <p class="mt-2 text-sm font-medium text-red-600">
-                                {{ $message }}
-                            </p>
+                            <p class="mt-2 text-sm font-medium text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -152,5 +176,26 @@
     </div>
 
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const namaInput = document.getElementById('nama');
+        const kelasInput = document.getElementById('kelas');
+        const jurusanInput = document.getElementById('jurusan');
+        const datalistOptions = document.querySelectorAll('#siswa_list option');
+
+        if (namaInput) {
+            namaInput.addEventListener('input', function() {
+                const val = this.value.trim();
+                datalistOptions.forEach(opt => {
+                    if (opt.value === val) {
+                        if (kelasInput) kelasInput.value = opt.getAttribute('data-kelas') || '';
+                        if (jurusanInput) jurusanInput.value = opt.getAttribute('data-jurusan') || '';
+                    }
+                });
+            });
+        }
+    });
+</script>
 
 @endsection

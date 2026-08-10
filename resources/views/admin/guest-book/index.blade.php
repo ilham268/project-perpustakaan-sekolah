@@ -32,7 +32,7 @@
                 </h1>
 
                 <p class="mt-3 max-w-2xl text-[13.5px] leading-relaxed text-white/80 sm:text-sm">
-                    Pantau data pengunjung perpustakaan berdasarkan nama, kelas, keperluan, tanggal, dan jam kunjungan.
+                    Pantau data pengunjung perpustakaan berdasarkan nama, kelas, jurusan, keperluan, tanggal, dan jam kunjungan.
                 </p>
             </div>
 
@@ -54,8 +54,9 @@
         id="filter-form"
         class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm"
     >
-        <div class="grid grid-cols-1 gap-3 lg:grid-cols-12">
-            <div class="relative lg:col-span-5">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12">
+            {{-- Search Input --}}
+            <div class="relative sm:col-span-2 lg:col-span-3">
                 <i class="fas fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]"></i>
 
                 <input
@@ -69,7 +70,40 @@
                 >
             </div>
 
-            <div class="lg:col-span-3">
+            {{-- Dropdown Filter Kelas --}}
+            <div class="lg:col-span-2">
+                <select
+                    name="kelas"
+                    id="kelas-select"
+                    class="h-11 w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-4 text-sm font-medium text-[var(--text)] transition focus:border-[var(--emerald)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                >
+                    <option value="">Semua Kelas</option>
+                    @foreach($listKelas as $k)
+                        <option value="{{ $k }}" {{ request('kelas') == $k ? 'selected' : '' }}>
+                            {{ $k }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Dropdown Filter Jurusan --}}
+            <div class="lg:col-span-2">
+                <select
+                    name="jurusan"
+                    id="jurusan-select"
+                    class="h-11 w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-4 text-sm font-medium text-[var(--text)] transition focus:border-[var(--emerald)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                >
+                    <option value="">Semua Jurusan</option>
+                    @foreach($listJurusan as $j)
+                        <option value="{{ $j }}" {{ request('jurusan') == $j ? 'selected' : '' }}>
+                            {{ $j }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Tanggal Mulai --}}
+            <div class="lg:col-span-2">
                 <input
                     type="date"
                     name="start_date"
@@ -79,7 +113,8 @@
                 >
             </div>
 
-            <div class="lg:col-span-3">
+            {{-- Tanggal Selesai --}}
+            <div class="lg:col-span-2">
                 <input
                     type="date"
                     name="end_date"
@@ -89,7 +124,8 @@
                 >
             </div>
 
-            <div class="lg:col-span-1">
+            {{-- Tombol Reset --}}
+            <div class="sm:col-span-2 lg:col-span-1">
                 <a
                     href="{{ route('admin.guest-book.index') }}"
                     class="inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
@@ -204,8 +240,12 @@
                             Nama
                         </th>
 
-                        <th class="w-32 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
+                        <th class="w-28 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                             Kelas
+                        </th>
+
+                        <th class="w-36 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
+                            Jurusan
                         </th>
 
                         <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
@@ -246,6 +286,12 @@
                             </td>
 
                             <td class="border border-[var(--hairline)] px-5 py-4">
+                                <span class="font-medium text-[var(--text)]/80">
+                                    {{ $guest->jurusan ?? '-' }}
+                                </span>
+                            </td>
+
+                            <td class="border border-[var(--hairline)] px-5 py-4">
                                 <p class="max-w-md font-medium leading-relaxed text-[var(--text)]/80">
                                     {{ Str::limit($guest->keperluan, 80) }}
                                 </p>
@@ -274,7 +320,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="border border-[var(--hairline)] px-6 py-16 text-center">
+                            <td colspan="8" class="border border-[var(--hairline)] px-6 py-16 text-center">
                                 <p class="text-sm font-semibold text-[var(--text)]">
                                     Tidak ada data buku tamu
                                 </p>
@@ -365,6 +411,8 @@
     (function () {
         var form = document.getElementById('filter-form');
         var searchInput = document.getElementById('search-input');
+        var kelasSelect = document.getElementById('kelas-select');
+        var jurusanSelect = document.getElementById('jurusan-select');
         var startDate = document.getElementById('start-date');
         var endDate = document.getElementById('end-date');
         var debounceTimer;
@@ -380,6 +428,18 @@
                 debounceTimer = setTimeout(function () {
                     form.submit();
                 }, 400);
+            });
+        }
+
+        if (kelasSelect) {
+            kelasSelect.addEventListener('change', function () {
+                form.submit();
+            });
+        }
+
+        if (jurusanSelect) {
+            jurusanSelect.addEventListener('change', function () {
+                form.submit();
             });
         }
 

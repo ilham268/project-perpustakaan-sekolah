@@ -312,16 +312,17 @@
 
                     <div x-show="open" x-collapse class="ml-8 mt-1 space-y-1 border-l border-[var(--hairline)] pl-3">
                         <a
-    href="{{ route('admin.pinjamkelas.input-peminjaman') }}"
-    class="sub-link
-    {{ request()->routeIs('admin.pinjamkelas.input-peminjaman')
-        ? 'bg-[var(--emerald-tint)] font-medium text-[var(--forest)]'
-        : 'text-[var(--muted)] hover:bg-[var(--sand)]/60 hover:text-[var(--emerald-deep)]'
-    }}"
->
-    <i class="fas fa-pen-to-square"></i>
-    <span>Input Peminjaman Paket</span>
-</a>
+                            href="{{ route('admin.pinjamkelas.input-peminjaman') }}"
+                            class="sub-link
+                            {{ request()->routeIs('admin.pinjamkelas.input-peminjaman')
+                                ? 'bg-[var(--emerald-tint)] font-medium text-[var(--forest)]'
+                                : 'text-[var(--muted)] hover:bg-[var(--sand)]/60 hover:text-[var(--emerald-deep)]'
+                            }}"
+                        >
+                            <i class="fas fa-pen-to-square"></i>
+                            <span>Input Peminjaman Paket</span>
+                        </a>
+
                         <a
                             href="{{ route('admin.pinjamkelas.kategori') }}"
                             class="sub-link
@@ -369,7 +370,20 @@
                     }}"
                 >
                     <i class="fas fa-door-open {{ request()->routeIs('admin.guest-book.*') ? 'text-[var(--emerald)]' : 'text-[var(--muted)]' }}"></i>
-                    <span>Buku Tamu</span>
+                    <span>Buku Tamu Siswa</span>
+                </a>
+
+                {{-- Menu Tambahan: Buku Tamu Guru --}}
+                <a
+                    href="{{ route('admin.teacher-guest-book.index') }}"
+                    class="nav-link {{ request()->routeIs('admin.teacher-guest-book.*') ? 'is-active' : '' }}
+                    {{ request()->routeIs('admin.teacher-guest-book.*')
+                        ? 'bg-[var(--emerald-tint)] text-[var(--forest)]'
+                        : 'text-[var(--text)]/80 hover:bg-[var(--sand)]/60 hover:text-[var(--forest)]'
+                    }}"
+                >
+                    <i class="fas fa-chalkboard-user {{ request()->routeIs('admin.teacher-guest-book.*') ? 'text-[var(--emerald)]' : 'text-[var(--muted)]' }}"></i>
+                    <span>Buku Tamu Guru</span>
                 </a>
             </nav>
 

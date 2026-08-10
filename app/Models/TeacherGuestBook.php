@@ -5,16 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class GuestBook extends Model
+class TeacherGuestBook extends Model
 {
     use HasFactory;
 
-    protected $table = 'guest_books';
+    protected $table = 'teacher_guest_books';
 
     protected $fillable = [
         'nama',
-        'kelas',
-        'jurusan',
         'keperluan',
     ];
 }

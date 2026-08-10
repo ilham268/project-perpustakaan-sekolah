@@ -97,7 +97,7 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 $q->whereIn('kelas', $kelasFilter);
             });
         }
-        
+
         $pinjamItems = $pinjamQuery
             ->orderBy('id', 'asc')
             ->get();
@@ -108,15 +108,22 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
         |--------------------------------------------------------------------------
         */
         $pinjamMap = [];
-        $tempHeadings = []; 
+        $tempHeadings = [];
 
         foreach ($pinjamItems as $item) {
-            if (!$item->user || !$item->book) {
+            // Kalau user-nya nggak ada, baris ini memang tidak bisa ditaruh
+            // di mana pun di tabel export (export dikelompokkan per siswa).
+            if (!$item->user) {
                 continue;
             }
 
             $userId = $item->user->id;
-            $bookName = $item->book->judul;
+
+            // Kalau relasi book-nya putus (book_id menunjuk ke buku yang sudah
+            // terhapus), JANGAN buang kode bukunya -- itu bikin data hilang diam-
+            // diam dari laporan export tanpa jejak. Tetap tampilkan di bawah
+            // kolom placeholder ini supaya ketahuan dan bisa ditelusuri manual.
+            $bookName = $item->book->judul ?? '(Buku Tidak Diketahui)';
 
             $tempHeadings[$bookName] = true;
 
@@ -205,7 +212,9 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
 
         foreach ($this->bookHeadings as $bookName) {
             $data[] = isset($row['books'][$bookName])
-                ? implode("\n", array_filter($row['books'][$bookName]))
+                ? implode("\n", array_filter($row['books'][$bookName], function ($kode) {
+                    return $kode !== '' && $kode !== null;
+                }))
                 : '';
         }
 
@@ -387,7 +396,7 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 $sheet->getRowDimension(6)->setRowHeight(20);
                 $sheet->getRowDimension(7)->setRowHeight(20);
                 $sheet->getRowDimension(8)->setRowHeight(8);
-                
+
                 $sheet->getRowDimension(9)->setRowHeight(-1);
                 $sheet->getRowDimension(10)->setRowHeight(-1);
 
@@ -401,7 +410,7 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
 
                 for ($col = $firstBookColumnIndex; $col <= $lastBookColumnIndex; $col++) {
                     $colLetter = Coordinate::stringFromColumnIndex($col);
-                    $sheet->getColumnDimension($colLetter)->setWidth(16); 
+                    $sheet->getColumnDimension($colLetter)->setWidth(16);
                 }
 
                 $sheet->getColumnDimension($tanggalPinjamColumn)->setWidth(18);

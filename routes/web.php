@@ -12,6 +12,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\ReturnBookController;
 use App\Http\Controllers\GuestBookController;
+use App\Http\Controllers\TeacherGuestBookController;
 use App\Http\Controllers\GuideController;
 use App\Http\Controllers\KategoriPinjamController;
 use App\Http\Controllers\PinjamKelasSiswaController;
@@ -24,8 +25,13 @@ Route::get('list-buku', [BookController::class, 'list'])->name('peminjam.list-bu
 Route::get('/pinjam-cepat', [LoanController::class, 'quickCreate'])->name('peminjam.loan.quick-create');
 Route::post('/pinjam-cepat', [LoanController::class, 'quickStore'])->name('peminjam.loan.quick-store');
 
+// Buku Tamu Siswa
 Route::get('/buku-tamu', [GuestBookController::class, 'create'])->name('guest-book.create');
 Route::post('/buku-tamu', [GuestBookController::class, 'store'])->name('guest-book.store');
+
+// Buku Tamu Guru (Halaman Pengisian Public)
+Route::get('/buku-tamu-guru', [TeacherGuestBookController::class, 'create'])->name('teacher-guest-book.create');
+Route::post('/buku-tamu-guru', [TeacherGuestBookController::class, 'store'])->name('teacher-guest-book.store');
 
 Route::get('/panduan', [GuideController::class, 'peminjam'])->name('peminjam.guides.index');
 Route::get('/panduan/{slug}', [GuideController::class, 'peminjamDetail'])->name('peminjam.guides.show');
@@ -108,9 +114,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/denda/kelas/{id}/invoice', [ReturnBookController::class, 'downloadInvoiceKelasAdmin'])->name('admin.denda.kelas.invoice');
     Route::get('/denda/export', [ReturnBookController::class, 'exportDenda'])->name('admin.denda.export');
 
+    // Buku Tamu Siswa (Admin)
     Route::get('/guest-book', [GuestBookController::class, 'adminIndex'])->name('admin.guest-book.index');
     Route::get('/guest-book/export', [GuestBookController::class, 'export'])->name('admin.guest-book.export');
     Route::delete('/guest-book/{id}', [GuestBookController::class, 'destroy'])->name('admin.guest-book.destroy');
+
+    // Buku Tamu Guru (Admin)
+    Route::get('/teacher-guest-book', [TeacherGuestBookController::class, 'adminIndex'])->name('admin.teacher-guest-book.index');
+    Route::get('/teacher-guest-book/export', [TeacherGuestBookController::class, 'export'])->name('admin.teacher-guest-book.export');
+    Route::delete('/teacher-guest-book/{id}', [TeacherGuestBookController::class, 'destroy'])->name('admin.teacher-guest-book.destroy');
 
     Route::prefix('pinjamkelas')->group(function () {
         Route::get('/kategori', [KategoriPinjamController::class, 'index'])->name('admin.pinjamkelas.kategori');
@@ -128,7 +140,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
         Route::get('/input-peminjaman', [KategoriPinjamController::class, 'formPinjam'])
             ->name('admin.pinjamkelas.input-peminjaman');
 
-        // Route yang sudah diupdate
         Route::post('/import/preview', [KategoriPinjamController::class, 'previewImport'])
             ->name('admin.pinjamkelas.import.preview');
         Route::get('/import/pilih-jurusan', [KategoriPinjamController::class, 'pilihJurusanView'])

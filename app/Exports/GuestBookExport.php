@@ -16,16 +16,22 @@ class GuestBookExport implements FromCollection, WithMapping, WithEvents
 {
     protected $startDate;
     protected $endDate;
+    protected $kelas;
 
-    public function __construct($startDate = null, $endDate = null)
+    public function __construct($startDate = null, $endDate = null, $kelas = null)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
+        $this->kelas = $kelas;
     }
 
     public function collection()
     {
         $query = GuestBook::query();
+
+        if ($this->kelas) {
+            $query->where('kelas', $this->kelas);
+        }
 
         if ($this->startDate && $this->endDate) {
             $query->whereBetween('created_at', [
@@ -45,6 +51,7 @@ class GuestBookExport implements FromCollection, WithMapping, WithEvents
         return [
             $no,
             $guest->nama,
+            $guest->kelas ?? '-',
             $guest->keperluan,
             Carbon::parse($guest->created_at)->format('d/m/Y'),
             Carbon::parse($guest->created_at)->format('H:i'),
@@ -60,26 +67,32 @@ class GuestBookExport implements FromCollection, WithMapping, WithEvents
                 // Set page orientation to landscape
                 $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
 
-                // Insert header rows at the top (6 rows: 5 for header + 1 for column headings)
+                // Insert header rows at the top (6 rows)
                 $sheet->insertNewRowBefore(1, 6);
 
-                // Merge cells for header (5 kolom: A-E)
-                $sheet->mergeCells('A1:E1');
-                $sheet->mergeCells('A2:E2');
-                $sheet->mergeCells('A3:E3');
-                $sheet->mergeCells('A4:E4');
+                // Merge cells for header (6 kolom: A-F)
+                $sheet->mergeCells('A1:F1');
+                $sheet->mergeCells('A2:F2');
+                $sheet->mergeCells('A3:F3');
+                $sheet->mergeCells('A4:F4');
 
                 // Set header text
                 $sheet->setCellValue('A1', 'LANTERA');
                 $sheet->setCellValue('A2', 'PERPUSTAKAAN SMK NEGERI 1 CERME');
                 $sheet->setCellValue('A3', 'LAPORAN DATA BUKU TAMU');
 
-                // Set periode
+                // Set periode & info kelas
+                $periode = 'Periode: ';
                 if ($this->startDate && $this->endDate) {
-                    $periode = 'Periode: ' . Carbon::parse($this->startDate)->format('d/m/Y') . ' - ' . Carbon::parse($this->endDate)->format('d/m/Y');
+                    $periode .= Carbon::parse($this->startDate)->format('d/m/Y') . ' - ' . Carbon::parse($this->endDate)->format('d/m/Y');
                 } else {
-                    $periode = 'Periode: Semua Data';
+                    $periode .= 'Semua Data';
                 }
+
+                if ($this->kelas) {
+                    $periode .= ' | Kelas: ' . $this->kelas;
+                }
+
                 $sheet->setCellValue('A4', $periode);
 
                 // Style header
@@ -100,18 +113,16 @@ class GuestBookExport implements FromCollection, WithMapping, WithEvents
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
                 ]);
 
-                // Row 5 is empty
-
-                // Set column headings at row 6
-                $headings = ['No', 'Nama', 'Keperluan', 'Tanggal', 'Jam'];
+                // Set column headings at row 6 (6 kolom: A-F)
+                $headings = ['No', 'Nama', 'Kelas', 'Keperluan', 'Tanggal', 'Jam'];
                 $col = 'A';
                 foreach ($headings as $heading) {
                     $sheet->setCellValue($col . '6', $heading);
                     $col++;
                 }
 
-                // Style heading row (5 kolom: A-E)
-                $sheet->getStyle('A6:E6')->applyFromArray([
+                // Style heading row (6 kolom: A-F)
+                $sheet->getStyle('A6:F6')->applyFromArray([
                     'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
                     'fill' => [
                         'fillType' => Fill::FILL_SOLID,
@@ -128,7 +139,7 @@ class GuestBookExport implements FromCollection, WithMapping, WithEvents
 
                 // Apply borders to data range
                 if ($highestRow >= 6) {
-                    $dataRange = 'A6:E' . $highestRow;
+                    $dataRange = 'A6:F' . $highestRow;
                     $sheet->getStyle($dataRange)->applyFromArray([
                         'borders' => [
                             'allBorders' => [
@@ -138,21 +149,22 @@ class GuestBookExport implements FromCollection, WithMapping, WithEvents
                         ],
                     ]);
 
-                    // Center align specific columns
+                    // Center align specific columns (No, Kelas, Tanggal, Jam)
                     $sheet->getStyle('A6:A' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                    $sheet->getStyle('D6:E' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle('C6:C' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                    $sheet->getStyle('E6:F' . $highestRow)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-                    // Wrap text for keperluan column
-                    $sheet->getStyle('C6:C' . $highestRow)->getAlignment()->setWrapText(true);
+                    // Wrap text for keperluan column (sekarang Kolom D)
+                    $sheet->getStyle('D6:D' . $highestRow)->getAlignment()->setWrapText(true);
                 }
 
                 // Auto size columns
-                foreach (range('A', 'E') as $col) {
+                foreach (range('A', 'F') as $col) {
                     $sheet->getColumnDimension($col)->setAutoSize(true);
                 }
 
                 // Set minimum width for keperluan column
-                $sheet->getColumnDimension('C')->setWidth(45);
+                $sheet->getColumnDimension('D')->setWidth(45);
             },
         ];
     }

@@ -8,11 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('guest_books', function (Blueprint $table) {
+        Schema::create('teacher_guest_books', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
-            $table->string('kelas')->nullable();
-            $table->string('jurusan')->nullable(); // <-- Tambahkan baris ini
             $table->text('keperluan');
             $table->timestamps();
         });
@@ -20,6 +18,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('guest_books');
+        Schema::dropIfExists('teacher_guest_books');
     }
 };

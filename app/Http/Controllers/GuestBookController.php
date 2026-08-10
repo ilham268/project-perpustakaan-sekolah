@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GuestBook;
+use App\Models\User;
 use App\Exports\GuestBookExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
@@ -11,20 +12,44 @@ class GuestBookController extends Controller
 {
     public function create()
     {
-        return view('guest-book.create');
+        // Jika user sedang login (Siswa/Peminjam)
+        if (auth()->check()) {
+            $currentUser = auth()->user();
+            return view('guest-book.create', compact('currentUser'));
+        }
+
+        // Ambil semua data user/siswa tanpa filter role yang terlalu ketat
+        $siswaList = User::orderBy('name', 'asc')
+            ->get(['id', 'name', 'kelas', 'jurusan']);
+
+        return view('guest-book.create', compact('siswaList'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string|max:255',
-            'kelas' => 'required|string|max:255',
+            'nama'      => 'required|string|max:255',
+            'kelas'     => 'nullable|string|max:255',
+            'jurusan'   => 'nullable|string|max:255',
             'keperluan' => 'required|string',
         ]);
 
+        $nama    = $request->nama;
+        $kelas   = $request->kelas;
+        $jurusan = $request->jurusan;
+
+        // Jika user sedang login
+        if (auth()->check()) {
+            $user = auth()->user();
+            $nama    = $user->name ?? $user->nama ?? $nama;
+            $kelas   = $user->kelas ?? $kelas;
+            $jurusan = $user->jurusan ?? $jurusan;
+        }
+
         GuestBook::create([
-            'nama' => $request->nama,
-            'kelas' => $request->kelas,
+            'nama'      => $nama,
+            'kelas'     => $kelas,
+            'jurusan'   => $jurusan,
             'keperluan' => $request->keperluan,
         ]);
 
@@ -38,12 +63,20 @@ class GuestBookController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', '%' . $search . '%')
                   ->orWhere('kelas', 'like', '%' . $search . '%')
+                  ->orWhere('jurusan', 'like', '%' . $search . '%')
                   ->orWhere('keperluan', 'like', '%' . $search . '%');
             });
+        }
+
+        if ($request->filled('kelas')) {
+            $query->where('kelas', $request->kelas);
+        }
+
+        if ($request->filled('jurusan')) {
+            $query->where('jurusan', $request->jurusan);
         }
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
@@ -55,6 +88,18 @@ class GuestBookController extends Controller
 
         $guestBooks = $query->latest()->paginate(10)->withQueryString();
 
+        $listKelas = User::whereNotNull('kelas')
+            ->where('kelas', '!=', '')
+            ->distinct()
+            ->orderBy('kelas', 'asc')
+            ->pluck('kelas');
+
+        $listJurusan = User::whereNotNull('jurusan')
+            ->where('jurusan', '!=', '')
+            ->distinct()
+            ->orderBy('jurusan', 'asc')
+            ->pluck('jurusan');
+
         $totalKunjungan = GuestBook::count();
         $todayKunjungan = GuestBook::whereDate('created_at', today())->count();
         $monthKunjungan = GuestBook::whereMonth('created_at', now()->month)
@@ -65,17 +110,21 @@ class GuestBookController extends Controller
             'guestBooks',
             'totalKunjungan',
             'todayKunjungan',
-            'monthKunjungan'
+            'monthKunjungan',
+            'listKelas',
+            'listJurusan'
         ));
     }
 
     public function export(Request $request)
     {
         $startDate = $request->start_date;
-        $endDate = $request->end_date;
-        $filename = 'buku-tamu-' . now()->format('Ymd-His') . '.xlsx';
+        $endDate   = $request->end_date;
+        $kelas     = $request->kelas;
+        $jurusan   = $request->jurusan;
+        $filename  = 'buku-tamu-' . now()->format('Ymd-His') . '.xlsx';
 
-        return Excel::download(new GuestBookExport($startDate, $endDate), $filename);
+        return Excel::download(new GuestBookExport($startDate, $endDate, $kelas, $jurusan), $filename);
     }
 
     public function destroy($id)

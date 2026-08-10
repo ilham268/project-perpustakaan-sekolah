@@ -190,7 +190,7 @@
                         <span>Input Peminjaman Buku</span>
                     </a>
 
-                    {{-- Buku Tamu --}}
+                    {{-- Tamu Siswa --}}
                     <a
                         href="{{ route('guest-book.create') }}"
                         class="nav-link {{ request()->routeIs('guest-book.*') ? 'is-active' : '' }}
@@ -199,8 +199,21 @@
                             : 'text-[var(--text)]/80 hover:bg-[var(--sand)]/60 hover:text-[var(--forest)]'
                         }}"
                     >
-                        <i class="fas fa-address-book {{ request()->routeIs('guest-book.*') ? 'text-[var(--emerald)]' : 'text-[var(--muted)]' }}"></i>
-                        <span>Buku Tamu</span>
+                        <i class="fas fa-user-graduate {{ request()->routeIs('guest-book.*') ? 'text-[var(--emerald)]' : 'text-[var(--muted)]' }}"></i>
+                        <span>Tamu Siswa</span>
+                    </a>
+
+                    {{-- Tamu Guru --}}
+                    <a
+                        href="{{ route('teacher-guest-book.create') }}"
+                        class="nav-link {{ request()->routeIs('teacher-guest-book.*') ? 'is-active' : '' }}
+                        {{ request()->routeIs('teacher-guest-book.*')
+                            ? 'bg-[var(--emerald-tint)] text-[var(--forest)]'
+                            : 'text-[var(--text)]/80 hover:bg-[var(--sand)]/60 hover:text-[var(--forest)]'
+                        }}"
+                    >
+                        <i class="fas fa-chalkboard-teacher {{ request()->routeIs('teacher-guest-book.*') ? 'text-[var(--emerald)]' : 'text-[var(--muted)]' }}"></i>
+                        <span>Tamu Guru</span>
                     </a>
                 @endguest
 
