@@ -389,10 +389,10 @@ document.addEventListener('DOMContentLoaded', function () {
         tahunSelect.addEventListener('change', function () { form.submit(); });
     }
     if (searchInput) {
+        // Mengetik di kolom search tidak boleh men-submit form otomatis saat Enter ditekan
         searchInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                form.submit();
             }
         });
     }

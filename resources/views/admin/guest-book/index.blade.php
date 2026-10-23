@@ -124,13 +124,22 @@
                 >
             </div>
 
-            {{-- Tombol Reset --}}
-            <div class="sm:col-span-2 lg:col-span-1">
+            {{-- Tombol Aksi --}}
+            <div class="flex items-center gap-2 sm:col-span-2 lg:col-span-1">
+                <button
+                    type="submit"
+                    class="inline-flex h-11 flex-1 items-center justify-center whitespace-nowrap rounded-xl bg-[var(--emerald-deep)] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                    title="Cari Data"
+                >
+                    <i class="fas fa-magnifying-glass text-xs"></i>
+                </button>
+
                 <a
                     href="{{ route('admin.guest-book.index') }}"
-                    class="inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
+                    title="Reset Filter"
+                    class="inline-flex h-11 flex-1 items-center justify-center whitespace-nowrap rounded-xl border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--muted)] shadow-sm transition hover:border-[var(--emerald)]/40 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
                 >
-                    Reset
+                    <i class="fas fa-rotate-left text-xs"></i>
                 </a>
             </div>
         </div>
@@ -422,12 +431,11 @@
         }
 
         if (searchInput) {
-            searchInput.addEventListener('input', function () {
-                clearTimeout(debounceTimer);
-
-                debounceTimer = setTimeout(function () {
-                    form.submit();
-                }, 400);
+            // Mengetik di kolom search tidak boleh men-submit form otomatis
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
             });
         }
 

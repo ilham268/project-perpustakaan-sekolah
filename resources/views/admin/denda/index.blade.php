@@ -1,4 +1,4 @@
-﻿@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Rekap Denda')
 @section('page-title', 'Rekap Denda')
@@ -230,7 +230,7 @@
         class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm"
     >
         <div class="grid grid-cols-1 gap-3 lg:grid-cols-12">
-            <div class="relative lg:col-span-8">
+            <div class="relative lg:col-span-7">
                 <i class="fas fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]"></i>
 
                 <input
@@ -256,10 +256,16 @@
                 </select>
             </div>
 
-            <div class="lg:col-span-1">
+            <div class="grid grid-cols-2 gap-2 lg:col-span-2">
+                <button
+                    type="submit"
+                    class="inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-xl bg-[var(--emerald)] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--emerald-deep)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                >
+                    Cari
+                </button>
                 <a
                     href="{{ route('admin.denda.index') }}"
-                    class="inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:bg-[var(--sand)]/50 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
+                    class="inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:bg-[var(--sand)]/50 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
                 >
                     Reset
                 </a>
@@ -651,19 +657,11 @@
         var form = document.getElementById('filter-form');
         var searchInput = document.getElementById('search-input');
         var statusSelect = document.getElementById('status-select');
-        var debounceTimer;
-
-        if (!form) {
-            return;
-        }
-
         if (searchInput) {
-            searchInput.addEventListener('input', function () {
-                clearTimeout(debounceTimer);
-
-                debounceTimer = setTimeout(function () {
-                    form.submit();
-                }, 400);
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
             });
         }
 

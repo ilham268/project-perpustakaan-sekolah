@@ -16,5 +16,6 @@ class GuestBook extends Model
         'kelas',
         'jurusan',
         'keperluan',
+        'metode_absensi',
     ];
 }

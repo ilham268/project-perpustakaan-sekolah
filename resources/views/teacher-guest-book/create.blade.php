@@ -95,19 +95,63 @@
                     </div>
 
                     {{-- Form Keperluan --}}
-                    <div>
+                    @php
+                        $oldKeperluan = old('keperluan');
+                        $isOldCustom = $oldKeperluan && !in_array($oldKeperluan, [
+                            'Meminjam buku',
+                            'Mengembalikan buku',
+                            'Membaca buku di tempat',
+                            'Belajar atau mengerjakan tugas',
+                            'Mencari referensi atau informasi',
+                            'Berkunjung atau keperluan lainnya',
+                        ]);
+                        $initialKeperluan = $isOldCustom ? 'Lainnya' : ($oldKeperluan ?: 'Berkunjung atau keperluan lainnya');
+                        $customKeperluanVal = old('keperluan_custom', ($isOldCustom ? preg_replace('/^Lainnya:\s*/', '', $oldKeperluan) : ''));
+                    @endphp
+
+                    <div x-data="{ selectedKeperluan: '{{ $initialKeperluan }}' }">
                         <label for="keperluan" class="mb-2 block text-sm font-semibold text-[var(--text)]">
                             Keperluan <span class="text-red-500">*</span>
                         </label>
 
-                        <textarea
-                            id="keperluan"
-                            name="keperluan"
-                            rows="4"
-                            placeholder="Contoh: Pendampingan kelas, membaca, referensi mengajar, rapat, dll."
-                            required
-                            class="w-full resize-none rounded-xl border border-[var(--hairline)] bg-white px-4 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)] {{ $errors->has('keperluan') ? 'border-red-500' : '' }}"
-                        >{{ old('keperluan') }}</textarea>
+                        <div class="relative">
+                            <select
+                                id="keperluan"
+                                name="keperluan"
+                                x-model="selectedKeperluan"
+                                required
+                                class="w-full appearance-none rounded-xl border border-[var(--hairline)] bg-white px-4 py-2.5 pr-10 text-sm font-medium text-[var(--text)] outline-none transition focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)] {{ $errors->has('keperluan') ? 'border-red-500' : '' }}"
+                            >
+                                <option value="Meminjam buku">Meminjam buku</option>
+                                <option value="Mengembalikan buku">Mengembalikan buku</option>
+                                <option value="Membaca buku di tempat">Membaca buku di tempat</option>
+                                <option value="Belajar atau mengerjakan tugas">Belajar atau mengerjakan tugas</option>
+                                <option value="Mencari referensi atau informasi">Mencari referensi atau informasi</option>
+                                <option value="Berkunjung atau keperluan lainnya">Berkunjung atau keperluan lainnya</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5 text-[var(--muted)]">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+
+                        {{-- Textarea jika Lainnya dipilih --}}
+                        <div x-show="selectedKeperluan === 'Lainnya'" x-cloak class="mt-3">
+                            <label for="keperluan_custom" class="mb-1.5 block text-xs font-semibold text-[var(--text)]/80">
+                                Tuliskan Keperluan Lainnya <span class="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                id="keperluan_custom"
+                                name="keperluan_custom"
+                                rows="3"
+                                placeholder="Tuliskan keperluan kunjungan Bapak/Ibu Guru..."
+                                :required="selectedKeperluan === 'Lainnya'"
+                                class="w-full resize-none rounded-xl border border-[var(--hairline)] bg-white px-4 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)] {{ $errors->has('keperluan_custom') ? 'border-red-500' : '' }}"
+                            >{{ $customKeperluanVal }}</textarea>
+                            @error('keperluan_custom')
+                                <p class="mt-1.5 text-xs font-medium text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
 
                         @error('keperluan')
                             <p class="mt-2 text-sm font-medium text-red-600">{{ $message }}</p>
@@ -129,7 +173,23 @@
         </div>
 
     </div>
-
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var namaInput = document.getElementById('nama');
+    if (namaInput) {
+        namaInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                var keperluanSelect = document.getElementById('keperluan');
+                if (keperluanSelect) {
+                    keperluanSelect.focus();
+                }
+            }
+        });
+    }
+});
+</script>
 
 @endsection

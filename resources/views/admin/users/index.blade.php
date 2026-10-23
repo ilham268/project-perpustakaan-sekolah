@@ -173,7 +173,7 @@
                     @endif
 
                     <div class="grid grid-cols-1 gap-3 lg:grid-cols-12">
-                        <div class="relative lg:col-span-5">
+                        <div class="relative lg:col-span-4">
                             <i class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]"></i>
 
                             <input
@@ -232,11 +232,19 @@
                             </select>
                         </div>
 
-                        <div class="lg:col-span-1">
+                        <div class="flex items-center gap-2 lg:col-span-2">
+                            <button
+                                type="submit"
+                                class="inline-flex h-full min-h-[46px] flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-[var(--emerald-deep)] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                            >
+                                <i class="fas fa-magnifying-glass text-xs"></i>
+                                <span>Cari</span>
+                            </button>
+
                             <a
                                 href="{{ route('users.index') }}"
                                 title="Reset Filter"
-                                class="flex h-full min-h-[46px] items-center justify-center rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-4 text-sm font-semibold text-[var(--muted)] transition hover:bg-[var(--sand)] hover:text-[var(--forest)]"
+                                class="inline-flex h-full min-h-[46px] w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--hairline)] bg-[var(--paper)] text-sm font-semibold text-[var(--muted)] transition hover:bg-[var(--sand)] hover:text-[var(--forest)]"
                             >
                                 <i class="fas fa-rotate-left"></i>
                             </a>
@@ -659,15 +667,14 @@
             var roleSelect = document.getElementById('role-select');
             var kelasSelect = document.getElementById('kelas-select');
             var jurusanSelect = document.getElementById('jurusan-select');
-            var debounceTimer;
 
             if (form) {
+                // Mengetik di kolom search tidak boleh men-submit form secara otomatis
                 if (searchInput) {
-                    searchInput.addEventListener('input', function () {
-                        clearTimeout(debounceTimer);
-                        debounceTimer = setTimeout(function () {
-                            form.submit();
-                        }, 400);
+                    searchInput.addEventListener('keydown', function (e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                        }
                     });
                 }
 

@@ -70,7 +70,7 @@
         class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm"
     >
         <div class="grid grid-cols-1 gap-3 lg:grid-cols-12">
-            <div class="relative lg:col-span-8">
+            <div class="relative lg:col-span-7">
                 <i class="fas fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]"></i>
 
                 <input
@@ -97,13 +97,21 @@
                 </select>
             </div>
 
-            <div class="lg:col-span-1">
+            <div class="flex items-center gap-2 lg:col-span-2">
+                <button
+                    type="submit"
+                    class="inline-flex h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-[var(--emerald-deep)] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                >
+                    <i class="fas fa-magnifying-glass text-xs"></i>
+                    <span>Cari</span>
+                </button>
+
                 <a
                     href="{{ route('admin.peminjaman.riwayat') }}"
                     title="Reset Filter"
-                    class="inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:bg-[var(--sand)]/50 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
+                    class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--hairline)] bg-white text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--emerald)]/40 hover:bg-[var(--sand)]/50 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
                 >
-                    Reset
+                    <i class="fas fa-rotate-left"></i>
                 </a>
             </div>
         </div>
@@ -385,11 +393,11 @@
         var debounceTimer;
 
         if (searchInput) {
-            searchInput.addEventListener('input', function () {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(function () {
-                    form.submit();
-                }, 400);
+            // Mengetik di kolom search tidak boleh men-submit form otomatis
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
             });
         }
 

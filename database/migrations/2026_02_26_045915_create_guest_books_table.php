@@ -12,8 +12,9 @@ return new class extends Migration
             $table->id();
             $table->string('nama');
             $table->string('kelas')->nullable();
-            $table->string('jurusan')->nullable(); // <-- Tambahkan baris ini
+            $table->string('jurusan')->nullable();
             $table->text('keperluan');
+            $table->string('metode_absensi')->default('manual'); // TAMBAHKAN
             $table->timestamps();
         });
     }

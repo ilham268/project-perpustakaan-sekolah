@@ -16,22 +16,110 @@ class TeacherGuestBookController extends Controller
 
     public function store(Request $request)
     {
+        $predefined = [
+            'Meminjam buku',
+            'Mengembalikan buku',
+            'Membaca buku di tempat',
+            'Belajar atau mengerjakan tugas',
+            'Mencari referensi atau informasi',
+            'Berkunjung atau keperluan lainnya',
+        ];
+
         $request->validate([
-            'nama' => 'required|string|max:255',
-            'keperluan' => 'required|string|max:1000',
+            'nama'             => 'required|string|max:255',
+            'keperluan'        => 'required|string',
+            'keperluan_custom' => 'nullable|string|max:500',
         ]);
 
+        $keperluan = $request->keperluan;
+
+        if ($keperluan === 'Lainnya') {
+            $request->validate([
+                'keperluan_custom' => 'required|string|max:500',
+            ], [
+                'keperluan_custom.required' => 'Mohon jelaskan keperluan Anda jika memilih opsi Lainnya.',
+            ]);
+            $keperluan = 'Lainnya: ' . trim($request->keperluan_custom);
+        } elseif (!in_array($keperluan, $predefined) && !str_starts_with($keperluan, 'Lainnya: ')) {
+            $keperluan = 'Lainnya: ' . trim($keperluan);
+        }
+
         TeacherGuestBook::create([
-            'nama' => $request->nama,
-            'keperluan' => $request->keperluan,
+            'nama'      => $request->nama,
+            'keperluan' => $keperluan,
         ]);
 
         return redirect()->back()->with('success', 'Terima kasih, buku tamu guru berhasil diisi!');
     }
 
-    public function adminIndex()
+    /**
+     * Halaman baca-saja (read-only) buku tamu guru untuk pengunjung
+     */
+    public function publicIndex(Request $request)
     {
-        $guestBooks = TeacherGuestBook::latest()->paginate(10);
+        $query = TeacherGuestBook::query();
+
+        // Pencarian nama atau keperluan
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', '%' . $search . '%')
+                  ->orWhere('keperluan', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Filter rentang tanggal
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59',
+            ]);
+        } elseif ($request->filled('start_date')) {
+            $query->where('created_at', '>=', $request->start_date . ' 00:00:00');
+        } elseif ($request->filled('end_date')) {
+            $query->where('created_at', '<=', $request->end_date . ' 23:59:59');
+        }
+
+        $guestBooks = $query->latest()->paginate(15)->withQueryString();
+
+        $totalKunjungan = TeacherGuestBook::count();
+        $todayKunjungan = TeacherGuestBook::whereDate('created_at', now()->today())->count();
+        $kunjunganHariIni = $todayKunjungan;
+
+        return view('teacher-guest-book.public-index', compact(
+            'guestBooks',
+            'totalKunjungan',
+            'todayKunjungan',
+            'kunjunganHariIni'
+        ));
+    }
+
+    public function adminIndex(Request $request)
+    {
+        $query = TeacherGuestBook::query();
+
+        // Pencarian nama atau keperluan
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', '%' . $search . '%')
+                  ->orWhere('keperluan', 'like', '%' . $search . '%');
+            });
+        }
+
+        // Filter rentang tanggal
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('created_at', [
+                $request->start_date . ' 00:00:00',
+                $request->end_date . ' 23:59:59',
+            ]);
+        } elseif ($request->filled('start_date')) {
+            $query->where('created_at', '>=', $request->start_date . ' 00:00:00');
+        } elseif ($request->filled('end_date')) {
+            $query->where('created_at', '<=', $request->end_date . ' 23:59:59');
+        }
+
+        $guestBooks = $query->latest()->paginate(10)->withQueryString();
 
         // Perhitungan Statistik
         $totalKunjungan = TeacherGuestBook::count();
@@ -56,9 +144,15 @@ class TeacherGuestBookController extends Controller
         ));
     }
 
-    public function export()
+    public function export(Request $request)
     {
-        return Excel::download(new TeacherGuestBookExport, 'buku-tamu-guru.xlsx');
+        $startDate = $request->start_date;
+        $endDate   = $request->end_date;
+        $search    = $request->search;
+
+        $filename = 'buku-tamu-guru-' . now()->format('Ymd-His') . '.xlsx';
+
+        return Excel::download(new TeacherGuestBookExport($startDate, $endDate, $search), $filename);
     }
 
     public function destroy($id)

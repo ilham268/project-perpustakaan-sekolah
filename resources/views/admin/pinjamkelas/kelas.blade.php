@@ -383,12 +383,11 @@
         }
 
         if (searchInput) {
-            searchInput.addEventListener('input', function () {
-                clearTimeout(debounceTimer);
-
-                debounceTimer = setTimeout(function () {
-                    form.submit();
-                }, 400);
+            // Mengetik di kolom search tidak boleh men-submit form otomatis
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
             });
         }
 

@@ -59,7 +59,7 @@
         class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
     >
         <div class="grid grid-cols-1 gap-3 lg:grid-cols-12">
-            <div class="relative lg:col-span-8">
+            <div class="relative lg:col-span-7">
                 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400"></i>
 
                 <input
@@ -87,12 +87,21 @@
                 </select>
             </div>
 
-            <div class="lg:col-span-1">
+            <div class="flex items-center gap-2 lg:col-span-2">
+                <button
+                    type="submit"
+                    class="inline-flex h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-emerald-600 px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-4 focus:ring-emerald-100"
+                >
+                    <i class="fas fa-search text-xs"></i>
+                    <span>Cari</span>
+                </button>
+
                 <a
                     href="{{ route('peminjaman.index') }}"
-                    class="inline-flex h-11 w-full items-center justify-center whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
+                    title="Reset Filter"
+                    class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100"
                 >
-                    Reset
+                    <i class="fas fa-rotate-left text-xs"></i>
                 </a>
             </div>
         </div>
@@ -465,12 +474,11 @@
         }
 
         if (searchInput) {
-            searchInput.addEventListener('input', function () {
-                clearTimeout(debounceTimer);
-
-                debounceTimer = setTimeout(function () {
-                    form.submit();
-                }, 400);
+            // Mengetik di kolom search tidak boleh men-submit form otomatis
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
             });
         }
 

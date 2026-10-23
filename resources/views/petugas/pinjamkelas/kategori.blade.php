@@ -338,19 +338,11 @@
         var form = document.getElementById('filter-form');
         var searchInput = document.getElementById('search-input');
         var tahunSelect = document.getElementById('tahun-select');
-        var debounceTimer;
-
-        if (!form) {
-            return;
-        }
-
         if (searchInput) {
-            searchInput.addEventListener('input', function () {
-                clearTimeout(debounceTimer);
-
-                debounceTimer = setTimeout(function () {
-                    form.submit();
-                }, 400);
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
             });
         }
 

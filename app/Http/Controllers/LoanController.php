@@ -193,29 +193,48 @@ class LoanController extends Controller
                     ->with('error', 'Buku yang dipilih bukan Buku Referensi.');
             }
 
-            $bookItem = BookItem::where('book_id', $book->id)
-                ->whereNotNull('kode_buku')
+            // Check if kode_buku exists for ANY book
+            $existingItem = BookItem::whereNotNull('kode_buku')
                 ->where('kode_buku', '!=', '')
                 ->whereRaw('UPPER(kode_buku) = ?', [$kodeBuku])
                 ->lockForUpdate()
                 ->first();
 
-            if (!$bookItem) {
-                DB::rollBack();
+            if ($existingItem) {
+                if ($existingItem->book_id != $book->id) {
+                    DB::rollBack();
 
-                return redirect()
-                    ->back()
-                    ->withInput()
-                    ->with('error', 'Kode buku tidak valid atau tidak cocok dengan judul buku yang dipilih.');
-            }
+                    return redirect()
+                        ->back()
+                        ->withInput()
+                        ->with('error', 'Kode buku ini sudah terdaftar untuk buku lain.');
+                }
 
-            if ($bookItem->status !== 'available') {
-                DB::rollBack();
+                if ($existingItem->status === 'borrowed') {
+                    DB::rollBack();
 
-                return redirect()
-                    ->back()
-                    ->withInput()
-                    ->with('error', 'Kode buku ini sudah dipinjam atau tidak tersedia.');
+                    return redirect()
+                        ->back()
+                        ->withInput()
+                        ->with('error', 'Kode buku ini sedang dipinjam.');
+                }
+
+                if ($existingItem->status !== 'available') {
+                    DB::rollBack();
+
+                    return redirect()
+                        ->back()
+                        ->withInput()
+                        ->with('error', 'Kode buku ini sedang tidak tersedia.');
+                }
+
+                $bookItem = $existingItem;
+            } else {
+                $bookItem = BookItem::create([
+                    'book_id' => $book->id,
+                    'kode_buku' => $kodeBuku,
+                    'status' => 'available',
+                ]);
             }
 
             Loan::create([
@@ -331,29 +350,48 @@ class LoanController extends Controller
                     ->with('error', 'Buku yang dipilih bukan Buku Referensi.');
             }
 
-            $bookItem = BookItem::where('book_id', $book->id)
-                ->whereNotNull('kode_buku')
+            // Check if kode_buku exists for ANY book
+            $existingItem = BookItem::whereNotNull('kode_buku')
                 ->where('kode_buku', '!=', '')
                 ->whereRaw('UPPER(kode_buku) = ?', [$kodeBuku])
                 ->lockForUpdate()
                 ->first();
 
-            if (!$bookItem) {
-                DB::rollBack();
+            if ($existingItem) {
+                if ($existingItem->book_id != $book->id) {
+                    DB::rollBack();
 
-                return redirect()
-                    ->back()
-                    ->withInput()
-                    ->with('error', 'Kode buku tidak valid atau tidak cocok dengan judul buku yang dipilih.');
-            }
+                    return redirect()
+                        ->back()
+                        ->withInput()
+                        ->with('error', 'Kode buku ini sudah terdaftar untuk buku lain.');
+                }
 
-            if ($bookItem->status !== 'available') {
-                DB::rollBack();
+                if ($existingItem->status === 'borrowed') {
+                    DB::rollBack();
 
-                return redirect()
-                    ->back()
-                    ->withInput()
-                    ->with('error', 'Kode buku ini sudah dipinjam atau tidak tersedia.');
+                    return redirect()
+                        ->back()
+                        ->withInput()
+                        ->with('error', 'Kode buku ini sedang dipinjam.');
+                }
+
+                if ($existingItem->status !== 'available') {
+                    DB::rollBack();
+
+                    return redirect()
+                        ->back()
+                        ->withInput()
+                        ->with('error', 'Kode buku ini sedang tidak tersedia.');
+                }
+
+                $bookItem = $existingItem;
+            } else {
+                $bookItem = BookItem::create([
+                    'book_id' => $book->id,
+                    'kode_buku' => $kodeBuku,
+                    'status' => 'available',
+                ]);
             }
 
             $lamaPinjamDefault = $this->lamaPinjamDefault();

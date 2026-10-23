@@ -4,14 +4,15 @@
 @section('page-title', 'Buku Tamu Guru')
 
 @section('content')
+
 <div class="space-y-6">
 
+    {{-- Alert Success --}}
     @if(session('success'))
         <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800 shadow-sm">
-            <div class="flex items-center gap-3 text-sm font-medium">
-                <i class="fas fa-check-circle text-emerald-600"></i>
-                <span>{{ session('success') }}</span>
-            </div>
+            <span class="text-sm font-medium">
+                {{ session('success') }}
+            </span>
         </div>
     @endif
 
@@ -20,112 +21,382 @@
         <div class="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-white/[0.06]"></div>
         <div class="pointer-events-none absolute -bottom-24 right-10 h-64 w-64 rounded-full bg-white/[0.05]"></div>
 
-        <div class="relative z-10">
-            <p class="catalog-eyebrow font-semibold uppercase text-white/70">
-                Data&nbsp;Kunjungan
-            </p>
+        <div class="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <p class="catalog-eyebrow font-semibold uppercase text-white/70">
+                    Data&nbsp;Kunjungan
+                </p>
 
-            <h1 class="font-display mt-3 text-[26px] font-semibold leading-tight tracking-tight text-white sm:text-3xl md:text-[32px]">
-                Buku Tamu Guru
-            </h1>
+                <h1 class="font-display mt-3 text-[26px] font-semibold leading-tight tracking-tight text-white sm:text-3xl md:text-[32px]">
+                    Buku Tamu Guru
+                </h1>
 
-            <p class="mt-3 max-w-2xl text-[13.5px] leading-relaxed text-white/80 sm:text-sm">
-                Pantau data kunjungan guru berdasarkan nama, keperluan, dan waktu kunjungan.
-            </p>
-        </div>
-    </div>
-
-    {{-- Stats Cards --}}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm">
-            <p class="catalog-eyebrow uppercase text-[var(--muted)]">Total Kunjungan Guru</p>
-            <p class="font-mono-stat mt-2 text-2xl font-semibold text-[var(--text)]">{{ $totalKunjungan }}</p>
-        </div>
-        <div class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm">
-            <p class="catalog-eyebrow uppercase text-[var(--muted)]">Hari Ini</p>
-            <p class="font-mono-stat mt-2 text-2xl font-semibold text-[var(--forest)]">{{ $todayKunjungan }}</p>
-        </div>
-        <div class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm">
-            <p class="catalog-eyebrow uppercase text-[var(--muted)]">Bulan Ini</p>
-            <p class="font-mono-stat mt-2 text-2xl font-semibold text-[var(--emerald-deep)]">{{ $monthKunjungan }}</p>
-        </div>
-    </div>
-
-    {{-- Filter & Export --}}
-    <div class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm">
-        <form method="GET" action="{{ route('admin.teacher-guest-book.index') }}" class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div class="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-3">
-                <div>
-                    <label class="mb-1.5 block text-xs font-semibold text-[var(--muted)]">Cari Nama/Keperluan</label>
-                    <div class="relative">
-                        <i class="fas fa-magnifying-glass pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-[var(--muted)]"></i>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari..." class="w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] py-2.5 pl-9 pr-3 text-sm text-[var(--text)] outline-none transition focus:border-[var(--emerald)] focus:bg-white focus:ring-4 focus:ring-[var(--emerald-tint)]">
-                    </div>
-                </div>
-                <div>
-                    <label class="mb-1.5 block text-xs font-semibold text-[var(--muted)]">Dari Tanggal</label>
-                    <input type="date" name="start_date" value="{{ request('start_date') }}" class="w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-3 py-2.5 text-sm text-[var(--text)] outline-none transition focus:border-[var(--emerald)] focus:bg-white focus:ring-4 focus:ring-[var(--emerald-tint)]">
-                </div>
-                <div>
-                    <label class="mb-1.5 block text-xs font-semibold text-[var(--muted)]">Sampai Tanggal</label>
-                    <input type="date" name="end_date" value="{{ request('end_date') }}" class="w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-3 py-2.5 text-sm text-[var(--text)] outline-none transition focus:border-[var(--emerald)] focus:bg-white focus:ring-4 focus:ring-[var(--emerald-tint)]">
-                </div>
+                <p class="mt-3 max-w-2xl text-[13.5px] leading-relaxed text-white/80 sm:text-sm">
+                    Pantau data kunjungan guru berdasarkan nama, keperluan, tanggal, dan jam kunjungan.
+                </p>
             </div>
 
-            <div class="flex gap-2">
-                <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-[var(--emerald-deep)] px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[var(--forest)]">
-                    <i class="fas fa-filter mr-1.5"></i> Filter
+            <button
+                type="button"
+                onclick="openExportModal()"
+                class="inline-flex h-10 w-fit shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-white px-4 text-sm font-semibold text-[var(--emerald-deep)] shadow-sm transition hover:bg-white/90 focus:outline-none focus:ring-4 focus:ring-white/30"
+            >
+                <i class="fas fa-file-export text-xs"></i>
+                Export Excel
+            </button>
+        </div>
+    </div>
+
+    {{-- Filter --}}
+    <form
+        method="GET"
+        action="{{ route('admin.teacher-guest-book.index') }}"
+        id="filter-form"
+        class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm"
+    >
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12">
+            {{-- Search Input --}}
+            <div class="relative sm:col-span-2 lg:col-span-5">
+                <i class="fas fa-magnifying-glass pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]"></i>
+
+                <input
+                    type="text"
+                    name="search"
+                    id="search-input"
+                    value="{{ request('search') }}"
+                    placeholder="Cari nama guru atau keperluan..."
+                    autocomplete="off"
+                    class="h-11 w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] pl-10 pr-4 text-sm font-medium text-[var(--text)] placeholder:text-[var(--muted)] transition focus:border-[var(--emerald)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                >
+            </div>
+
+            {{-- Tanggal Mulai --}}
+            <div class="lg:col-span-2">
+                <input
+                    type="date"
+                    name="start_date"
+                    id="start-date"
+                    value="{{ request('start_date') }}"
+                    class="h-11 w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-4 text-sm font-medium text-[var(--text)] transition focus:border-[var(--emerald)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                >
+            </div>
+
+            {{-- Tanggal Selesai --}}
+            <div class="lg:col-span-3">
+                <input
+                    type="date"
+                    name="end_date"
+                    id="end-date"
+                    value="{{ request('end_date') }}"
+                    class="h-11 w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-4 text-sm font-medium text-[var(--text)] transition focus:border-[var(--emerald)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                >
+            </div>
+
+            {{-- Tombol Aksi --}}
+            <div class="flex items-center gap-2 sm:col-span-2 lg:col-span-2">
+                <button
+                    type="submit"
+                    class="inline-flex h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-[var(--emerald-deep)] px-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                >
+                    <i class="fas fa-magnifying-glass text-xs"></i>
+                    <span>Cari</span>
                 </button>
-                <a href="{{ route('admin.teacher-guest-book.export', request()->all()) }}" class="inline-flex items-center justify-center rounded-xl border border-[var(--hairline)] bg-white px-4 py-2.5 text-xs font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:bg-[var(--emerald-tint)] hover:text-[var(--emerald-deep)]">
-                    <i class="fas fa-file-excel mr-1.5"></i> Export Excel
+
+                <a
+                    href="{{ route('admin.teacher-guest-book.index') }}"
+                    title="Reset Filter"
+                    class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--hairline)] bg-white text-sm font-semibold text-[var(--muted)] transition hover:border-[var(--emerald)]/40 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
+                >
+                    <i class="fas fa-rotate-left text-xs"></i>
                 </a>
             </div>
-        </form>
+        </div>
+    </form>
+
+    {{-- Stat Cards --}}
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+
+        {{-- Total Kunjungan Guru --}}
+        <div class="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--emerald)]/30 hover:shadow-lg hover:shadow-[var(--emerald)]/10">
+            <div class="pointer-events-none absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-[var(--emerald-tint)] transition group-hover:scale-110"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-[var(--muted)]">
+                        Total Kunjungan Guru
+                    </p>
+
+                    <p class="font-mono-stat mt-2 text-[28px] font-semibold leading-none tracking-tight text-[var(--text)]">
+                        {{ number_format($totalKunjungan) }}
+                    </p>
+
+                    <p class="mt-1 text-xs font-medium text-[var(--muted)]">
+                        kunjungan
+                    </p>
+                </div>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--emerald-tint)] text-[var(--emerald-deep)] ring-1 ring-[var(--emerald)]/15">
+                    <i class="fas fa-chalkboard-user text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Hari Ini --}}
+        <div class="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-amber-300/50 hover:shadow-lg hover:shadow-amber-100/60">
+            <div class="pointer-events-none absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-amber-50 transition group-hover:scale-110"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-[var(--muted)]">
+                        Hari Ini
+                    </p>
+
+                    <p class="font-mono-stat mt-2 text-[28px] font-semibold leading-none tracking-tight text-[var(--text)]">
+                        {{ number_format($todayKunjungan) }}
+                    </p>
+
+                    <p class="mt-1 text-xs font-medium text-[var(--muted)]">
+                        kunjungan
+                    </p>
+                </div>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 ring-1 ring-amber-100">
+                    <i class="fas fa-calendar-day text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        {{-- Bulan Ini --}}
+        <div class="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sky-300/50 hover:shadow-lg hover:shadow-sky-100/60">
+            <div class="pointer-events-none absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-sky-50 transition group-hover:scale-110"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-[var(--muted)]">
+                        Bulan Ini
+                    </p>
+
+                    <p class="font-mono-stat mt-2 text-[28px] font-semibold leading-none tracking-tight text-[var(--text)]">
+                        {{ number_format($monthKunjungan) }}
+                    </p>
+
+                    <p class="mt-1 text-xs font-medium text-[var(--muted)]">
+                        kunjungan
+                    </p>
+                </div>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
+                    <i class="fas fa-calendar-alt text-xl"></i>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    {{-- Data Table --}}
+    {{-- Table --}}
     <div class="overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white shadow-sm">
+        <div class="border-b border-[var(--hairline)] px-5 py-4">
+            <h2 class="font-display text-lg font-semibold text-[var(--forest)]">
+                Data Buku Tamu Guru
+            </h2>
+
+            <p class="mt-1 text-sm text-[var(--muted)]">
+                Daftar guru yang mengisi buku tamu perpustakaan.
+            </p>
+        </div>
+
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[760px] border-collapse text-left text-sm">
+            <table class="w-full min-w-[760px] border-collapse text-sm">
                 <thead>
                     <tr class="catalog-eyebrow bg-[var(--sand)]/40 uppercase text-[var(--muted)]">
-                        <th class="w-14 border border-[var(--hairline)] px-5 py-3.5 font-semibold">#</th>
-                        <th class="border border-[var(--hairline)] px-5 py-3.5 font-semibold">Nama Guru</th>
-                        <th class="border border-[var(--hairline)] px-5 py-3.5 font-semibold">Keperluan</th>
-                        <th class="w-44 border border-[var(--hairline)] px-5 py-3.5 font-semibold">Waktu Kunjungan</th>
-                        <th class="w-28 border border-[var(--hairline)] px-5 py-3.5 text-right font-semibold">Aksi</th>
+                        <th class="w-16 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
+                            No
+                        </th>
+
+                        <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
+                            Nama Guru
+                        </th>
+
+                        <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
+                            Keperluan
+                        </th>
+
+                        <th class="w-36 border border-[var(--hairline)] px-5 py-4 text-center font-semibold">
+                            Tanggal
+                        </th>
+
+                        <th class="w-24 border border-[var(--hairline)] px-5 py-4 text-center font-semibold">
+                            Jam
+                        </th>
+
+                        <th class="w-28 border border-[var(--hairline)] px-5 py-4 text-center font-semibold">
+                            Aksi
+                        </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white text-[var(--text)]">
-                    @forelse($guestBooks as $index => $item)
+
+                <tbody class="bg-white">
+                    @forelse($guestBooks as $item)
                         <tr class="transition-colors hover:bg-[var(--sand)]/30">
-                            <td class="border border-[var(--hairline)] px-5 py-4 font-medium text-[var(--muted)]">{{ $guestBooks->firstItem() + $index }}</td>
-                            <td class="border border-[var(--hairline)] px-5 py-4 font-semibold text-[var(--text)]">{{ $item->nama }}</td>
-                            <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--text)]/80">{{ $item->keperluan }}</td>
-                            <td class="border border-[var(--hairline)] px-5 py-4 text-xs text-[var(--muted)]">{{ $item->created_at->format('d M Y, H:i') }}</td>
-                            <td class="border border-[var(--hairline)] px-5 py-4 text-right">
-                                <form action="{{ route('admin.teacher-guest-book.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="inline-flex items-center gap-1 text-xs font-semibold text-red-500 transition hover:text-red-700">
-                                        <i class="fas fa-trash"></i> Hapus
-                                    </button>
-                                </form>
+                            <td class="border border-[var(--hairline)] px-5 py-4 font-medium text-[var(--muted)]">
+                                {{ $guestBooks->firstItem() + $loop->index }}
+                            </td>
+
+                            <td class="border border-[var(--hairline)] px-5 py-4">
+                                <span class="block max-w-[220px] truncate font-semibold text-[var(--text)]">
+                                    {{ $item->nama }}
+                                </span>
+                            </td>
+
+                            <td class="border border-[var(--hairline)] px-5 py-4">
+                                <p class="max-w-md font-medium leading-relaxed text-[var(--text)]/80">
+                                    {{ $item->keperluan }}
+                                </p>
+                            </td>
+
+                            <td class="border border-[var(--hairline)] px-5 py-4 text-center text-[var(--muted)]">
+                                {{ \Carbon\Carbon::parse($item->created_at)->timezone(config('app.timezone'))->translatedFormat('d M Y') }}
+                            </td>
+
+                            <td class="border border-[var(--hairline)] px-5 py-4 text-center">
+                                <span class="font-mono-stat text-[var(--text)]">
+                                    {{ \Carbon\Carbon::parse($item->created_at)->timezone(config('app.timezone'))->format('H:i') }}
+                                </span>
+                            </td>
+
+                            <td class="border border-[var(--hairline)] px-5 py-4 text-center">
+                                <button
+                                    type="button"
+                                    @click="$dispatch('open-confirm-delete', { url: '{{ route('admin.teacher-guest-book.destroy', $item->id) }}' })"
+                                    title="Hapus Data"
+                                    class="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-xs font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
+                                >
+                                    Hapus
+                                </button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="border border-[var(--hairline)] px-5 py-10 text-center text-xs text-[var(--muted)]">
-                                Belum ada data kunjungan guru.
+                            <td colspan="6" class="border border-[var(--hairline)] px-6 py-16 text-center">
+                                <p class="text-sm font-semibold text-[var(--text)]">
+                                    Tidak ada data buku tamu guru
+                                </p>
+
+                                <p class="mt-1 text-xs text-[var(--muted)]">
+                                    Belum ada kunjungan guru yang tercatat.
+                                </p>
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        <div class="border-t border-[var(--hairline)] p-4">
-            {{ $guestBooks->links() }}
-        </div>
     </div>
+
+    {{-- Pagination --}}
+    @if($guestBooks->total() > 0)
+        <div class="rounded-2xl border border-[var(--hairline)] bg-white px-5 py-4 shadow-sm">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p class="text-center text-sm text-[var(--muted)] sm:text-left">
+                    Menampilkan
+                    <span class="font-semibold text-[var(--text)]">{{ $guestBooks->firstItem() }}</span>&ndash;<span class="font-semibold text-[var(--text)]">{{ $guestBooks->lastItem() }}</span>
+                    dari
+                    <span class="font-semibold text-[var(--text)]">{{ $guestBooks->total() }}</span>
+                    data
+                </p>
+
+                <div class="flex flex-wrap items-center justify-center gap-1 sm:justify-end">
+                    @if($guestBooks->onFirstPage())
+                        <span class="flex h-9 min-w-9 cursor-not-allowed items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm text-slate-300">
+                            Prev
+                        </span>
+                    @else
+                        <a
+                            href="{{ $guestBooks->previousPageUrl() }}"
+                            class="flex h-9 min-w-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--text)]/80 transition hover:bg-[var(--sand)]/60"
+                        >
+                            Prev
+                        </a>
+                    @endif
+
+                    @foreach($guestBooks->getUrlRange(1, $guestBooks->lastPage()) as $page => $url)
+                        @if($page == $guestBooks->currentPage())
+                            <span class="font-mono-stat flex h-9 min-w-9 items-center justify-center rounded-lg bg-[var(--emerald-deep)] px-3 text-sm font-semibold text-white">
+                                {{ $page }}
+                            </span>
+                        @else
+                            <a
+                                href="{{ $url }}"
+                                class="font-mono-stat flex h-9 min-w-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--text)]/80 transition hover:bg-[var(--sand)]/60"
+                            >
+                                {{ $page }}
+                            </a>
+                        @endif
+                    @endforeach
+
+                    @if($guestBooks->hasMorePages())
+                        <a
+                            href="{{ $guestBooks->nextPageUrl() }}"
+                            class="flex h-9 min-w-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--text)]/80 transition hover:bg-[var(--sand)]/60"
+                        >
+                            Next
+                        </a>
+                    @else
+                        <span class="flex h-9 min-w-9 cursor-not-allowed items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm text-slate-300">
+                            Next
+                        </span>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+
 </div>
+
+<x-confirm-delete
+    title="Hapus Data Buku Tamu Guru?"
+    message="Apakah Anda yakin ingin menghapus data buku tamu guru ini? Tindakan ini tidak dapat dibatalkan."
+/>
+
+<x-export-modal
+    :route="route('admin.teacher-guest-book.export')"
+    title="Export Laporan Buku Tamu Guru"
+    :hasStatus="false"
+/>
+
+<script>
+    (function () {
+        var form = document.getElementById('filter-form');
+        var searchInput = document.getElementById('search-input');
+        var startDate = document.getElementById('start-date');
+        var endDate = document.getElementById('end-date');
+        var debounceTimer;
+
+        if (!form) {
+            return;
+        }
+
+        if (searchInput) {
+            // Mengetik di kolom search tidak boleh men-submit form otomatis
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        if (startDate) {
+            startDate.addEventListener('change', function () {
+                form.submit();
+            });
+        }
+
+        if (endDate) {
+            endDate.addEventListener('change', function () {
+                form.submit();
+            });
+        }
+    })();
+</script>
+
 @endsection

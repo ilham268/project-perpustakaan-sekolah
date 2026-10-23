@@ -168,6 +168,77 @@
 
     </div>
 
+    {{-- Quick Access / Buku Tamu Cards --}}
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5">
+
+        {{-- Buku Tamu Siswa --}}
+        <a
+            href="{{ route('admin.guest-book.index') }}"
+            class="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--emerald)]/30 hover:shadow-lg hover:shadow-[var(--emerald)]/10"
+        >
+            <div class="pointer-events-none absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-[var(--emerald-tint)] transition group-hover:scale-110"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-[var(--muted)]">
+                        Buku Tamu Siswa
+                    </p>
+
+                    <div class="mt-2 flex items-baseline gap-2">
+                        <p class="font-mono-stat text-[28px] font-semibold leading-none tracking-tight text-[var(--text)]">
+                            {{ $totalKunjunganSiswa }}
+                        </p>
+                        <span class="text-xs font-medium text-[var(--muted)]">
+                            ({{ $todayKunjunganSiswa }} hari ini)
+                        </span>
+                    </div>
+
+                    <p class="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[var(--emerald-deep)]">
+                        Kelola data siswa <i class="fas fa-arrow-right-long text-[10px] transition group-hover:translate-x-0.5"></i>
+                    </p>
+                </div>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--emerald-tint)] text-[var(--emerald-deep)] ring-1 ring-[var(--emerald)]/15">
+                    <i class="fas fa-door-open text-xl"></i>
+                </div>
+            </div>
+        </a>
+
+        {{-- Buku Tamu Guru --}}
+        <a
+            href="{{ route('admin.teacher-guest-book.index') }}"
+            class="group relative overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--gold)]/30 hover:shadow-lg hover:shadow-[var(--gold)]/10"
+        >
+            <div class="pointer-events-none absolute right-0 top-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-[#F6EEE0] transition group-hover:scale-110"></div>
+
+            <div class="relative flex items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-[var(--muted)]">
+                        Buku Tamu Guru
+                    </p>
+
+                    <div class="mt-2 flex items-baseline gap-2">
+                        <p class="font-mono-stat text-[28px] font-semibold leading-none tracking-tight text-[var(--text)]">
+                            {{ $totalKunjunganGuru }}
+                        </p>
+                        <span class="text-xs font-medium text-[var(--muted)]">
+                            ({{ $todayKunjunganGuru }} hari ini)
+                        </span>
+                    </div>
+
+                    <p class="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[var(--emerald-deep)]">
+                        Kelola data guru <i class="fas fa-arrow-right-long text-[10px] transition group-hover:translate-x-0.5"></i>
+                    </p>
+                </div>
+
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#F6EEE0] text-[var(--gold)] ring-1 ring-[var(--gold)]/20">
+                    <i class="fas fa-chalkboard-user text-xl"></i>
+                </div>
+            </div>
+        </a>
+
+    </div>
+
     {{-- Chart + Popular Books --}}
     <div class="grid grid-cols-1 gap-5 xl:grid-cols-3">
 

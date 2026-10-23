@@ -200,20 +200,29 @@
 
             input.addEventListener('keydown', function (e) {
                 var visible = visibleOptions();
+                var isOpen = !dropdown.classList.contains('hidden');
 
                 if (e.key === 'ArrowDown') {
                     e.preventDefault();
-                    openDropdown();
+                    if (!isOpen) {
+                        openDropdown();
+                    }
                     setActive(Math.min(activeIndex + 1, visible.length - 1));
                 } else if (e.key === 'ArrowUp') {
                     e.preventDefault();
+                    if (!isOpen) {
+                        openDropdown();
+                    }
                     setActive(Math.max(activeIndex - 1, 0));
                 } else if (e.key === 'Enter') {
+                    // Selalu cegah form submit saat Enter ditekan pada kolom search
                     e.preventDefault();
-                    if (activeIndex >= 0 && visible[activeIndex]) {
+                    if (isOpen && activeIndex >= 0 && visible[activeIndex]) {
                         selectOption(visible[activeIndex]);
                     }
                 } else if (e.key === 'Escape') {
+                    closeDropdown();
+                } else if (e.key === 'Tab') {
                     closeDropdown();
                 }
             });

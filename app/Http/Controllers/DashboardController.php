@@ -9,17 +9,23 @@ use App\Models\ReturnBook;
 use App\Models\BookItem;
 use App\Models\Category;
 use App\Models\GuestBook;
+use App\Models\TeacherGuestBook;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $totalBooks       = Book::count();
+        $totalBooks           = Book::count();
         // UBAH: role 'peminjam' menjadi 'siswa'
-        $totalAnggota     = User::where('role', 'siswa')->count();  // ← PERUBAHAN
+        $totalAnggota         = User::where('role', 'siswa')->count();  // ← PERUBAHAN
         $totalDendaSudahBayar = ReturnBook::where('status', 'paid')->where('denda', '>', 0)->sum('denda');
-        $totalKunjungan   = GuestBook::count();
+        $totalKunjungan       = GuestBook::count();
+
+        $totalKunjunganSiswa  = GuestBook::count();
+        $totalKunjunganGuru   = TeacherGuestBook::count();
+        $todayKunjunganSiswa  = GuestBook::whereDate('created_at', today())->count();
+        $todayKunjunganGuru   = TeacherGuestBook::whereDate('created_at', today())->count();
 
         $chartData   = [];
         $chartLabels = [];
@@ -50,6 +56,10 @@ class DashboardController extends Controller
             'totalAnggota',
             'totalDendaSudahBayar',
             'totalKunjungan',
+            'totalKunjunganSiswa',
+            'totalKunjunganGuru',
+            'todayKunjunganSiswa',
+            'todayKunjunganGuru',
             'chartLabels',
             'chartData',
             'popularBooks',
