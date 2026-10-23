@@ -4,34 +4,60 @@ namespace App\Http\Controllers;
 
 use App\Models\TeacherGuestBook;
 use App\Exports\TeacherGuestBookExport;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
 class TeacherGuestBookController extends Controller
 {
-    public function create()
+    public function create(Request $request)
     {
-        return view('teacher-guest-book.create');
+        if ($request->expectsJson()) {
+            $term = trim((string) $request->query('q', ''));
+            if (mb_strlen($term) < 2) {
+                return response()->json([]);
+            }
+
+            $teachers = User::query()
+                ->where('role', 'guru')
+                ->where('name', 'like', '%' . $term . '%')
+                ->orderBy('name')
+                ->limit(10)
+                ->get(['id', 'name']);
+
+            return response()->json($teachers);
+        }
+
+        $selectedGuru = old('user_id')
+            ? User::where('role', 'guru')->find(old('user_id'))
+            : null;
+
+        return view('teacher-guest-book.create', compact('selectedGuru'));
     }
 
     public function store(Request $request)
     {
-        $predefined = [
-            'Meminjam buku',
-            'Mengembalikan buku',
-            'Membaca buku di tempat',
-            'Belajar atau mengerjakan tugas',
-            'Mencari referensi atau informasi',
-            'Berkunjung atau keperluan lainnya',
-        ];
+        $predefined = $this->teacherVisitPurposes();
 
-        $request->validate([
-            'nama'             => 'required|string|max:255',
-            'keperluan'        => 'required|string',
+        $validated = $request->validate([
+            'user_id'          => 'required|integer|exists:users,id',
+            'keperluan'        => 'required|string|in:' . implode(',', $predefined),
             'keperluan_custom' => 'nullable|string|max:500',
+        ], [
+            'user_id.required' => 'Guru belum dipilih.',
+            'user_id.integer' => 'Guru belum dipilih.',
+            'user_id.exists' => 'Guru belum dipilih.',
+            'keperluan.required' => 'Keperluan wajib dipilih.',
+            'keperluan.in' => 'Keperluan yang dipilih tidak valid.',
         ]);
 
-        $keperluan = $request->keperluan;
+        $teacher = User::find($validated['user_id']);
+        if (!$teacher || $teacher->role !== 'guru') {
+            return back()->withErrors(['user_id' => $teacher ? 'Data yang dipilih bukan data guru.' : 'Guru belum dipilih.'])->withInput();
+        }
+
+        $keperluan = $validated['keperluan'];
 
         if ($keperluan === 'Lainnya') {
             $request->validate([
@@ -40,16 +66,34 @@ class TeacherGuestBookController extends Controller
                 'keperluan_custom.required' => 'Mohon jelaskan keperluan Anda jika memilih opsi Lainnya.',
             ]);
             $keperluan = 'Lainnya: ' . trim($request->keperluan_custom);
-        } elseif (!in_array($keperluan, $predefined) && !str_starts_with($keperluan, 'Lainnya: ')) {
-            $keperluan = 'Lainnya: ' . trim($keperluan);
         }
 
-        TeacherGuestBook::create([
-            'nama'      => $request->nama,
-            'keperluan' => $keperluan,
-        ]);
+        DB::transaction(function () use ($teacher, $keperluan) {
+            TeacherGuestBook::create([
+                'user_id' => $teacher->id,
+                'nama' => $teacher->name,
+                'keperluan' => $keperluan,
+                'metode_absensi' => 'manual',
+            ]);
+        });
 
-        return redirect()->back()->with('success', 'Terima kasih, buku tamu guru berhasil diisi!');
+        return redirect()->route('teacher-guest-book.create')->with('success', 'Data kunjungan berhasil disimpan.');
+    }
+
+    private function teacherVisitPurposes(): array
+    {
+        return [
+            'Berkunjung atau keperluan lainnya',
+            'Rapat',
+            'Konsultasi',
+            'Mengajar',
+            'Mengurus administrasi',
+            'Bertemu guru/staf',
+            'Bertemu kepala sekolah',
+            'Mengantar dokumen',
+            'Keperluan perpustakaan',
+            'Lainnya',
+        ];
     }
 
     /**
@@ -57,14 +101,15 @@ class TeacherGuestBookController extends Controller
      */
     public function publicIndex(Request $request)
     {
-        $query = TeacherGuestBook::query();
+        $query = TeacherGuestBook::with('user');
 
         // Pencarian nama atau keperluan
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', '%' . $search . '%')
-                  ->orWhere('keperluan', 'like', '%' . $search . '%');
+                  ->orWhere('keperluan', 'like', '%' . $search . '%')
+                  ->orWhereHas('user', fn ($userQuery) => $userQuery->where('nomor_identitas', 'like', '%' . $search . '%'));
             });
         }
 
@@ -96,14 +141,15 @@ class TeacherGuestBookController extends Controller
 
     public function adminIndex(Request $request)
     {
-        $query = TeacherGuestBook::query();
+        $query = TeacherGuestBook::with('user');
 
         // Pencarian nama atau keperluan
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', '%' . $search . '%')
-                  ->orWhere('keperluan', 'like', '%' . $search . '%');
+                  ->orWhere('keperluan', 'like', '%' . $search . '%')
+                  ->orWhereHas('user', fn ($userQuery) => $userQuery->where('nomor_identitas', 'like', '%' . $search . '%'));
             });
         }
 
@@ -155,11 +201,4 @@ class TeacherGuestBookController extends Controller
         return Excel::download(new TeacherGuestBookExport($startDate, $endDate, $search), $filename);
     }
 
-    public function destroy($id)
-    {
-        $guestBook = TeacherGuestBook::findOrFail($id);
-        $guestBook->delete();
-
-        return redirect()->back()->with('success', 'Data buku tamu guru berhasil dihapus!');
-    }
 }

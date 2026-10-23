@@ -102,45 +102,78 @@ class GuestBookController extends Controller
     public function qrScan(Request $request)
     {
         $request->validate([
-            'qr_content' => 'required|string|max:255',
+            'qr_content' => 'required|string|max:5000',
             'keperluan'  => 'nullable|string|max:255',
         ]);
 
-        $code = trim($request->qr_content);
+        $rawCode = (string) $request->qr_content;
+        $code = trim($rawCode);
         $keperluan = $request->keperluan ?: 'Berkunjung atau keperluan lainnya';
 
-        // Cek jika format QR adalah JSON (misal {"nisn":"..."} atau {"nomor_identitas":"..."})
-        $user = null;
+        // QR dapat berisi satu nomor, teks berlabel, atau JSON. Ekstrak kandidat
+        // tanpa mengubah tanda penting seperti slash/titik pada nomor identitas.
+        $identities = ['nisn' => [], 'nis' => [], 'other' => []];
+        $name = null;
         $json = json_decode($code, true);
         if (is_array($json)) {
-            $nisn = $json['nisn'] ?? $json['nomor_identitas'] ?? $json['nis'] ?? $json['id'] ?? null;
-            $nama = $json['nama'] ?? $json['name'] ?? null;
-            if ($nisn) {
-                $user = User::where('nomor_identitas', $nisn)->first() ?: (is_numeric($nisn) ? User::where('id', $nisn)->first() : null);
+            foreach ($json as $key => $value) {
+                if (!is_scalar($value)) continue;
+                $key = strtolower((string) $key);
+                $value = trim((string) $value);
+                if ($value === '') continue;
+                if (str_contains($key, 'nisn')) $identities['nisn'][] = $value;
+                elseif (preg_match('/(^|_)nis($|_)/', $key)) $identities['nis'][] = $value;
+                elseif (preg_match('/identitas|nik|nis|student.?id|(^|_)id($|_)/', $key)) $identities['other'][] = $value;
+                elseif (in_array($key, ['nama', 'name', 'student_name'], true)) $name = $value;
             }
-            if (!$user && $nama) {
-                $user = User::where('name', $nama)->first();
+        } else {
+            foreach (preg_split('/[\r\n,;|]+/', $code) as $line) {
+                $line = trim($line);
+                if (preg_match('/^\s*(NISN)\s*[:=\-]\s*(.+?)\s*$/iu', $line, $m)) $identities['nisn'][] = trim($m[2]);
+                elseif (preg_match('/^\s*NIS\s*[:=\-]\s*(.+?)\s*$/iu', $line, $m)) $identities['nis'][] = trim($m[1]);
+                elseif (preg_match('/^\s*(NIK|NIP|NO\.?\s*IDENTITAS|NOMOR\s+IDENTITAS|ID)\s*[:=\-]\s*(.+?)\s*$/iu', $line, $m)) $identities['other'][] = trim($m[2]);
+                elseif (preg_match('/^\s*(NAMA|NAME)\s*[:=\-]\s*(.+?)\s*$/iu', $line, $m)) $name = trim($m[2]);
+                elseif (!$name && preg_match('/\pL/u', $line) && !preg_match('/\s*[^:]+\s*[:=]/u', $line)) $name = $line;
+            }
+            if (!$identities['nisn'] && !$identities['nis'] && !$identities['other'] && preg_match('/^\d+$/', $code)) {
+                $identities['other'][] = $code;
             }
         }
 
-        // Cari siswa berdasarkan nomor_identitas terlebih dahulu, lalu id, lalu nama
-        if (!$user) {
-            $user = User::where('nomor_identitas', $code)->first();
+        $user = null;
+        foreach (['nisn', 'nis', 'other'] as $priority) {
+            foreach (array_unique($identities[$priority]) as $identity) {
+                $user = $this->findStudentByIdentity($identity);
+                if ($user) break 2;
+            }
         }
 
-        if (!$user && is_numeric($code)) {
-            $user = User::where('id', $code)->first();
-        }
-
-        if (!$user) {
-            $user = User::where('name', $code)->first();
+        // Nama hanya boleh mengidentifikasi siswa jika tepat satu record cocok.
+        if (!$user && $name) {
+            $matches = User::whereRaw('LOWER(name) = ?', [mb_strtolower(trim($name))])->limit(2)->get();
+            if ($matches->count() === 1) $user = $matches->first();
+            elseif ($matches->count() > 1) {
+                return response()->json([
+                    'success' => false,
+                    'registered' => false,
+                    'ambiguous' => true,
+                    'decoded' => true,
+                    'qr_code' => $rawCode,
+                    'message' => 'Identitas QR terbaca, tetapi nama cocok dengan lebih dari satu siswa. Mohon verifikasi identitas.',
+                    'data' => null,
+                ], 409);
+            }
         }
 
         // Jika siswa tidak ditemukan, jangan buat otomatis
         if (!$user) {
             return response()->json([
                 'success' => false,
-                'message' => 'Data siswa tidak ditemukan untuk QR Code: ' . $code,
+                'registered' => false,
+                'decoded' => true,
+                'qr_code' => $rawCode,
+                'message' => 'Identitas QR berhasil dibaca, tetapi siswa belum terdaftar di database.',
+                'data' => null,
             ], 404);
         }
 
@@ -152,10 +185,13 @@ class GuestBookController extends Controller
         if ($alreadyAttended) {
             return response()->json([
                 'success'          => false,
+                'registered'      => true,
                 'already_attended' => true,
+                'qr_code'          => $rawCode,
                 'message'          => 'Siswa ' . $user->name . ' sudah mengisi buku tamu hari ini.',
                 'data'             => [
                     'nama'    => $user->name,
+                    'nomor_identitas' => $user->nomor_identitas,
                     'kelas'   => $user->kelas,
                     'jurusan' => $user->jurusan,
                 ],
@@ -173,13 +209,32 @@ class GuestBookController extends Controller
 
         return response()->json([
             'success' => true,
+            'registered' => true,
+            'qr_code' => $rawCode,
             'message' => 'Absensi berhasil dicatat.',
             'data'    => [
                 'nama'    => $user->name,
+                'nomor_identitas' => $user->nomor_identitas,
                 'kelas'   => $user->kelas,
                 'jurusan' => $user->jurusan,
             ],
         ]);
+    }
+
+    private function findStudentByIdentity(string $identity): ?User
+    {
+        $identity = trim($identity);
+        if ($identity === '') return null;
+        $user = User::whereRaw('LOWER(TRIM(nomor_identitas)) = ?', [mb_strtolower($identity)])->first();
+        if ($user) return $user;
+
+        // Kartu kadang menyisipkan spasi pemformatan. Jangan membuang slash/titik:
+        // keduanya dapat menjadi bagian sah dari NIS.
+        $compact = preg_replace('/\s+/u', '', $identity);
+        if ($compact !== $identity) {
+            return User::whereRaw("REPLACE(LOWER(TRIM(nomor_identitas)), ' ', '') = ?", [mb_strtolower($compact)])->first();
+        }
+        return null;
     }
 
     /**

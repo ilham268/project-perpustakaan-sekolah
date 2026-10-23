@@ -341,9 +341,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/teacher-guest-book/export', [TeacherGuestBookController::class, 'export'])
         ->name('admin.teacher-guest-book.export');
 
-    Route::delete('/teacher-guest-book/{id}', [TeacherGuestBookController::class, 'destroy'])
-        ->name('admin.teacher-guest-book.destroy');
-
 
     // =================================================
     // PINJAM KELAS

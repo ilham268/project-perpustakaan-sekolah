@@ -27,7 +27,18 @@
     <div class="space-y-6">
 
         @if(session('success') || request()->query('created') == '1')
-            <x-flash-message type="success" />
+            <x-flash-message type="success" :message="is_string(session('success')) ? session('success') : null" />
+        @endif
+
+        @if(session('import_errors'))
+            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                <p class="font-semibold">Baris yang perlu diperiksa:</p>
+                <ul class="mt-2 list-inside list-disc space-y-1">
+                    @foreach(session('import_errors') as $importError)
+                        <li>{{ $importError }}</li>
+                    @endforeach
+                </ul>
+            </div>
         @endif
 
         @if(session('deleted'))
@@ -197,6 +208,7 @@
                                 <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
                                 <option value="petugas" {{ request('role') == 'petugas' ? 'selected' : '' }}>Petugas</option>
                                 <option value="siswa" {{ request('role') == 'siswa' ? 'selected' : '' }}>Siswa</option>
+                                <option value="guru" {{ request('role') == 'guru' ? 'selected' : '' }}>Guru</option>
                             </select>
                         </div>
 
@@ -362,6 +374,10 @@
                                         <span class="font-semibold text-sky-600">
                                             Siswa
                                         </span>
+                                    @elseif($user->role == 'guru')
+                                        <span class="font-semibold text-violet-600">
+                                            Guru
+                                        </span>
                                     @else
                                         <span class="font-semibold text-[var(--text)]/70">
                                             {{ ucfirst($user->role) }}
@@ -502,17 +518,25 @@
         </div>
 
         <x-modal name="import-user-excel" title="Import User dari Excel" maxWidth="md">
-            <form action="{{ route('users.import-excel') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
+            <form action="{{ route('users.import-excel') }}" method="POST" enctype="multipart/form-data" class="space-y-5" x-data="{ jenisImport: 'siswa' }">
                 @csrf
 
                 <div>
+                    <label class="mb-2 block text-sm font-semibold text-[var(--text)]">Jenis Import <span class="text-red-500">*</span></label>
+                    <select name="jenis_import" x-model="jenisImport" required class="block w-full rounded-xl border border-[var(--hairline)] px-4 py-3 text-sm shadow-sm focus:border-[var(--emerald)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]">
+                        <option value="siswa">Siswa</option>
+                        <option value="guru">Guru</option>
+                    </select>
+                </div>
+
+                <div x-show="jenisImport === 'siswa'">
                     <label class="mb-2 block text-sm font-semibold text-[var(--text)]">
                         Kelas <span class="text-red-500">*</span>
                     </label>
 
                     <select
                         name="kelas"
-                        required
+                        :required="jenisImport === 'siswa'"
                         class="block w-full rounded-xl border border-[var(--hairline)] px-4 py-3 text-sm shadow-sm focus:border-[var(--emerald)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
                     >
                         <option value="">Pilih Kelas</option>
@@ -542,8 +566,11 @@
                             <i class="fas fa-circle-info text-xs"></i>
                         </div>
 
-                        <p class="text-xs leading-relaxed text-[var(--text)]/70">
-                            Upload Excel asli daftar absen. Sistem akan mencari header <strong>NISN</strong> dan <strong>NAMA</strong> otomatis di setiap sheet. Nama sheet akan dijadikan jurusan atau rombel.
+                        <p x-show="jenisImport === 'siswa'" class="text-xs leading-relaxed text-[var(--text)]/70">
+                            Upload Excel siswa. Sistem mencari header <strong>NISN</strong> dan <strong>NAMA</strong> di setiap sheet; nama sheet menjadi jurusan.
+                        </p>
+                        <p x-show="jenisImport === 'guru'" class="text-xs leading-relaxed text-[var(--text)]/70">
+                            Upload Excel guru. Sistem mencari kolom <strong>NAMA</strong> secara fleksibel di setiap sheet. Kolom lainnya diabaikan.
                         </p>
                     </div>
                 </div>

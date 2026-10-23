@@ -61,6 +61,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Loan::class);
     }
+
+    public function teacherGuestBooks()
+    {
+        return $this->hasMany(TeacherGuestBook::class);
+    }
     
     // Accessor untuk menampilkan role sebagai 'Siswa'
     public function getRoleNameAttribute()
@@ -72,6 +77,7 @@ class User extends Authenticatable
         $roles = [
             'admin' => 'Admin',
             'petugas' => 'Petugas',
+            'guru' => 'Guru',
         ];
         
         return $roles[$this->role] ?? ucfirst($this->role);

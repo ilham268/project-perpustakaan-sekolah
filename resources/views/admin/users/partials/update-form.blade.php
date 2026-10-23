@@ -54,11 +54,11 @@
     </div>
 
     {{-- Nomor Identitas --}}
-    <div>
+    <div x-show="selectedRole !== 'guru'">
         <label for="nomor_identitas_{{ $user->id }}" class="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
             <i class="fas fa-id-card text-xs text-[var(--muted)]"></i>
             Nomor Identitas
-            <span class="text-red-500">*</span>
+            <span x-show="selectedRole !== 'guru'" class="text-red-500">*</span>
         </label>
 
         <input
@@ -73,7 +73,7 @@
             @else
                 border-[var(--hairline)] bg-[var(--paper)] focus:border-[var(--emerald)] focus:bg-white focus:ring-[var(--emerald-tint)]
             @enderror"
-            required
+            :required="selectedRole !== 'guru'"
         >
 
         @error('nomor_identitas')
@@ -82,7 +82,7 @@
     </div>
 
     {{-- Kelas --}}
-    <div>
+    <div x-show="selectedRole !== 'guru'">
         <label for="kelas_id_{{ $user->id }}" class="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
             <i class="fas fa-school text-xs text-[var(--muted)]"></i>
             Kelas
@@ -134,7 +134,7 @@
     {{-- Role & Password --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {{-- Role --}}
-        <div>
+        <div x-show="selectedRole !== 'guru'">
             <label for="role_{{ $user->id }}" class="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
                 <i class="fas fa-user-shield text-xs text-[var(--muted)]"></i>
                 Role
@@ -157,6 +157,7 @@
                 <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Admin</option>
                 <option value="petugas" {{ old('role', $user->role) == 'petugas' ? 'selected' : '' }}>Petugas</option>
                 <option value="siswa" {{ old('role', $user->role) == 'siswa' ? 'selected' : '' }}>Siswa</option>
+                <option value="guru" {{ old('role', $user->role) == 'guru' ? 'selected' : '' }}>Guru</option>
             </select>
 
             @error('role')

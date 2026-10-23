@@ -34,7 +34,7 @@
                 </h1>
 
                 <p class="mt-3 max-w-xl text-[13.5px] leading-relaxed text-white/80 sm:text-sm">
-                    Silakan ketik nama Bapak/Ibu Guru dan isi keperluan kunjungan di perpustakaan.
+                    Cari nama guru yang terdaftar, pilih nama, lalu isi keperluan kunjungan.
                 </p>
             </div>
 
@@ -52,61 +52,54 @@
                 Form Buku Tamu Guru
             </h3>
             <p class="mt-1 text-xs text-[var(--muted)]">
-                Ketik nama Anda di bawah ini.
+                Cari dan pilih nama guru dari data yang tersedia.
             </p>
         </div>
 
         <div class="p-5 md:p-6">
-            <form action="{{ route('teacher-guest-book.store') }}" method="POST">
+            <form id="teacherGuestBookForm" action="{{ route('teacher-guest-book.store') }}" method="POST">
                 @csrf
 
                 <div class="space-y-5">
 
-                    {{-- Form Nama Guru (Murni Kosong) --}}
+                    <input type="hidden" id="user_id" name="user_id" value="{{ $selectedGuru?->id ?? '' }}">
+
                     <div>
-                        <label for="nama" class="mb-2 block text-sm font-semibold text-[var(--text)]">
+                        <label for="guruSearch" class="mb-2 block text-sm font-semibold text-[var(--text)]">
                             Nama Lengkap Guru <span class="text-red-500">*</span>
                         </label>
 
                         <input
                             type="text"
-                            id="nama"
-                            name="nama"
-                            list="guru_list"
+                            id="guruSearch"
+                            role="combobox"
+                            aria-autocomplete="list"
+                            aria-expanded="false"
+                            aria-controls="guruSuggestions"
                             autocomplete="off"
-                            value="{{ old('nama') }}"
-                            placeholder="Ketik nama Bapak/Ibu Guru..."
-                            required
-                            autofocus
-                            class="w-full rounded-xl border border-[var(--hairline)] bg-white px-4 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)] {{ $errors->has('nama') ? 'border-red-500' : '' }}"
+                            value="{{ $selectedGuru?->name ?? '' }}"
+                            placeholder="Cari nama guru..."
+                            class="w-full rounded-xl border border-[var(--hairline)] bg-white px-4 py-2.5 text-sm text-[var(--text)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)] {{ $errors->has('user_id') ? 'border-red-500' : '' }}"
                         >
 
-                        @if(isset($guruList) && count($guruList) > 0)
-                            <datalist id="guru_list">
-                                @foreach($guruList as $guru)
-                                    <option value="{{ $guru->name ?? $guru->nama }}"></option>
-                                @endforeach
-                            </datalist>
-                        @endif
+                        <div id="guruSuggestions" role="listbox" class="mt-1 hidden max-h-60 overflow-y-auto rounded-xl border border-[var(--hairline)] bg-white shadow-lg"></div>
+                        <p id="guruSearchHint" class="mt-1.5 text-xs text-[var(--muted)]">Ketik minimal 2 karakter untuk mencari guru.</p>
 
-                        @error('nama')
+                        @error('user_id')
                             <p class="mt-2 text-sm font-medium text-red-600">{{ $message }}</p>
                         @enderror
                     </div>
 
-                    {{-- Form Keperluan --}}
                     @php
                         $oldKeperluan = old('keperluan');
-                        $isOldCustom = $oldKeperluan && !in_array($oldKeperluan, [
-                            'Meminjam buku',
-                            'Mengembalikan buku',
-                            'Membaca buku di tempat',
-                            'Belajar atau mengerjakan tugas',
-                            'Mencari referensi atau informasi',
-                            'Berkunjung atau keperluan lainnya',
-                        ]);
-                        $initialKeperluan = $isOldCustom ? 'Lainnya' : ($oldKeperluan ?: 'Berkunjung atau keperluan lainnya');
-                        $customKeperluanVal = old('keperluan_custom', ($isOldCustom ? preg_replace('/^Lainnya:\s*/', '', $oldKeperluan) : ''));
+                        $teacherPurposes = [
+                            'Berkunjung atau keperluan lainnya', 'Rapat', 'Konsultasi', 'Mengajar',
+                            'Mengurus administrasi', 'Bertemu guru/staf', 'Bertemu kepala sekolah',
+                            'Mengantar dokumen', 'Keperluan perpustakaan', 'Lainnya',
+                        ];
+                        $oldIsCustom = $oldKeperluan && !in_array($oldKeperluan, $teacherPurposes, true);
+                        $initialKeperluan = $oldIsCustom ? 'Lainnya' : ($oldKeperluan ?: 'Berkunjung atau keperluan lainnya');
+                        $customKeperluanVal = old('keperluan_custom', $oldIsCustom ? preg_replace('/^Lainnya:\s*/', '', $oldKeperluan) : '');
                     @endphp
 
                     <div x-data="{ selectedKeperluan: '{{ $initialKeperluan }}' }">
@@ -122,13 +115,9 @@
                                 required
                                 class="w-full appearance-none rounded-xl border border-[var(--hairline)] bg-white px-4 py-2.5 pr-10 text-sm font-medium text-[var(--text)] outline-none transition focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)] {{ $errors->has('keperluan') ? 'border-red-500' : '' }}"
                             >
-                                <option value="Meminjam buku">Meminjam buku</option>
-                                <option value="Mengembalikan buku">Mengembalikan buku</option>
-                                <option value="Membaca buku di tempat">Membaca buku di tempat</option>
-                                <option value="Belajar atau mengerjakan tugas">Belajar atau mengerjakan tugas</option>
-                                <option value="Mencari referensi atau informasi">Mencari referensi atau informasi</option>
-                                <option value="Berkunjung atau keperluan lainnya">Berkunjung atau keperluan lainnya</option>
-                                <option value="Lainnya">Lainnya</option>
+                                @foreach($teacherPurposes as $purpose)
+                                    <option value="{{ $purpose }}" {{ $initialKeperluan === $purpose ? 'selected' : '' }}>{{ $purpose }}</option>
+                                @endforeach
                             </select>
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3.5 text-[var(--muted)]">
                                 <i class="fas fa-chevron-down text-xs"></i>
@@ -161,7 +150,9 @@
                     <div class="flex justify-end border-t border-[var(--hairline)] pt-5">
                         <button
                             type="submit"
-                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--emerald-deep)] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
+                            id="teacherGuestBookSubmit"
+                            disabled
+                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--emerald-deep)] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <i class="fas fa-paper-plane text-xs"></i>
                             <span>Kirim Data Kunjungan</span>
@@ -177,18 +168,141 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    var namaInput = document.getElementById('nama');
-    if (namaInput) {
-        namaInput.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                var keperluanSelect = document.getElementById('keperluan');
-                if (keperluanSelect) {
-                    keperluanSelect.focus();
-                }
-            }
-        });
+    const searchInput = document.getElementById('guruSearch');
+    const userIdInput = document.getElementById('user_id');
+    const suggestions = document.getElementById('guruSuggestions');
+    const hint = document.getElementById('guruSearchHint');
+    const submitButton = document.getElementById('teacherGuestBookSubmit');
+    const form = document.getElementById('teacherGuestBookForm');
+    const searchUrl = @json(route('teacher-guest-book.create'));
+    let matches = [];
+    let activeIndex = -1;
+    let timer = null;
+    let requestController = null;
+
+    function setSuggestionsOpen(open) {
+        suggestions.classList.toggle('hidden', !open);
+        searchInput.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
+
+    function syncSubmitState() {
+        submitButton.disabled = !userIdInput.value;
+    }
+
+    function renderSuggestions(items, keepActive = false) {
+        const previousActive = activeIndex;
+        suggestions.replaceChildren();
+        matches = items;
+        activeIndex = items.length ? (keepActive ? Math.min(Math.max(previousActive, 0), items.length - 1) : 0) : -1;
+
+        items.forEach((teacher, index) => {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.setAttribute('role', 'option');
+            option.setAttribute('aria-selected', index === activeIndex ? 'true' : 'false');
+            option.className = 'block w-full border-b border-[var(--hairline)] px-4 py-3 text-left text-sm last:border-b-0 hover:bg-[var(--emerald-tint)] focus:bg-[var(--emerald-tint)]';
+
+            const name = document.createElement('span');
+            name.className = 'block font-semibold text-[var(--text)]';
+            name.textContent = teacher.name;
+            option.appendChild(name);
+
+            option.addEventListener('click', () => selectTeacher(index));
+            suggestions.appendChild(option);
+        });
+
+        if (!items.length) {
+            const empty = document.createElement('p');
+            empty.className = 'px-4 py-3 text-sm text-[var(--muted)]';
+            empty.textContent = 'Guru tidak ditemukan.';
+            suggestions.appendChild(empty);
+        }
+        setSuggestionsOpen(true);
+    }
+
+    function selectTeacher(index) {
+        const teacher = matches[index];
+        if (!teacher) return;
+        userIdInput.value = teacher.id;
+        searchInput.value = teacher.name;
+        hint.textContent = 'Guru terpilih.';
+        hint.classList.remove('text-red-600');
+        setSuggestionsOpen(false);
+        syncSubmitState();
+    }
+
+    async function searchTeachers(term) {
+        if (requestController) requestController.abort();
+        requestController = new AbortController();
+        try {
+            const url = new URL(searchUrl, window.location.origin);
+            url.searchParams.set('q', term);
+            const response = await fetch(url, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                signal: requestController.signal
+            });
+            if (!response.ok) throw new Error('Pencarian guru gagal. Coba lagi.');
+            const data = await response.json();
+            if (!Array.isArray(data)) throw new Error('Respons pencarian guru tidak valid.');
+            renderSuggestions(data);
+            hint.textContent = data.length ? 'Pilih nama guru dari daftar.' : 'Guru tidak ditemukan.';
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            renderSuggestions([]);
+            hint.textContent = error.message || 'Pencarian guru gagal. Periksa koneksi lalu coba lagi.';
+            hint.classList.add('text-red-600');
+        }
+    }
+
+    searchInput.addEventListener('input', function () {
+        userIdInput.value = '';
+        syncSubmitState();
+        hint.classList.remove('text-red-600');
+        const term = searchInput.value.trim();
+        if (requestController) requestController.abort();
+        clearTimeout(timer);
+        if (term.length < 2) {
+            matches = [];
+            setSuggestionsOpen(false);
+            hint.textContent = 'Ketik minimal 2 karakter untuk mencari guru.';
+            return;
+        }
+        hint.textContent = 'Mencari guru...';
+        timer = setTimeout(() => searchTeachers(term), 250);
+    });
+
+    searchInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!suggestions.classList.contains('hidden') && activeIndex >= 0) selectTeacher(activeIndex);
+            return;
+        }
+        if (event.key === 'ArrowDown' && matches.length) {
+            event.preventDefault();
+            activeIndex = (activeIndex + 1) % matches.length;
+            renderSuggestions(matches, true);
+            suggestions.querySelectorAll('[role="option"]')[activeIndex]?.scrollIntoView({ block: 'nearest' });
+        } else if (event.key === 'ArrowUp' && matches.length) {
+            event.preventDefault();
+            activeIndex = activeIndex <= 0 ? matches.length - 1 : activeIndex - 1;
+            renderSuggestions(matches, true);
+            suggestions.querySelectorAll('[role="option"]')[activeIndex]?.scrollIntoView({ block: 'nearest' });
+        } else if (event.key === 'Escape') {
+            setSuggestionsOpen(false);
+        }
+    });
+
+    form.addEventListener('submit', function (event) {
+        if (!userIdInput.value) {
+            event.preventDefault();
+            hint.textContent = 'Guru belum dipilih.';
+            hint.classList.add('text-red-600');
+            searchInput.focus();
+        }
+    });
+
+    syncSubmitState();
 });
 </script>
 

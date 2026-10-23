@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use Throwable;
 
 class UserController extends Controller
 {
@@ -80,14 +82,15 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $isGuru = $request->input('role') === 'guru';
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255'],
-            'nomor_identitas' => ['required', 'string', 'max:20', 'unique:users,nomor_identitas'],
+            'nomor_identitas' => array_merge($isGuru ? ['nullable'] : ['required'], ['string', 'max:20', 'unique:users,nomor_identitas']),
             'kelas_id' => ['nullable', 'exists:kelas,id'],
             'kelas' => ['nullable', 'string', 'max:255'],
             'jurusan' => ['nullable', 'string', 'max:255'],
-            'password' => ['required', 'string', 'min:6'],
-            'role' => ['required', 'in:admin,petugas,siswa'],
+            'password' => $isGuru ? ['nullable', 'string', 'min:6'] : ['required', 'string', 'min:6'],
+            'role' => ['required', 'in:admin,petugas,siswa,guru'],
         ], [
             'name.required' => 'Nama wajib diisi.',
             'nomor_identitas.required' => 'Nomor identitas wajib diisi.',
@@ -134,10 +137,10 @@ class UserController extends Controller
 
         User::create([
             'name' => $request->name,
-            'nomor_identitas' => $request->nomor_identitas,
-            'kelas' => $kelasNama,
-            'jurusan' => $jurusanNama,
-            'password' => Hash::make($request->password),
+            'nomor_identitas' => $request->filled('nomor_identitas') ? trim($request->nomor_identitas) : null,
+            'kelas' => $isGuru ? null : $kelasNama,
+            'jurusan' => $isGuru ? null : $jurusanNama,
+            'password' => $request->filled('password') ? Hash::make($request->password) : Hash::make(Str::random(64)),
             'role' => $request->role,
         ]);
 
@@ -153,14 +156,24 @@ class UserController extends Controller
         @ini_set('max_execution_time', '0');
         @set_time_limit(0);
 
-        $request->validate([
-            'kelas' => ['required', 'string', 'in:X,XI,XII'],
+        $validated = $request->validate([
+            'jenis_import' => ['required', 'in:siswa,guru'],
             'file' => ['required', 'file', 'mimes:xlsx,xls'],
         ], [
-            'kelas.required' => 'Kelas wajib dipilih.',
-            'kelas.in' => 'Kelas tidak valid.',
+            'jenis_import.required' => 'Jenis import wajib dipilih.',
             'file.required' => 'File Excel wajib diupload.',
             'file.mimes' => 'File harus berformat xlsx atau xls.',
+        ]);
+
+        if ($validated['jenis_import'] === 'guru') {
+            return $this->importTeachersFromExcel($request);
+        }
+
+        $request->validate([
+            'kelas' => ['required', 'string', 'in:X,XI,XII'],
+        ], [
+            'kelas.required' => 'Kelas wajib dipilih untuk import siswa.',
+            'kelas.in' => 'Kelas tidak valid.',
         ]);
 
         $kelas = $request->kelas;
@@ -251,56 +264,43 @@ class UserController extends Controller
                 ->with('error', 'Tidak ada data siswa yang berhasil dibaca dari Excel.');
         }
 
-        foreach ($kelasDariExcel as $dataKelas) {
-            Kelas::firstOrCreate([
-                'nama_kelas' => $dataKelas['nama_kelas'],
-                'jurusan' => $dataKelas['jurusan'],
-            ]);
-        }
-
-        $nisnList = array_keys($dataImport);
-
-        $existingUsers = User::whereIn('nomor_identitas', $nisnList)
-            ->get()
-            ->keyBy('nomor_identitas');
-
         $berhasil = 0;
         $diupdate = 0;
         $insertData = [];
         $now = now();
-
-        foreach ($dataImport as $nisn => $data) {
-            if ($existingUsers->has($nisn)) {
-                DB::table('users')
-                    ->where('nomor_identitas', $nisn)
-                    ->update([
-                        'name' => $data['name'],
-                        'kelas' => $data['kelas'],
-                        'jurusan' => $data['jurusan'],
-                        'role' => 'siswa',
-                        'updated_at' => $now,
-                    ]);
-
-                $diupdate++;
-            } else {
-                $insertData[] = [
-                    'name' => $data['name'],
-                    'nomor_identitas' => $data['nomor_identitas'],
-                    'kelas' => $data['kelas'],
-                    'jurusan' => $data['jurusan'],
-                    'password' => Hash::make($nisn, ['rounds' => 4]),
-                    'role' => 'siswa',
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ];
-
-                $berhasil++;
+        DB::transaction(function () use ($kelasDariExcel, $dataImport, $now, &$berhasil, &$diupdate, &$insertData) {
+            foreach ($kelasDariExcel as $dataKelas) {
+                Kelas::firstOrCreate([
+                    'nama_kelas' => $dataKelas['nama_kelas'],
+                    'jurusan' => $dataKelas['jurusan'],
+                ]);
             }
-        }
 
-        foreach (array_chunk($insertData, 100) as $chunk) {
-            DB::table('users')->insert($chunk);
-        }
+            $nisnList = array_keys($dataImport);
+            $existingUsers = User::whereIn('nomor_identitas', $nisnList)->get()->keyBy('nomor_identitas');
+
+            foreach ($dataImport as $nisn => $data) {
+                if ($existingUsers->has($nisn)) {
+                    DB::table('users')->where('nomor_identitas', $nisn)->update([
+                        'name' => $data['name'], 'kelas' => $data['kelas'], 'jurusan' => $data['jurusan'],
+                        'role' => 'siswa', 'updated_at' => $now,
+                    ]);
+                    $diupdate++;
+                } else {
+                    $insertData[] = [
+                        'name' => $data['name'], 'nomor_identitas' => $data['nomor_identitas'],
+                        'kelas' => $data['kelas'], 'jurusan' => $data['jurusan'],
+                        'password' => Hash::make($nisn, ['rounds' => 4]), 'role' => 'siswa',
+                        'created_at' => $now, 'updated_at' => $now,
+                    ];
+                    $berhasil++;
+                }
+            }
+
+            foreach (array_chunk($insertData, 100) as $chunk) {
+                DB::table('users')->insert($chunk);
+            }
+        });
 
         $pesan = "Import selesai. Data baru: {$berhasil}, diupdate: {$diupdate}, dilewati: {$dilewati}.";
 
@@ -315,6 +315,100 @@ class UserController extends Controller
         return redirect()
             ->route('users.index')
             ->with('success', $pesan);
+    }
+
+    private function importTeachersFromExcel(Request $request)
+    {
+        $errors = [];
+        $names = [];
+        try {
+            $spreadsheet = IOFactory::load($request->file('file')->getRealPath());
+            foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
+                $highestRow = $sheet->getHighestRow();
+                $highestColumnIndex = Coordinate::columnIndexFromString($sheet->getHighestColumn());
+                $nameColumn = null;
+                $headerRow = null;
+
+                for ($row = 1; $row <= min(40, $highestRow) && !$nameColumn; $row++) {
+                    for ($col = 1; $col <= $highestColumnIndex; $col++) {
+                        $value = (string) $sheet->getCell(Coordinate::stringFromColumnIndex($col) . $row)->getFormattedValue();
+                        $key = mb_strtolower(preg_replace('/[\s_\-.:]+/u', '', trim($value)));
+                        if (in_array($key, ['nama', 'namaguru', 'namalengkap'], true)) {
+                            $nameColumn = Coordinate::stringFromColumnIndex($col);
+                            $headerRow = $row;
+                            break;
+                        }
+                    }
+                }
+
+                if (!$nameColumn) {
+                    $errors[] = 'Sheet "' . $sheet->getTitle() . '": kolom NAMA tidak ditemukan.';
+                    continue;
+                }
+
+                for ($row = $headerRow + 1; $row <= $highestRow; $row++) {
+                    $raw = trim((string) $sheet->getCell($nameColumn . $row)->getFormattedValue());
+                    $rowHasData = false;
+                    for ($col = 1; $col <= $highestColumnIndex; $col++) {
+                        if (trim((string) $sheet->getCell(Coordinate::stringFromColumnIndex($col) . $row)->getFormattedValue()) !== '') {
+                            $rowHasData = true;
+                            break;
+                        }
+                    }
+                    if (!$rowHasData) continue;
+                    $name = preg_replace('/\s+/u', ' ', $raw);
+                    if ($name === '') {
+                        $errors[] = 'Sheet "' . $sheet->getTitle() . '", baris ' . $row . ': nama kosong.';
+                        continue;
+                    }
+                    if (mb_strlen($name) > 255) {
+                        $errors[] = 'Sheet "' . $sheet->getTitle() . '", baris ' . $row . ': nama melebihi 255 karakter.';
+                        continue;
+                    }
+                    $names[] = $name;
+                }
+            }
+        } catch (Throwable $exception) {
+            return redirect()->route('users.index')->with('error', 'File Excel tidak dapat dibaca: ' . $exception->getMessage());
+        }
+
+        $uniqueNames = [];
+        $skipped = 0;
+        foreach ($names as $name) {
+            $key = mb_strtolower($name);
+            if (isset($uniqueNames[$key])) {
+                $skipped++;
+                continue;
+            }
+            $uniqueNames[$key] = $name;
+        }
+
+        $existingNames = User::query()->where('role', 'guru')->get(['name'])
+            ->mapWithKeys(fn ($user) => [mb_strtolower(trim($user->name)) => true])->all();
+        $insert = [];
+        foreach ($uniqueNames as $key => $name) {
+            if (isset($existingNames[$key])) {
+                $skipped++;
+                continue;
+            }
+            $insert[] = [
+                'name' => $name, 'nomor_identitas' => null, 'kelas' => null, 'jurusan' => null,
+                'password' => Hash::make(Str::random(64)), 'role' => 'guru',
+                'created_at' => now(), 'updated_at' => now(),
+            ];
+        }
+
+        try {
+            DB::transaction(function () use ($insert) {
+                foreach (array_chunk($insert, 100) as $chunk) DB::table('users')->insert($chunk);
+            });
+        } catch (Throwable $exception) {
+            return redirect()->route('users.index')->with('error', 'Import Guru gagal dan transaksi dibatalkan: ' . $exception->getMessage());
+        }
+
+        $failed = count($errors);
+        $message = 'Import Guru selesai. Berhasil: ' . count($insert) . ' guru. Dilewati: ' . $skipped . ' data duplikat. Gagal: ' . $failed . ' data.';
+        return redirect()->route('users.index')->with('success', $message)->with('import_errors', $errors);
     }
 
     public function bulkDelete(Request $request)
@@ -608,19 +702,19 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        $isGuru = $request->input('role') === 'guru';
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string', 'max:255'],
-            'nomor_identitas' => [
-                'required',
+            'nomor_identitas' => array_merge($isGuru ? ['nullable'] : ['required'], [
                 'string',
                 'max:20',
                 Rule::unique('users', 'nomor_identitas')->ignore($user->id),
-            ],
+            ]),
             'kelas_id' => ['nullable', 'exists:kelas,id'],
             'kelas' => ['nullable', 'string', 'max:255'],
             'jurusan' => ['nullable', 'string', 'max:255'],
             'password' => ['nullable', 'string', 'min:6'],
-            'role' => ['required', 'in:admin,petugas,siswa'],
+            'role' => ['required', 'in:admin,petugas,siswa,guru'],
         ], [
             'name.required' => 'Nama wajib diisi.',
             'nomor_identitas.required' => 'Nomor identitas wajib diisi.',
@@ -659,9 +753,9 @@ class UserController extends Controller
 
         $user->update([
             'name' => $request->name,
-            'nomor_identitas' => $request->nomor_identitas,
-            'kelas' => $kelasNama,
-            'jurusan' => $jurusanNama,
+            'nomor_identitas' => $request->filled('nomor_identitas') ? trim($request->nomor_identitas) : null,
+            'kelas' => $isGuru ? null : $kelasNama,
+            'jurusan' => $isGuru ? null : $jurusanNama,
             'role' => $request->role,
         ]);
 

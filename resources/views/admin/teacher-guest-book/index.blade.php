@@ -206,7 +206,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[760px] border-collapse text-sm">
+            <table class="w-full min-w-[800px] border-collapse text-sm">
                 <thead>
                     <tr class="catalog-eyebrow bg-[var(--sand)]/40 uppercase text-[var(--muted)]">
                         <th class="w-16 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
@@ -230,8 +230,9 @@
                         </th>
 
                         <th class="w-28 border border-[var(--hairline)] px-5 py-4 text-center font-semibold">
-                            Aksi
+                            Metode
                         </th>
+
                     </tr>
                 </thead>
 
@@ -259,21 +260,15 @@
                             </td>
 
                             <td class="border border-[var(--hairline)] px-5 py-4 text-center">
+                                {{ ucfirst($item->metode_absensi ?? 'manual') }}
+                            </td>
+
+                            <td class="border border-[var(--hairline)] px-5 py-4 text-center">
                                 <span class="font-mono-stat text-[var(--text)]">
                                     {{ \Carbon\Carbon::parse($item->created_at)->timezone(config('app.timezone'))->format('H:i') }}
                                 </span>
                             </td>
 
-                            <td class="border border-[var(--hairline)] px-5 py-4 text-center">
-                                <button
-                                    type="button"
-                                    @click="$dispatch('open-confirm-delete', { url: '{{ route('admin.teacher-guest-book.destroy', $item->id) }}' })"
-                                    title="Hapus Data"
-                                    class="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-xs font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
-                                >
-                                    Hapus
-                                </button>
-                            </td>
                         </tr>
                     @empty
                         <tr>
@@ -352,11 +347,6 @@
     @endif
 
 </div>
-
-<x-confirm-delete
-    title="Hapus Data Buku Tamu Guru?"
-    message="Apakah Anda yakin ingin menghapus data buku tamu guru ini? Tindakan ini tidak dapat dibatalkan."
-/>
 
 <x-export-modal
     :route="route('admin.teacher-guest-book.export')"

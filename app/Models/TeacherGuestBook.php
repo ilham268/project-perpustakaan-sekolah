@@ -12,7 +12,14 @@ class TeacherGuestBook extends Model
     protected $table = 'teacher_guest_books';
 
     protected $fillable = [
+        'user_id',
         'nama',
         'keperluan',
+        'metode_absensi',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

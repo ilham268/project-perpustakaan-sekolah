@@ -97,7 +97,7 @@
         </div>
 
         {{-- Nomor Identitas --}}
-        <div>
+        <div x-show="selectedRole !== 'guru'">
             <label for="nomor_identitas" class="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
                 <i class="fas fa-id-card text-xs text-[var(--muted)]"></i>
                 Nomor Identitas
@@ -113,7 +113,7 @@
                 :class="errors.nomor_identitas
                     ? 'border-red-300 bg-red-50/40 focus:border-red-400 focus:ring-red-100'
                     : 'border-[var(--hairline)] bg-[var(--paper)] focus:border-[var(--emerald)] focus:bg-white focus:ring-[var(--emerald-tint)]'"
-                required
+                :required="selectedRole !== 'guru'"
             >
 
             <p
@@ -124,7 +124,7 @@
         </div>
 
         {{-- Kelas --}}
-        <div>
+        <div x-show="selectedRole !== 'guru'">
             <label for="kelas_id" class="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
                 <i class="fas fa-school text-xs text-[var(--muted)]"></i>
                 Kelas
@@ -187,6 +187,7 @@
                     <option value="admin">Admin</option>
                     <option value="petugas">Petugas</option>
                     <option value="siswa">Siswa</option>
+                    <option value="guru">Guru</option>
                 </select>
 
                 <p
@@ -197,7 +198,7 @@
             </div>
 
             {{-- Password --}}
-            <div>
+            <div x-show="selectedRole !== 'guru'">
                 <label for="password" class="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
                     <i class="fas fa-lock text-xs text-[var(--muted)]"></i>
                     Password
@@ -213,7 +214,7 @@
                     :class="errors.password
                         ? 'border-red-300 bg-red-50/40 focus:border-red-400 focus:ring-red-100'
                         : 'border-[var(--hairline)] bg-[var(--paper)] focus:border-[var(--emerald)] focus:bg-white focus:ring-[var(--emerald-tint)]'"
-                    required
+                    :required="selectedRole !== 'guru'"
                 >
 
                 <p

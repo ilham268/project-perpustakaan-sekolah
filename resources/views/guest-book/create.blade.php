@@ -285,6 +285,10 @@
 
                         <div class="mt-2 space-y-1 text-sm text-[var(--muted)]">
                             <p>
+                                NISN/Identitas:
+                                <strong id="successIdentitas" class="text-[var(--text)]">-</strong>
+                            </p>
+                            <p>
                                 Kelas:
                                 <strong id="successKelas" class="text-[var(--text)]">-</strong>
                             </p>
@@ -788,7 +792,7 @@
     #qr-reader video {
         border-radius: 0.85rem !important;
         width: 100% !important;
-        max-height: 380px !important;
+        max-height: 440px !important;
         object-fit: cover !important;
     }
     #qr-reader__scan_region {
@@ -852,9 +856,10 @@ document.addEventListener('DOMContentLoaded', function () {
     let isScanning = false;
     let isStartingCamera = false;
     let isProcessing = false;
+    let isCoolingDown = false;
     let lastScannedCode = null;
     let lastScanTime = 0;
-    const COOLDOWN_MS = 2000;
+    const COOLDOWN_MS = 2500;
     let cooldownTimeout = null;
     let cooldownInterval = null;
 
@@ -881,6 +886,18 @@ document.addEventListener('DOMContentLoaded', function () {
         scanStatusAlert.innerHTML = message;
     }
 
+    function escapeQrText(value) {
+        return String(value).replace(/[&<>"']/g, char => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+        })[char]);
+    }
+
+    function showWaitingForQr() {
+        if (!isScanning || isProcessing || isCoolingDown) return;
+        updateCameraStatus(true, 'Kamera aktif - Mencari QR Code...');
+        showScanAlert('<div class="font-semibold">Mencari QR Code...</div><div class="mt-1">Arahkan QR Code kartu siswa ke dalam area pemindaian.</div>', 'success');
+    }
+
     function hideScanAlert() {
         if (scanStatusAlert) {
             scanStatusAlert.classList.add('hidden');
@@ -888,17 +905,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function updateCameraStatus(active, text = null) {
+    function updateCameraStatus(active, text = null, tone = null) {
         if (!cameraStatusBadge || !cameraStatusDot || !cameraStatusText) return;
-        if (active) {
-            cameraStatusDot.className = 'h-2 w-2 rounded-full bg-emerald-500 animate-pulse';
-            cameraStatusText.textContent = text || 'Kamera aktif - Siap scan';
-            cameraStatusBadge.className = 'inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-700';
-        } else {
-            cameraStatusDot.className = 'h-2 w-2 rounded-full bg-gray-400';
-            cameraStatusText.textContent = text || 'Kamera nonaktif';
-            cameraStatusBadge.className = 'inline-flex items-center gap-2 rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-3.5 py-2 text-xs font-medium text-[var(--muted)]';
-        }
+        const color = tone || (active ? 'green' : 'gray');
+        const styles = {
+            gray: ['bg-gray-400', 'border-[var(--hairline)] bg-[var(--paper)] text-[var(--muted)]', 'font-medium'],
+            green: ['bg-emerald-500 animate-pulse', 'border-emerald-200 bg-emerald-50 text-emerald-700', 'font-semibold'],
+            blue: ['bg-blue-500 animate-pulse', 'border-blue-200 bg-blue-50 text-blue-700', 'font-semibold'],
+            red: ['bg-red-500', 'border-red-200 bg-red-50 text-red-700', 'font-semibold']
+        }[color] || ['bg-gray-400', 'border-[var(--hairline)] bg-[var(--paper)] text-[var(--muted)]', 'font-medium'];
+        cameraStatusDot.className = 'h-2 w-2 rounded-full ' + styles[0];
+        cameraStatusText.textContent = text || (active ? 'Kamera aktif - Siap scan' : 'Kamera nonaktif');
+        cameraStatusBadge.className = 'inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs ' + styles[1] + ' ' + styles[2];
     }
 
     function resetScannerUiButtons(isCameraActive) {
@@ -929,6 +947,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    async function stopScannerCameraTracks() {
+        const video = document.querySelector('#qr-reader video');
+        const stream = video && video.srcObject;
+        if (stream && typeof stream.getTracks === 'function') {
+            stream.getTracks().forEach(track => {
+                try { track.stop(); } catch (err) { console.warn('[QR Scanner] Track camera gagal dihentikan:', err); }
+            });
+            video.srcObject = null;
+        }
+    }
+
     function pauseScannerSafely() {
         // Biarkan video camera tetap aktif tanpa freeze untuk UX yang mulus
     }
@@ -946,6 +975,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (typeof Html5Qrcode === 'undefined') {
             console.error("Library Html5Qrcode belum siap dimuat.");
+            updateCameraStatus(false, 'Library scanner QR tidak tersedia', 'red');
             showScanAlert('<div class="flex items-center gap-2"><i class="fas fa-triangle-exclamation"></i><span>Library pemindai QR belum selesai dimuat. Harap periksa koneksi internet Anda lalu coba lagi.</span></div>', 'error');
             return;
         }
@@ -981,17 +1011,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 cooldownInterval = null;
             }
             isProcessing = false;
+            isCoolingDown = false;
             lastScannedCode = null;
             lastScanTime = 0;
 
             const config = {
-                fps: 15,
+                fps: 12,
                 qrbox: function (viewfinderWidth, viewfinderHeight) {
                     const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-                    const edge = Math.floor(minEdge * 0.75);
+                    const edge = Math.floor(minEdge * 0.85);
                     return {
-                        width: Math.max(edge, 220),
-                        height: Math.max(edge, 220)
+                        width: Math.min(viewfinderWidth, Math.max(edge, 200)),
+                        height: Math.min(viewfinderHeight, Math.max(edge, 200))
                     };
                 },
                 aspectRatio: 1.0,
@@ -999,7 +1030,9 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             // Buat instance scanner bersih pada elemen #qr-reader
-            html5QrCode = new Html5Qrcode("qr-reader");
+            html5QrCode = new Html5Qrcode("qr-reader", {
+                formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+            });
 
             // Tentukan sumber webcam:
             // 1. Coba deteksi kamera dengan getCameras() untuk mendapatkan device ID string murni
@@ -1015,6 +1048,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.warn("Info enumerasi webcam:", camErr);
             }
 
+            // Setel sebelum start: callback decoder dapat terjadi segera setelah stream aktif.
+            isScanning = true;
             try {
                 await html5QrCode.start(
                     cameraSource,
@@ -1028,10 +1063,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 try {
                     if (html5QrCode) {
                         try { await html5QrCode.stop(); } catch (_) {}
+                        await stopScannerCameraTracks();
                         html5QrCode.clear();
                     }
                 } catch (_) {}
-                html5QrCode = new Html5Qrcode("qr-reader");
+                html5QrCode = new Html5Qrcode("qr-reader", {
+                    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]
+                });
+                isScanning = true;
                 await html5QrCode.start(
                     { facingMode: "user" },
                     config,
@@ -1040,9 +1079,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 );
             }
 
-            isScanning = true;
             resetScannerUiButtons(true);
-            updateCameraStatus(true, 'Kamera aktif - Arahkan QR Code');
+            showWaitingForQr();
         } catch (err) {
             console.error("Gagal memulai kamera (Browser/Library Error):", err);
             if (err) {
@@ -1053,31 +1091,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     raw: String(err)
                 });
             }
-            updateCameraStatus(false, 'Gagal membuka kamera');
+            updateCameraStatus(false, 'Gagal mengaktifkan kamera', 'red');
 
-            let errorMsg = 'Gagal mengakses webcam.';
-            const errStr = (err && (err.name || err.message || String(err))).toLowerCase();
-
-            if (errStr.includes('notallowed') || errStr.includes('permission')) {
-                errorMsg = 'Izin kamera ditolak. Harap izinkan akses webcam di browser Anda (klik ikon gembok/kamera pada address bar).';
-            } else if (errStr.includes('notfound') || errStr.includes('devicesnotfound') || errStr.includes('no_cameras')) {
-                errorMsg = 'Webcam tidak terdeteksi di komputer ini. Pastikan webcam terpasang.';
-            } else if (errStr.includes('notreadable') || errStr.includes('trackstart') || errStr.includes('in use') || errStr.includes('busy')) {
-                errorMsg = 'Kamera sedang digunakan oleh aplikasi lain (seperti Zoom, Teams, Google Meet, atau tab browser lain). Harap tutup aplikasi tersebut lalu coba lagi.';
-            } else if (errStr.includes('overconstrained')) {
-                errorMsg = 'Konfigurasi kamera tidak cocok dengan perangkat webcam ini.';
-            } else if (window.isSecureContext === false && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-                errorMsg = 'Akses webcam memerlukan protokol HTTPS atau domain localhost.';
-            } else {
-                errorMsg = 'Gagal mengaktifkan kamera: ' + (err.message || 'Periksa izin webcam di browser.');
-            }
-
-            const errorDetail = err ? ((err.name ? err.name + ': ' : '') + (err.message || String(err))) : '';
-            const errorDetailHtml = errorDetail ? '<div class="mt-1 font-mono text-[11px] opacity-80 break-all">Detail error browser: ' + errorDetail + '</div>' : '';
-
-            showScanAlert('<div><div class="flex items-center gap-2"><i class="fas fa-triangle-exclamation"></i><span>' + errorMsg + '</span></div>' + errorDetailHtml + '</div>', 'error');
+            const errorMsg = 'Kamera tidak dapat digunakan. Periksa izin kamera browser.';
+            showScanAlert('<div class="font-semibold">Gagal mengaktifkan kamera</div><div class="mt-1">' + errorMsg + '</div>', 'error');
 
             isScanning = false;
+            if (html5QrCode) {
+                try { await html5QrCode.stop(); } catch (_) {}
+                await stopScannerCameraTracks();
+                try { html5QrCode.clear(); } catch (_) {}
+                html5QrCode = null;
+            }
             resetScannerUiButtons(false);
         } finally {
             isStartingCamera = false;
@@ -1098,6 +1123,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cooldownTimeout = null;
         }
         isProcessing = false;
+        isCoolingDown = false;
         lastScannedCode = null;
         lastScanTime = 0;
 
@@ -1120,10 +1146,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (isScanning) {
                 await html5QrCode.stop();
             }
-            html5QrCode.clear();
         } catch (err) {
             console.warn("[QR Scanner] Info penghentian kamera:", err);
         } finally {
+            await stopScannerCameraTracks();
+            try { html5QrCode.clear(); } catch (err) { console.warn('[QR Scanner] Elemen scanner gagal dibersihkan:', err); }
             html5QrCode = null;
             isScanning = false;
             isStartingCamera = false;
@@ -1135,10 +1162,10 @@ document.addEventListener('DOMContentLoaded', function () {
     function onScanSuccess(decodedText) {
         if (!isScanning) return;
         // Kunci sinkron: jangan kirim request baru jika request sebelumnya masih berjalan
-        if (isProcessing) return;
+        if (isProcessing || isCoolingDown) return;
         if (!decodedText || !decodedText.trim()) return;
 
-        const code = decodedText.trim();
+        const code = decodedText;
         const now = Date.now();
 
         // Cegah spam frame kamera berulang untuk kartu yang sama dalam masa jeda 2 detik
@@ -1151,8 +1178,10 @@ document.addEventListener('DOMContentLoaded', function () {
         lastScannedCode = code;
         lastScanTime = now;
 
-        console.log(`[QR Scanner] QR Code terdeteksi: "${code}". Mengirim absensi ke server...`);
-        updateCameraStatus(true, 'QR Code terdeteksi - Memproses absensi...');
+        console.log('QR terbaca:', code);
+        console.log('[QR Scanner] Mengirim absensi ke server...');
+        updateCameraStatus(true, 'QR berhasil dibaca - mencari siswa...', 'blue');
+        showScanAlert('<div class="font-semibold">QR Code berhasil dibaca</div><div class="mt-1 font-mono break-all">Data QR: ' + escapeQrText(code) + '</div><div class="mt-1">Sedang mencari siswa di database...</div>', 'info');
 
         prosesQrScan(code);
     }
@@ -1162,8 +1191,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function prosesQrScan(code) {
-        hideScanAlert();
-
         const keperluanVal = qrKeperluan ? qrKeperluan.value : 'Berkunjung atau keperluan lainnya';
 
         try {
@@ -1185,24 +1212,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (result.success === true) {
                 tampilkanAbsensiBerhasil(result.data);
-                showScanAlert('<div class="flex items-center gap-2"><i class="fas fa-check-circle"></i><span>' + (result.message || 'Absensi berhasil dicatat!') + '</span></div>', 'success');
+                updateCameraStatus(true, 'Absensi berhasil', 'green');
+                showScanAlert('<div class="font-semibold">Siswa ditemukan</div><div class="mt-1">' + escapeQrText(result.data?.nama || '') + '</div><div class="mt-1 font-mono break-all">Data QR: ' + escapeQrText(code) + '</div><div class="mt-1 font-semibold">Absensi berhasil untuk ' + escapeQrText(result.data?.nama || 'siswa') + '.</div>', 'success');
             } else {
-                const msg = result.message || 'Gagal memproses QR Code.';
                 if (result.already_attended) {
                     if (result.data) {
                         tampilkanAbsensiBerhasil(result.data);
                     }
-                    showScanAlert('<div class="flex items-center gap-2"><i class="fas fa-info-circle"></i><span>' + msg + '</span></div>', 'warning');
+                    updateCameraStatus(true, 'QR terbaca - kunjungan sudah tercatat', 'blue');
+                    showScanAlert('<div class="font-semibold">QR Code berhasil dibaca</div><div class="mt-1 font-mono break-all">Data QR: ' + escapeQrText(code) + '</div><div class="mt-1">Kunjungan siswa ini sudah tercatat hari ini.</div>', 'warning');
+                } else if (result.ambiguous) {
+                    updateCameraStatus(true, 'Identitas QR ambigu', 'red');
+                    showScanAlert('<div class="font-semibold">QR Code terbaca, tetapi nama cocok dengan beberapa siswa.</div><div class="mt-1 font-mono break-all">QR Code: ' + escapeQrText(code) + '</div><div class="mt-1">Mohon verifikasi identitas siswa di database.</div>', 'error');
+                } else if (result.decoded) {
+                    updateCameraStatus(true, 'Siswa belum terdaftar', 'red');
+                    showScanAlert('<div class="font-semibold">QR Code berhasil dibaca, tetapi siswa belum terdaftar.</div><div class="mt-1 font-mono break-all">QR Code: ' + escapeQrText(code) + '</div><div class="mt-1">Silakan tambahkan siswa terlebih dahulu melalui Kelola User.</div>', 'error');
                 } else {
-                    showScanAlert('<div class="flex items-center gap-2"><i class="fas fa-circle-exclamation"></i><span>' + msg + '</span></div>', 'error');
+                    updateCameraStatus(true, 'Terjadi kesalahan saat mencari siswa', 'red');
+                    showScanAlert('<div class="font-semibold">Terjadi kesalahan saat mencari siswa.</div><div class="mt-1 font-mono break-all">QR Code: ' + escapeQrText(code) + '</div>', 'error');
                 }
             }
         } catch (err) {
             console.error("[QR Scanner] Kesalahan fetch QR scan:", err);
-            showScanAlert('<div class="flex items-center gap-2"><i class="fas fa-triangle-exclamation"></i><span>Terjadi gangguan koneksi. Silakan coba pindai lagi.</span></div>', 'error');
+            updateCameraStatus(true, 'Terjadi kesalahan koneksi', 'red');
+            showScanAlert('<div class="font-semibold">QR Code berhasil dibaca, tetapi terjadi gangguan koneksi.</div><div class="mt-1 font-mono break-all">QR Code: ' + escapeQrText(code) + '</div><div class="mt-1">Periksa koneksi lalu coba lagi.</div>', 'error');
         } finally {
             // PENTING: Buka kembali status isProcessing di dalam finally agar scanner tidak pernah terkunci
             isProcessing = false;
+            isCoolingDown = true;
             console.log("[QR Scanner] Request selesai. isProcessing = false.");
 
             // Aktifkan jeda cooldown untuk kode yang sama
@@ -1240,6 +1277,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 1000);
 
         cooldownTimeout = setTimeout(() => {
+            isCoolingDown = false;
             lastScannedCode = null;
             lastScanTime = 0;
 
@@ -1252,9 +1290,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 cooldownCountdownBadge.classList.add('hidden');
             }
 
-            if (isScanning) {
-                updateCameraStatus(true, 'Kamera aktif - Siap scan berikutnya');
-            }
+            if (isScanning) showWaitingForQr();
 
             console.log("[QR Scanner] Cooldown selesai. Scanner siap memindai QR code berikutnya.");
         }, durationMs);
@@ -1263,12 +1299,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // Cleanup camera when leaving the page
     window.addEventListener('beforeunload', function () {
         if (html5QrCode && isScanning) {
-            html5QrCode.stop().catch(() => {});
+            html5QrCode.stop().then(stopScannerCameraTracks).catch(() => {});
         }
     });
     window.addEventListener('pagehide', function () {
         if (html5QrCode && isScanning) {
-            html5QrCode.stop().catch(() => {});
+            html5QrCode.stop().then(stopScannerCameraTracks).catch(() => {});
         }
     });
 
@@ -1392,14 +1428,16 @@ document.addEventListener('DOMContentLoaded', function () {
         rfidSuccess.classList.remove('hidden');
 
         if (rfidTitle) rfidTitle.textContent = 'Absensi Berhasil';
-        if (rfidMessage) rfidMessage.textContent = 'QR Code berhasil dikenali dan absensi telah dicatat.';
+        if (rfidMessage) rfidMessage.textContent = 'Absensi berhasil untuk ' + (data.nama ?? 'siswa') + '.';
         if (rfidIcon) rfidIcon.innerHTML = '<i class="fas fa-check text-3xl"></i>';
 
         const elNama = document.getElementById('successNama');
+        const elIdentitas = document.getElementById('successIdentitas');
         const elKelas = document.getElementById('successKelas');
         const elJurusan = document.getElementById('successJurusan');
 
         if (elNama) elNama.textContent = data.nama ?? '-';
+        if (elIdentitas) elIdentitas.textContent = data.nomor_identitas ?? '-';
         if (elKelas) elKelas.textContent = data.kelas ?? '-';
         if (elJurusan) elJurusan.textContent = data.jurusan ?? '-';
     }
