@@ -32,7 +32,7 @@
 
         @if(session('import_errors'))
             <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                <p class="font-semibold">Baris yang perlu diperiksa:</p>
+                <p class="font-semibold">Catatan import:</p>
                 <ul class="mt-2 list-inside list-disc space-y-1">
                     @foreach(session('import_errors') as $importError)
                         <li>{{ $importError }}</li>

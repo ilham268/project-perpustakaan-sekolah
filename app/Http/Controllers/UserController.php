@@ -319,35 +319,48 @@ class UserController extends Controller
 
     private function importTeachersFromExcel(Request $request)
     {
-        $errors = [];
+        $sheetNamesWithoutName = [];
         $names = [];
+        $skippedMetadataOrBlankRows = 0;
+        $namesTooLong = 0;
+        $existingDuplicates = 0;
         try {
             $spreadsheet = IOFactory::load($request->file('file')->getRealPath());
             foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
-                $highestRow = $sheet->getHighestRow();
-                $highestColumnIndex = Coordinate::columnIndexFromString($sheet->getHighestColumn());
+                $highestRow = $sheet->getHighestDataRow();
+                $highestColumnIndex = Coordinate::columnIndexFromString($sheet->getHighestDataColumn());
                 $nameColumn = null;
                 $headerRow = null;
+                $nameAliasColumn = null;
+                $nameAliasRow = null;
 
-                for ($row = 1; $row <= min(40, $highestRow) && !$nameColumn; $row++) {
+                for ($row = 1; $row <= min(60, $highestRow) && !$nameColumn; $row++) {
                     for ($col = 1; $col <= $highestColumnIndex; $col++) {
                         $value = (string) $sheet->getCell(Coordinate::stringFromColumnIndex($col) . $row)->getFormattedValue();
                         $key = mb_strtolower(preg_replace('/[\s_\-.:]+/u', '', trim($value)));
-                        if (in_array($key, ['nama', 'namaguru', 'namalengkap'], true)) {
+                        if ($key === 'nama') {
                             $nameColumn = Coordinate::stringFromColumnIndex($col);
                             $headerRow = $row;
                             break;
                         }
+                        if ($nameAliasColumn === null && in_array($key, ['namaguru', 'namalengkap'], true)) {
+                            $nameAliasColumn = Coordinate::stringFromColumnIndex($col);
+                            $nameAliasRow = $row;
+                        }
                     }
                 }
 
+                if ($nameColumn === null && $nameAliasColumn !== null) {
+                    $nameColumn = $nameAliasColumn;
+                    $headerRow = $nameAliasRow;
+                }
+
                 if (!$nameColumn) {
-                    $errors[] = 'Sheet "' . $sheet->getTitle() . '": kolom NAMA tidak ditemukan.';
+                    $sheetNamesWithoutName[] = $sheet->getTitle();
                     continue;
                 }
 
                 for ($row = $headerRow + 1; $row <= $highestRow; $row++) {
-                    $raw = trim((string) $sheet->getCell($nameColumn . $row)->getFormattedValue());
                     $rowHasData = false;
                     for ($col = 1; $col <= $highestColumnIndex; $col++) {
                         if (trim((string) $sheet->getCell(Coordinate::stringFromColumnIndex($col) . $row)->getFormattedValue()) !== '') {
@@ -355,60 +368,99 @@ class UserController extends Controller
                             break;
                         }
                     }
-                    if (!$rowHasData) continue;
-                    $name = preg_replace('/\s+/u', ' ', $raw);
-                    if ($name === '') {
-                        $errors[] = 'Sheet "' . $sheet->getTitle() . '", baris ' . $row . ': nama kosong.';
+                    if (!$rowHasData) {
+                        $skippedMetadataOrBlankRows++;
                         continue;
                     }
+
+                    $name = trim((string) $sheet->getCell($nameColumn . $row)->getFormattedValue());
+                    if ($name === '') {
+                        $skippedMetadataOrBlankRows++;
+                        continue;
+                    }
+
+                    $normalizedName = mb_strtolower(preg_replace('/[^\p{L}\p{N}]+/u', '', $name));
+                    $metadataValues = [
+                        'no', 'nomor', 'nomorurut', 'nourut', 'urut', 'nip', 'nuptk',
+                        'nama', 'namaguru', 'namalengkap', 'jumlah', 'total', 'rekap', 'daftar',
+                        'guru', 'staf', 'karyawan', 'pegawai', 'keterangan', 'ket', 'tanggal',
+                        'halaman', 'jabatan', 'pangkat', 'golongan', 'unitkerja', 'statuspegawai',
+                    ];
+                    if (!preg_match('/\p{L}/u', $name) || in_array($normalizedName, $metadataValues, true)) {
+                        $skippedMetadataOrBlankRows++;
+                        continue;
+                    }
+
                     if (mb_strlen($name) > 255) {
-                        $errors[] = 'Sheet "' . $sheet->getTitle() . '", baris ' . $row . ': nama melebihi 255 karakter.';
+                        $namesTooLong++;
                         continue;
                     }
                     $names[] = $name;
                 }
             }
         } catch (Throwable $exception) {
-            return redirect()->route('users.index')->with('error', 'File Excel tidak dapat dibaca: ' . $exception->getMessage());
+            return redirect()->route('users.index')->with('error', 'File Excel tidak dapat dibaca. Pastikan file tidak rusak dan formatnya didukung.');
         }
 
         $uniqueNames = [];
-        $skipped = 0;
+        $duplicateRows = 0;
         foreach ($names as $name) {
-            $key = mb_strtolower($name);
+            $key = mb_strtolower(trim($name));
             if (isset($uniqueNames[$key])) {
-                $skipped++;
+                $duplicateRows++;
                 continue;
             }
             $uniqueNames[$key] = $name;
         }
 
-        $existingNames = User::query()->where('role', 'guru')->get(['name'])
-            ->mapWithKeys(fn ($user) => [mb_strtolower(trim($user->name)) => true])->all();
-        $insert = [];
-        foreach ($uniqueNames as $key => $name) {
-            if (isset($existingNames[$key])) {
-                $skipped++;
-                continue;
-            }
-            $insert[] = [
-                'name' => $name, 'nomor_identitas' => null, 'kelas' => null, 'jurusan' => null,
-                'password' => Hash::make(Str::random(64)), 'role' => 'guru',
-                'created_at' => now(), 'updated_at' => now(),
-            ];
-        }
-
+        $imported = 0;
         try {
-            DB::transaction(function () use ($insert) {
-                foreach (array_chunk($insert, 100) as $chunk) DB::table('users')->insert($chunk);
+            DB::transaction(function () use ($uniqueNames, &$imported, &$existingDuplicates) {
+                $existingNames = User::query()->where('role', 'guru')->get(['name'])
+                    ->mapWithKeys(fn ($user) => [mb_strtolower(trim($user->name)) => true])->all();
+                $insert = [];
+                $now = now();
+
+                foreach ($uniqueNames as $key => $name) {
+                    if (isset($existingNames[$key])) {
+                        $existingDuplicates++;
+                        continue;
+                    }
+                    $insert[] = [
+                        'name' => $name,
+                        'nomor_identitas' => null,
+                        'kelas' => null,
+                        'jurusan' => null,
+                        'rfid_uid' => null,
+                        'password' => Hash::make(Str::random(64)),
+                        'role' => 'guru',
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ];
+                }
+
+                foreach (array_chunk($insert, 100) as $chunk) {
+                    DB::table('users')->insert($chunk);
+                    $imported += count($chunk);
+                }
             });
         } catch (Throwable $exception) {
-            return redirect()->route('users.index')->with('error', 'Import Guru gagal dan transaksi dibatalkan: ' . $exception->getMessage());
+            return redirect()->route('users.index')->with('error', 'Database error: import guru dibatalkan seluruhnya dan tidak ada data baru yang disimpan. Periksa struktur database, lalu coba lagi.');
         }
 
-        $failed = count($errors);
-        $message = 'Import Guru selesai. Berhasil: ' . count($insert) . ' guru. Dilewati: ' . $skipped . ' data duplikat. Gagal: ' . $failed . ' data.';
-        return redirect()->route('users.index')->with('success', $message)->with('import_errors', $errors);
+        $duplicateRows += $existingDuplicates;
+        $message = 'Import Guru berhasil. Berhasil: ' . $imported . ' guru. Dilewati: '
+            . $skippedMetadataOrBlankRows . ' baris metadata/kosong. Duplikat: ' . $duplicateRows . '.';
+        if ($namesTooLong > 0) {
+            $message .= ' Nama melebihi batas 255 karakter: ' . $namesTooLong . ' baris.';
+        }
+
+        $details = [];
+        if ($sheetNamesWithoutName) {
+            $details[] = 'Sheet dilewati karena tidak memiliki kolom NAMA: ' . implode(', ', $sheetNamesWithoutName) . '.';
+        }
+
+        return redirect()->route('users.index')->with('success', $message)->with('import_errors', $details);
     }
 
     public function bulkDelete(Request $request)
