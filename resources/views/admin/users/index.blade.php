@@ -811,7 +811,7 @@
                         return;
                     }
 
-                    if (!confirm('Yakin ingin menghapus semua user yang dipilih?')) {
+                    if (!confirm('Hapus ' + getCheckedUserIds().length + ' user yang dipilih? Akun admin dan user yang memiliki histori/transaksi akan dipertahankan. Lanjutkan?')) {
                         event.preventDefault();
                         return;
                     }

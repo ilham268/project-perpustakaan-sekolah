@@ -6,12 +6,8 @@
 @section('content')
 @php
     $booksReferensi = $booksReferensi ?? collect();
-
-    $totalJudulReferensi = $booksReferensi->count();
-
-    $totalEksemplarReferensi = $booksReferensi->sum(function ($book) {
-        return $book->bookItems->count();
-    });
+    $totalJudulReferensi = $totalJudulReferensi ?? $booksReferensi->count();
+    $totalEksemplarReferensi = $totalEksemplarReferensi ?? 0;
 
     $selectedTahun = request('tahun_pengadaan');
 @endphp
@@ -114,7 +110,7 @@
             </p>
 
             <p class="font-mono-stat mt-2 text-2xl font-semibold text-[var(--text)]">
-                {{ $booksReferensi->count() }}
+                {{ $totalJudulReferensi }}
                 <span class="text-sm font-medium text-[var(--muted)]">buku</span>
             </p>
         </div>
@@ -188,7 +184,7 @@
 
                         <span>Referensi</span>
                         <span class="text-[var(--hairline)]">•</span>
-                        <span>{{ $booksReferensi->count() }} buku</span>
+                        <span>{{ $totalJudulReferensi }} buku</span>
                     </div>
                 </div>
 
@@ -263,8 +259,8 @@
                 <tbody class="bg-white">
                     @forelse($booksReferensi as $book)
                         @php
-                            $totalItems = $book->bookItems->count();
-                            $kodeTerisi = $book->bookItems->filter(fn($item) => !empty($item->kode_buku))->count();
+                            $totalItems = (int) $book->total_items;
+                            $kodeTerisi = (int) $book->kode_terisi;
                         @endphp
 
                         <tr class="transition-colors hover:bg-[var(--sand)]/30">
@@ -278,7 +274,7 @@
                             </td>
 
                             <td class="border border-[var(--hairline)] px-4 py-4 font-semibold text-[var(--muted)]">
-                                {{ $loop->iteration }}
+                                {{ $booksReferensi->firstItem() + $loop->index }}
                             </td>
 
                             <td class="border border-[var(--hairline)] px-4 py-4">
@@ -325,6 +321,10 @@
                                 <span class="font-mono-stat font-semibold text-[var(--text)]/80">
                                     {{ $totalItems }}
                                 </span>
+                                <div class="mt-1 text-[10px] leading-relaxed text-[var(--muted)]">
+                                    Tersedia {{ $book->stok_tersedia }} · Dipinjam {{ $book->sedang_dipinjam }}<br>
+                                    Hilang {{ $book->hilang }} · Rusak {{ $book->rusak }}
+                                </div>
                             </td>
 
                             <td class="border border-[var(--hairline)] px-4 py-4 text-center">
@@ -389,6 +389,12 @@
             </table>
         </div>
     </form>
+
+    @if($booksReferensi->hasPages())
+        <div class="rounded-2xl border border-[var(--hairline)] bg-white px-5 py-4 shadow-sm">
+            {{ $booksReferensi->links() }}
+        </div>
+    @endif
 
     <x-confirm-delete />
 </div>

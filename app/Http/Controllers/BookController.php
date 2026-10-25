@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\BookItem;
 use App\Models\Category;
+use App\Models\Loan;
 use App\Models\PinjamKelas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,18 @@ class BookController extends Controller
 {
     public function index(Request $request)
     {
-        $baseQuery = Book::query()->with('bookItems');
+        $baseQuery = Book::query()->withCount([
+            'bookItems as total_items',
+            'bookItems as kode_terisi' => function ($q) {
+                $q->whereNotNull('kode_buku')->where('kode_buku', '!=', '');
+            },
+            'bookItems as stok_tersedia' => function ($q) {
+                $q->where('status', 'available')->whereNotNull('kode_buku')->where('kode_buku', '!=', '');
+            },
+            'bookItems as sedang_dipinjam' => fn ($q) => $q->where('status', 'borrowed'),
+            'bookItems as hilang' => fn ($q) => $q->where('status', 'lost'),
+            'bookItems as rusak' => fn ($q) => $q->where('status', 'damaged'),
+        ]);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -43,26 +55,27 @@ class BookController extends Controller
             $baseQuery->where('tahun_pengadaan', $request->tahun_pengadaan);
         }
 
-        $booksBos = collect();
-
-        $booksReferensi = (clone $baseQuery)
+        $referenceQuery = (clone $baseQuery)
             ->where(function ($q) {
                 $q->where('jenis_koleksi', 'like', '%Referensi%')
                     ->orWhere('jenis_koleksi', 'like', '%Reference%')
                     ->orWhere('jenis_koleksi', 'like', '%Referance%')
                     ->orWhere('jenis_koleksi', 'like', '%Raferance%')
                     ->orWhere('jenis_koleksi', 'like', '%Referen%');
-            })
-            ->latest()
-            ->get();
+            });
 
-        $booksPaket = (clone $baseQuery)
-            ->where('jenis_koleksi', 'like', '%Paket%')
+        $booksReferensi = (clone $referenceQuery)
             ->latest()
-            ->get();
+            ->paginate(25, ['*'], 'referensi_page')
+            ->withQueryString();
 
-        $totalJudul = Book::count();
-        $totalEksemplar = BookItem::count();
+        $booksBos = collect();
+        $booksPaket = collect();
+
+        $totalJudul = (clone $baseQuery)->count();
+        $totalEksemplar = BookItem::whereIn('book_id', (clone $baseQuery)->select('books.id'))->count();
+        $totalJudulReferensi = (clone $referenceQuery)->count();
+        $totalEksemplarReferensi = BookItem::whereIn('book_id', (clone $referenceQuery)->select('books.id'))->count();
 
         $totalKategori = Book::whereNotNull('jenis_koleksi')
             ->where('jenis_koleksi', '!=', '')
@@ -93,6 +106,8 @@ class BookController extends Controller
             'totalJudul',
             'totalEksemplar',
             'totalKategori',
+            'totalJudulReferensi',
+            'totalEksemplarReferensi',
             'jenisOptions',
             'sumberOptions',
             'tahunPengadaanOptions'
@@ -221,9 +236,17 @@ class BookController extends Controller
 
     public function show(Book $book)
     {
-        $book->load('bookItems');
+        $book->loadCount([
+            'bookItems as total_items',
+            'bookItems as kode_terisi' => fn ($q) => $q->whereNotNull('kode_buku')->where('kode_buku', '!=', ''),
+            'bookItems as stok_tersedia' => fn ($q) => $q->where('status', 'available')->whereNotNull('kode_buku')->where('kode_buku', '!=', ''),
+            'bookItems as sedang_dipinjam' => fn ($q) => $q->where('status', 'borrowed'),
+            'bookItems as hilang' => fn ($q) => $q->where('status', 'lost'),
+            'bookItems as rusak' => fn ($q) => $q->where('status', 'damaged'),
+        ]);
+        $bookItemsPaginated = $book->bookItems()->orderBy('id')->paginate(50)->withQueryString();
 
-        return view('admin.books.show', compact('book'));
+        return view('admin.books.show', compact('book', 'bookItemsPaginated'));
     }
 
     public function edit(Book $book)
@@ -265,10 +288,17 @@ class BookController extends Controller
 
     public function destroy(Book $book)
     {
+        $photo = $book->foto;
+
         try {
             DB::transaction(function () use ($book) {
-                if ($book->foto) {
-                    Storage::disk('public')->delete($book->foto);
+                $book->load('bookItems');
+                $itemIds = $book->bookItems->pluck('id');
+                $hasLoanHistory = Loan::whereIn('book_item_id', $itemIds)->exists();
+                $hasClassLoanHistory = PinjamKelas::where('book_id', $book->id)->exists();
+
+                if ($hasLoanHistory || $hasClassLoanHistory) {
+                    throw new \RuntimeException('Buku tidak dapat dihapus karena masih memiliki histori peminjaman.');
                 }
 
                 $book->bookItems()->delete();
@@ -280,6 +310,10 @@ class BookController extends Controller
                 ->with('error', 'Data buku gagal dihapus: ' . $e->getMessage());
         }
 
+        if ($photo) {
+            Storage::disk('public')->delete($photo);
+        }
+
         return redirect()
             ->route('books.index')
             ->with('deleted', true);
@@ -289,26 +323,36 @@ class BookController extends Controller
     {
         $validated = $request->validate([
             'selected_books' => ['required', 'array'],
-            'selected_books.*' => ['integer', 'exists:books,id'],
+            'selected_books.*' => ['integer', 'distinct', 'exists:books,id'],
         ], [
             'selected_books.required' => 'Pilih minimal satu buku yang ingin dihapus.',
         ]);
 
+        $photos = [];
         try {
-            DB::transaction(function () use ($validated) {
-                $books = Book::with('bookItems')
-                    ->whereIn('id', $validated['selected_books'])
-                    ->get();
+            DB::transaction(function () use ($validated, &$photos) {
+                $bookIds = array_map('intval', $validated['selected_books']);
+                $books = Book::with('bookItems')->whereIn('id', $bookIds)->get();
+                $itemIds = $books->flatMap(fn ($book) => $book->bookItems->pluck('id'));
+                $hasLoanHistory = Loan::whereIn('book_item_id', $itemIds)->exists();
+                $hasClassLoanHistory = PinjamKelas::whereIn('book_id', $bookIds)->exists();
+
+                if ($hasLoanHistory || $hasClassLoanHistory) {
+                    throw new \RuntimeException('Pilihan mengandung buku dengan histori peminjaman. Tidak ada buku yang dihapus.');
+                }
 
                 foreach ($books as $book) {
                     if ($book->foto) {
-                        Storage::disk('public')->delete($book->foto);
+                        $photos[] = $book->foto;
                     }
-
                     $book->bookItems()->delete();
                     $book->delete();
                 }
             });
+
+            foreach ($photos as $photo) {
+                Storage::disk('public')->delete($photo);
+            }
         } catch (\Throwable $e) {
             return redirect()
                 ->route('books.index')
@@ -405,7 +449,7 @@ class BookController extends Controller
 
     public function list(Request $request)
     {
-        $book = Book::with(['category', 'bookItems'])
+        $book = Book::with('category')
             ->where(function ($q) {
                 $q->where('jenis_koleksi', 'like', '%Referensi%')
                     ->orWhere('jenis_koleksi', 'like', '%Reference%')
@@ -415,6 +459,7 @@ class BookController extends Controller
                     ->orWhere('jenis_koleksi', 'like', '%Ref%');
             })
             ->withCount([
+                'bookItems as total_items',
                 'bookItems as stok_tersedia' => function ($q) {
                     $q->where('status', 'available')
                         ->whereNotNull('kode_buku')

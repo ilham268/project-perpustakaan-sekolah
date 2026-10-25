@@ -62,6 +62,11 @@ class User extends Authenticatable
         return $this->hasMany(Loan::class);
     }
 
+    public function pinjamKelas()
+    {
+        return $this->hasMany(PinjamKelas::class);
+    }
+
     public function teacherGuestBooks()
     {
         return $this->hasMany(TeacherGuestBook::class);

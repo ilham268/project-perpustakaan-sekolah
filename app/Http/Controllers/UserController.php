@@ -39,11 +39,8 @@ class UserController extends Controller
             $query->where('jurusan', $request->jurusan);
         }
 
-        if ($request->query('show') === 'all') {
-            $users = $query->latest()->get();
-        } else {
-            $users = $query->latest()->paginate(10)->withQueryString();
-        }
+        $perPage = $request->query('show') === 'all' ? 50 : 25;
+        $users = $query->latest()->paginate($perPage)->withQueryString();
 
         $kelasList = Kelas::orderBy('nama_kelas')
             ->orderBy('jurusan')
@@ -465,30 +462,38 @@ class UserController extends Controller
 
     public function bulkDelete(Request $request)
     {
-        $request->validate([
-            'user_ids' => ['required', 'array'],
-            'user_ids.*' => ['integer', 'exists:users,id'],
+        $validated = $request->validate([
+            'user_ids' => ['required', 'array', 'min:1', 'max:100'],
+            'user_ids.*' => ['integer', 'distinct', 'exists:users,id'],
         ], [
             'user_ids.required' => 'Pilih minimal satu user yang ingin dihapus.',
         ]);
 
-        $userIds = collect($request->user_ids)
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->reject(fn ($id) => $id === auth()->id())
-            ->values();
+        $ids = collect($validated['user_ids'])->map(fn ($id) => (int) $id)->unique()->values();
+        $query = User::query()->whereIn('id', $ids);
 
-        if ($userIds->isEmpty()) {
-            return redirect()
-                ->route('users.index')
-                ->with('error', 'Tidak ada user yang bisa dihapus. Akun yang sedang login tidak boleh dihapus.');
+        $targetCount = (clone $query)->count();
+        if ($targetCount === 0) {
+            return redirect()->route('users.index')->with('error', 'Tidak ada user yang cocok dengan pilihan tersebut.');
         }
 
-        $jumlah = User::whereIn('id', $userIds)->delete();
+        $safeQuery = (clone $query)
+            ->where('id', '!=', auth()->id())
+            ->where('role', '!=', 'admin')
+            ->whereDoesntHave('loans')
+            ->whereDoesntHave('pinjamKelas')
+            ->whereDoesntHave('teacherGuestBooks')
+            ->whereDoesntHave('carts');
+        $eligibleCount = (clone $safeQuery)->count();
 
-        return redirect()
-            ->route('users.index')
-            ->with('success', "Berhasil menghapus {$jumlah} user.");
+        $deletedCount = DB::transaction(fn () => $safeQuery->delete());
+        $protectedCount = $targetCount - $eligibleCount;
+        $message = "{$deletedCount} user berhasil dihapus.";
+        if ($protectedCount > 0) {
+            $message .= " {$protectedCount} user dipertahankan karena akun admin/yang sedang digunakan atau masih memiliki histori/transaksi.";
+        }
+
+        return redirect()->route('users.index')->with('success', $message);
     }
 
     public function promoteSelectedUsers(Request $request)
@@ -822,6 +827,14 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        if ($user->role === 'admin' || $user->id === auth()->id()) {
+            return redirect()->route('users.index')->with('error', 'Akun admin atau akun yang sedang digunakan tidak dapat dihapus.');
+        }
+
+        if ($user->loans()->exists() || $user->pinjamKelas()->exists() || $user->teacherGuestBooks()->exists() || $user->carts()->exists()) {
+            return redirect()->route('users.index')->with('error', 'User tidak dapat dihapus karena masih memiliki histori atau transaksi.');
+        }
+
         $user->delete();
 
         return redirect()->route('users.index')->with('deleted', true);

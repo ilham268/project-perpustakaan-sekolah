@@ -12,25 +12,13 @@
 </div>
 
 @php
-    $total = $book->bookItems->count();
-    $kodeTerisi = $book->bookItems->filter(fn($item) => !empty($item->kode_buku))->count();
+    $total = (int) $book->total_items;
+    $kodeTerisi = (int) $book->kode_terisi;
     $kodeKosong = $total - $kodeTerisi;
-    $available = $book->bookItems->where('status', 'available')->count();
-
-    $sortedBookItems = $book->bookItems->sortBy('id')->values();
-    $perPage = 20;
-    $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
-
-    $bookItemsPaginated = new \Illuminate\Pagination\LengthAwarePaginator(
-        $sortedBookItems->forPage($currentPage, $perPage)->values(),
-        $total,
-        $perPage,
-        $currentPage,
-        [
-            'path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(),
-            'query' => request()->query(),
-        ]
-    );
+    $available = (int) $book->stok_tersedia;
+    $borrowed = (int) $book->sedang_dipinjam;
+    $lost = (int) $book->hilang;
+    $damaged = (int) $book->rusak;
 @endphp
 
 <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -51,7 +39,7 @@
 
 <div class="rounded-2xl border border-[var(--hairline)] bg-white p-5 shadow-sm sm:p-6">
 
-    <div class="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-4">
+    <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <div class="rounded-2xl border border-[var(--hairline)] bg-[var(--paper)] p-4">
             <p class="catalog-eyebrow uppercase text-[var(--muted)]">Total Eksemplar</p>
             <p class="font-mono-stat mt-2 text-2xl font-semibold text-[var(--text)]">{{ $total }}</p>
@@ -70,6 +58,21 @@
         <div class="rounded-2xl border border-sky-200 bg-sky-50 p-4">
             <p class="catalog-eyebrow uppercase text-sky-600">Tersedia</p>
             <p class="font-mono-stat mt-2 text-2xl font-semibold text-sky-700">{{ $available }}</p>
+        </div>
+
+        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <p class="catalog-eyebrow uppercase text-amber-600">Sedang Dipinjam</p>
+            <p class="font-mono-stat mt-2 text-2xl font-semibold text-amber-700">{{ $borrowed }}</p>
+        </div>
+
+        <div class="rounded-2xl border border-red-200 bg-red-50 p-4">
+            <p class="catalog-eyebrow uppercase text-red-600">Hilang</p>
+            <p class="font-mono-stat mt-2 text-2xl font-semibold text-red-700">{{ $lost }}</p>
+        </div>
+
+        <div class="rounded-2xl border border-orange-200 bg-orange-50 p-4">
+            <p class="catalog-eyebrow uppercase text-orange-600">Rusak</p>
+            <p class="font-mono-stat mt-2 text-2xl font-semibold text-orange-700">{{ $damaged }}</p>
         </div>
     </div>
 

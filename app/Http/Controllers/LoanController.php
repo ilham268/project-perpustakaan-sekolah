@@ -527,28 +527,32 @@ class LoanController extends Controller
 
     public function approve($id)
     {
-        $loan = Loan::with('bookItem')->findOrFail($id);
+        try {
+            DB::transaction(function () use ($id) {
+                $loan = Loan::whereKey($id)->lockForUpdate()->firstOrFail();
 
-        if ($loan->status !== 'pending') {
-            return redirect()
-                ->back()
-                ->with('error', 'Hanya pengajuan dengan status pending yang dapat disetujui.');
+                if ($loan->status !== 'pending') {
+                    throw new \RuntimeException('Hanya pengajuan dengan status pending yang dapat disetujui.');
+                }
+
+                $data = [
+                    'status' => 'disetujui',
+                    'petugas_id' => Auth::id(),
+                ];
+
+                if (!$loan->tanggal_pinjam) {
+                    $data['tanggal_pinjam'] = now();
+                }
+
+                if (!$loan->tanggal_kembali) {
+                    $data['tanggal_kembali'] = now()->addDays($this->lamaPinjamDefault());
+                }
+
+                $loan->update($data);
+            }, 3);
+        } catch (\Throwable $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
         }
-
-        $data = [
-            'status' => 'disetujui',
-            'petugas_id' => Auth::id(),
-        ];
-
-        if (!$loan->tanggal_pinjam) {
-            $data['tanggal_pinjam'] = now();
-        }
-
-        if (!$loan->tanggal_kembali) {
-            $data['tanggal_kembali'] = now()->addDays($this->lamaPinjamDefault());
-        }
-
-        $loan->update($data);
 
         return redirect()->back()->with([
             'success' => 'Pengajuan peminjaman berhasil disetujui.',
@@ -640,27 +644,30 @@ class LoanController extends Controller
                 ->with('reject_loan_id', $id);
         }
 
-        $loan = Loan::with('bookItem')->findOrFail($id);
+        try {
+            DB::transaction(function () use ($id, $request) {
+            $loan = Loan::whereKey($id)->lockForUpdate()->firstOrFail();
 
-        if ($loan->status !== 'pending') {
-            return redirect()
-                ->back()
-                ->with('error', 'Hanya pengajuan dengan status pending yang dapat ditolak.');
-        }
+            if ($loan->status !== 'pending') {
+                throw new \RuntimeException('Hanya pengajuan dengan status pending yang dapat ditolak.');
+            }
 
-        DB::transaction(function () use ($loan, $request) {
             $loan->update([
                 'status' => 'ditolak',
                 'petugas_id' => Auth::id(),
                 'alasan_ditolak' => $request->alasan_ditolak,
             ]);
 
-            if ($loan->bookItem) {
-                $loan->bookItem->update([
+            $bookItem = BookItem::whereKey($loan->book_item_id)->lockForUpdate()->first();
+            if ($bookItem) {
+                $bookItem->update([
                     'status' => 'available',
                 ]);
             }
-        });
+            }, 3);
+        } catch (\Throwable $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
+        }
 
         return redirect()
             ->back()

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use App\Models\BookItem;
+use App\Models\Loan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -143,6 +144,24 @@ class BookItemController extends Controller
                 'kode_buku.unique' => 'Kode buku ini sudah dipakai di buku yang sama.',
             ]);
 
+            $hasActiveLoan = Loan::where('book_item_id', $bookItem->id)
+                ->whereIn('status', ['pending', 'disetujui'])
+                ->exists();
+
+            if ($hasActiveLoan && $validated['status'] !== 'borrowed') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Status eksemplar tidak dapat diubah karena masih terhubung dengan peminjaman aktif.',
+                ], 422);
+            }
+
+            if (!$hasActiveLoan && $validated['status'] === 'borrowed') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Status Dipinjam hanya dapat dibuat melalui proses peminjaman.',
+                ], 422);
+            }
+
             $bookItem->update($validated);
 
             return response()->json([
@@ -166,10 +185,10 @@ class BookItemController extends Controller
     public function destroy(BookItem $bookItem)
     {
         try {
-            if ($bookItem->status === 'borrowed') {
+            if ($bookItem->loans()->exists()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Tidak dapat menghapus item yang sedang dipinjam',
+                    'message' => 'Eksemplar tidak dapat dihapus karena masih memiliki histori peminjaman.',
                 ], 400);
             }
 

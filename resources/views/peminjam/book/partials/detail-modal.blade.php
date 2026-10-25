@@ -57,12 +57,11 @@
 
                     <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                         <p class="text-xs font-bold uppercase tracking-wide text-slate-400">
-                            Stok Tersedia
+                            Ketersediaan
                         </p>
 
                         <p class="mt-1 text-sm font-bold" :class="selectedBook.stok > 0 ? 'text-emerald-700' : 'text-red-700'">
-                            <span x-text="selectedBook.stok"></span>
-                            <span>buku</span>
+                            <span x-text="selectedBook.stok + ' dari ' + selectedBook.total + ' tersedia'"></span>
                         </p>
                     </div>
                 </div>
@@ -106,7 +105,7 @@
                             <p
                                 class="mt-1 text-sm font-semibold"
                                 :class="selectedBook.stok > 0 ? 'text-emerald-700' : 'text-red-700'"
-                                x-text="selectedBook.stok > 0 ? 'Tersedia' : 'Belum Ada Kode'"
+                                x-text="selectedBook.total === 0 ? 'Belum ada eksemplar' : (selectedBook.stok > 0 ? 'Tersedia' : 'Tidak tersedia')"
                             ></p>
                         </div>
                     </div>

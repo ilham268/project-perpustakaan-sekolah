@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Loan;
+use App\Models\BookItem;
 use App\Models\ReturnBook;
 use App\Models\PinjamKelas;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,8 @@ class ReturnBookController extends Controller
     $loans = Loan::with(['user', 'bookItem.book.category'])
         ->where('status', 'disetujui')
         ->latest()
-        ->get();
+        ->paginate(25)
+        ->withQueryString();
 
     return view('petugas.pengembalian.create', compact('loans'));
 }
@@ -58,15 +60,16 @@ class ReturnBookController extends Controller
                 });
             })
             ->latest()
-            ->get();
+            ->paginate(25)
+            ->withQueryString();
 
-        if ($loans->isEmpty()) {
+        if ($loans->total() === 0) {
             return redirect()
                 ->back()
                 ->with('error', 'Tidak ada peminjaman aktif yang sesuai dengan pencarian');
         }
 
-        if ($loans->count() === 1) {
+        if ($loans->total() === 1) {
             $loan = $loans->first();
 
             return view('petugas.pengembalian.create', compact('loan'));
@@ -77,65 +80,20 @@ class ReturnBookController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'loan_id' => 'required|exists:loans,id',
-            'kondisi' => 'required|in:baik,rusak,hilang',
-        ]);
+        $request->validate($this->returnValidationRules());
 
-        $loan = Loan::with('bookItem')->findOrFail($request->loan_id);
-
-        if ($loan->status === 'dikembalikan') {
-            return redirect()
-                ->back()
-                ->with('error', 'Buku sudah dikembalikan sebelumnya.');
+        try {
+            $totalDenda = $this->recordReturn($request);
+        } catch (\Throwable $exception) {
+            return back()->withInput()->with('error', 'Pengembalian gagal: ' . $exception->getMessage());
         }
-
-        $dendaKondisi = 0;
-
-        if ($request->kondisi === 'rusak') {
-            $dendaKondisi = (int) $request->input('denda_rusak', 10000);
-        } elseif ($request->kondisi === 'hilang') {
-            $dendaKondisi = (int) $request->input('denda_hilang', 100000);
-        }
-
-        $hasilDendaTelat = $this->hitungDendaKeterlambatan($loan->tanggal_kembali);
-        $dendaKeterlambatan = $hasilDendaTelat['denda'];
-
-        $totalDenda = $dendaKeterlambatan + $dendaKondisi;
-
-        DB::transaction(function () use ($request, $loan, $totalDenda) {
-            $loan->update([
-                'status' => 'dikembalikan',
-            ]);
-
-            ReturnBook::create([
-                'loan_id' => $loan->id,
-                'tanggal_pengembalian' => now(),
-                'kondisi' => $request->kondisi,
-                'denda' => $totalDenda,
-                'status' => 'pending',
-            ]);
-
-            if ($loan->bookItem) {
-                if ($request->kondisi === 'hilang') {
-                    $loan->bookItem->update(['status' => 'lost']);
-                } elseif ($request->kondisi === 'rusak') {
-                    $loan->bookItem->update(['status' => 'damaged']);
-                } else {
-                    $loan->bookItem->update(['status' => 'available']);
-                }
-            }
-        });
 
         $message = 'Buku berhasil dikembalikan';
-
         if ($totalDenda > 0) {
             $message .= ' dengan denda Rp ' . number_format($totalDenda, 0, ',', '.');
         }
 
-        return redirect()
-            ->route('peminjaman.riwayat')
-            ->with('success', $message);
+        return redirect()->route('peminjaman.riwayat')->with('success', $message);
     }
 
     public function adminCreate()
@@ -143,7 +101,8 @@ class ReturnBookController extends Controller
     $loans = Loan::with(['user', 'bookItem.book.category'])
         ->where('status', 'disetujui')
         ->latest()
-        ->get();
+        ->paginate(25)
+        ->withQueryString();
 
     return view('admin.pengembalian.create', compact('loans'));
 }
@@ -179,15 +138,16 @@ class ReturnBookController extends Controller
                 });
             })
             ->latest()
-            ->get();
+            ->paginate(25)
+            ->withQueryString();
 
-        if ($loans->isEmpty()) {
+        if ($loans->total() === 0) {
             return redirect()
                 ->route('admin.pengembalian.create')
                 ->with('error', 'Tidak ada peminjaman aktif yang sesuai dengan pencarian.');
         }
 
-        if ($loans->count() === 1) {
+        if ($loans->total() === 1) {
             $loan = $loans->first();
 
             return view('admin.pengembalian.create', compact('loan'));
@@ -198,79 +158,20 @@ class ReturnBookController extends Controller
 
     public function adminStore(Request $request)
     {
-        $request->validate([
-            'loan_id' => 'required|exists:loans,id',
-            'kondisi' => 'required|in:baik,rusak,hilang',
-        ]);
+        $request->validate($this->returnValidationRules());
 
-        $loan = Loan::with('bookItem')->findOrFail($request->loan_id);
-
-        if ($loan->status === 'dikembalikan') {
-            return redirect()
-                ->route('admin.pengembalian.create')
-                ->with('error', 'Buku sudah dikembalikan sebelumnya.');
+        try {
+            $totalDenda = $this->recordReturn($request);
+        } catch (\Throwable $exception) {
+            return redirect()->route('admin.pengembalian.create')->withInput()->with('error', 'Pengembalian gagal: ' . $exception->getMessage());
         }
-
-        if ($loan->status !== 'disetujui') {
-            return redirect()
-                ->route('admin.pengembalian.create')
-                ->with('error', 'Peminjaman ini belum disetujui atau tidak aktif.');
-        }
-
-        $sudahAdaPengembalian = ReturnBook::where('loan_id', $loan->id)->exists();
-
-        if ($sudahAdaPengembalian) {
-            return redirect()
-                ->route('admin.pengembalian.create')
-                ->with('error', 'Data pengembalian untuk buku ini sudah ada.');
-        }
-
-        $dendaKondisi = 0;
-
-        if ($request->kondisi === 'rusak') {
-            $dendaKondisi = (int) $request->input('denda_rusak', 10000);
-        } elseif ($request->kondisi === 'hilang') {
-            $dendaKondisi = (int) $request->input('denda_hilang', 100000);
-        }
-
-        $hasilDendaTelat = $this->hitungDendaKeterlambatan($loan->tanggal_kembali);
-        $dendaKeterlambatan = $hasilDendaTelat['denda'];
-
-        $totalDenda = $dendaKeterlambatan + $dendaKondisi;
-
-        DB::transaction(function () use ($request, $loan, $totalDenda) {
-            $loan->update([
-                'status' => 'dikembalikan',
-            ]);
-
-            ReturnBook::create([
-                'loan_id' => $loan->id,
-                'tanggal_pengembalian' => now(),
-                'kondisi' => $request->kondisi,
-                'denda' => $totalDenda,
-                'status' => 'pending',
-            ]);
-
-            if ($loan->bookItem) {
-                if ($request->kondisi === 'hilang') {
-                    $loan->bookItem->update(['status' => 'lost']);
-                } elseif ($request->kondisi === 'rusak') {
-                    $loan->bookItem->update(['status' => 'damaged']);
-                } else {
-                    $loan->bookItem->update(['status' => 'available']);
-                }
-            }
-        });
 
         $message = 'Pengembalian berhasil diproses oleh admin';
-
         if ($totalDenda > 0) {
             $message .= ' dengan denda Rp ' . number_format($totalDenda, 0, ',', '.');
         }
 
-        return redirect()
-            ->route('admin.peminjaman.riwayat')
-            ->with('success', $message);
+        return redirect()->route('admin.peminjaman.riwayat')->with('success', $message);
     }
 
     public function index(Request $request)
@@ -1102,6 +1003,69 @@ class ReturnBookController extends Controller
             'denda' => $hariTerlambat * $dendaPerHari,
             'per_hari' => $dendaPerHari,
         ];
+    }
+
+    private function returnValidationRules(): array
+    {
+        return [
+            'loan_id' => ['required', 'integer', 'exists:loans,id'],
+            'kondisi' => ['required', 'in:baik,rusak,hilang'],
+            'denda_rusak' => ['nullable', 'integer', 'min:0', 'max:100000000'],
+            'denda_hilang' => ['nullable', 'integer', 'min:0', 'max:100000000'],
+        ];
+    }
+
+    private function recordReturn(Request $request): int
+    {
+        return DB::transaction(function () use ($request) {
+            $loan = Loan::query()
+                ->whereKey($request->integer('loan_id'))
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($loan->status !== 'disetujui') {
+                throw new \RuntimeException('Peminjaman ini tidak aktif atau sudah diproses.');
+            }
+
+            if (ReturnBook::where('loan_id', $loan->id)->exists()) {
+                throw new \RuntimeException('Riwayat pengembalian untuk peminjaman ini sudah tercatat.');
+            }
+
+            $bookItem = $loan->book_item_id
+                ? BookItem::query()->whereKey($loan->book_item_id)->lockForUpdate()->first()
+                : null;
+
+            $returnedAt = now();
+            $lateFine = $this->hitungDendaKeterlambatan($loan->tanggal_kembali, $returnedAt)['denda'];
+            $conditionFine = match ($request->input('kondisi')) {
+                'rusak' => (int) $request->input('denda_rusak', 10000),
+                'hilang' => (int) $request->input('denda_hilang', 100000),
+                default => 0,
+            };
+            $totalFine = $lateFine + $conditionFine;
+
+            ReturnBook::create([
+                'loan_id' => $loan->id,
+                'tanggal_pengembalian' => $returnedAt,
+                'kondisi' => $request->input('kondisi'),
+                'denda' => $totalFine,
+                'status' => 'pending',
+            ]);
+
+            $loan->update(['status' => 'dikembalikan']);
+
+            if ($bookItem) {
+                $bookItem->update([
+                    'status' => match ($request->input('kondisi')) {
+                        'hilang' => 'lost',
+                        'rusak' => 'damaged',
+                        default => 'available',
+                    },
+                ]);
+            }
+
+            return $totalFine;
+        }, 3);
     }
 
     private function dendaTelatPerHari(): int

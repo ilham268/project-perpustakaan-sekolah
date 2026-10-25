@@ -133,9 +133,8 @@
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             @forelse($books as $book)
                 @php
-                    $availableCount = (int) ($book->stok_tersedia ?? $book->bookItems->filter(function ($item) {
-                        return $item->status === 'available' && !empty($item->kode_buku);
-                    })->count());
+                    $availableCount = (int) $book->stok_tersedia;
+                    $totalCount = (int) $book->total_items;
                 @endphp
 
                 <div class="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--hairline)] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--emerald)]/30 hover:shadow-lg hover:shadow-[var(--emerald)]/10">
@@ -157,22 +156,22 @@
                             </div>
 
                             <div class="shrink-0 text-right">
-                                @if($availableCount > 0)
+                                @if($totalCount === 0)
+                                    <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                        Belum ada eksemplar
+                                    </span>
+                                @elseif($availableCount > 0)
                                     <span class="inline-flex items-center rounded-full bg-[var(--emerald-tint)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--emerald-deep)]">
                                         Tersedia
                                     </span>
                                 @else
                                     <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600">
-                                        Belum&nbsp;Ada
+                                        Tidak tersedia
                                     </span>
                                 @endif
 
-                                <p class="font-mono-stat mt-1.5 text-lg font-semibold leading-none text-[var(--text)]">
-                                    {{ $availableCount }}
-                                </p>
-
-                                <p class="text-[10px] uppercase tracking-wide text-[var(--muted)]">
-                                    stok
+                                <p class="mt-1.5 text-xs font-semibold leading-tight text-[var(--text)]">
+                                    {{ $availableCount }} dari {{ $totalCount }} tersedia
                                 </p>
                             </div>
                         </div>
@@ -222,6 +221,7 @@
                                     tahun: @js($book->tahun ?? '-'),
                                     kategori: @js('Referensi'),
                                     stok: {{ $availableCount }},
+                                    total: {{ $totalCount }},
                                     synopsis: @js($book->synopsis ?? '-')
                                 }; showDetail = true"
                                 class="inline-flex h-9 flex-1 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:text-[var(--forest)] focus:outline-none focus:ring-4 focus:ring-[var(--sand)]"
