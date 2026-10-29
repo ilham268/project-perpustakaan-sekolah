@@ -15,11 +15,13 @@ class GuestBookController extends Controller
      */
     public function create()
     {
+        $siswaList = collect();
+
         // Jika user sedang login (Siswa/Peminjam)
         if (auth()->check()) {
             $currentUser = auth()->user();
 
-            return view('guest-book.create', compact('currentUser'));
+            return view('guest-book.create', compact('currentUser', 'siswaList'));
         }
 
         // Ambil semua data user/siswa
