@@ -174,85 +174,97 @@ class UserController extends Controller
         ]);
 
         $kelas = $request->kelas;
-        $spreadsheet = IOFactory::load($request->file('file')->getRealPath());
 
         $dataImport = [];
         $dilewati = 0;
         $sheetDilewati = [];
         $kelasDariExcel = [];
 
-        foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
-            $jurusan = preg_replace('/\s+/', ' ', trim($sheet->getTitle()));
+        try {
+            $reader = IOFactory::createReaderForFile($request->file('file')->getRealPath());
+            $reader->setReadEmptyCells(false);
+            $spreadsheet = $reader->load($request->file('file')->getRealPath());
 
-            $highestRow = $sheet->getHighestRow();
-            $highestColumn = $sheet->getHighestColumn();
-            $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
+            foreach ($spreadsheet->getWorksheetIterator() as $sheet) {
+                $jurusan = preg_replace('/\s+/', ' ', trim($sheet->getTitle()));
+                $jurusan = preg_replace('/^' . preg_quote($kelas, '/') . '\s+/i', '', $jurusan, 1);
 
-            $kolomNisn = null;
-            $kolomNama = null;
-            $barisHeader = null;
+                $highestRow = $sheet->getHighestDataRow();
+                $highestColumn = $sheet->getHighestDataColumn();
+                $highestColumnIndex = Coordinate::columnIndexFromString($highestColumn);
 
-            for ($row = 1; $row <= min(40, $highestRow); $row++) {
-                for ($col = 1; $col <= $highestColumnIndex; $col++) {
-                    $columnLetter = Coordinate::stringFromColumnIndex($col);
-                    $value = trim((string) $sheet->getCell($columnLetter . $row)->getFormattedValue());
+                $kolomNisn = null;
+                $kolomNama = null;
+                $barisHeader = null;
 
-                    $key = strtolower($value);
-                    $key = str_replace(["\n", "\r", " ", "_", "-", ".", ":"], '', $key);
+                for ($row = 1; $row <= min(40, $highestRow); $row++) {
+                    for ($col = 1; $col <= $highestColumnIndex; $col++) {
+                        $columnLetter = Coordinate::stringFromColumnIndex($col);
+                        $value = trim((string) $sheet->getCell($columnLetter . $row)->getFormattedValue());
 
-                    if ($key === 'nisn') {
-                        $kolomNisn = $columnLetter;
-                        $barisHeader = $row;
+                        $key = strtolower($value);
+                        $key = str_replace(["\n", "\r", " ", "_", "-", ".", ":"], '', $key);
+
+                        if ($key === 'nisn') {
+                            $kolomNisn = $columnLetter;
+                            $barisHeader = $row;
+                        }
+
+                        if (in_array($key, ['nama', 'namasiswa', 'namalengkap'])) {
+                            $kolomNama = $columnLetter;
+                            $barisHeader = $row;
+                        }
                     }
 
-                    if (in_array($key, ['nama', 'namasiswa', 'namalengkap'])) {
-                        $kolomNama = $columnLetter;
-                        $barisHeader = $row;
+                    if ($kolomNisn && $kolomNama) {
+                        break;
                     }
                 }
 
-                if ($kolomNisn && $kolomNama) {
-                    break;
-                }
-            }
-
-            if (!$kolomNisn || !$kolomNama || !$barisHeader) {
-                $sheetDilewati[] = $jurusan;
-                continue;
-            }
-
-            if ($jurusan !== '') {
-                $kelasDariExcel[$kelas . '|' . $jurusan] = [
-                    'nama_kelas' => $kelas,
-                    'jurusan' => $jurusan,
-                ];
-            }
-
-            for ($row = $barisHeader + 1; $row <= $highestRow; $row++) {
-                $nisnRaw = trim((string) $sheet->getCell($kolomNisn . $row)->getFormattedValue());
-                $namaRaw = trim((string) $sheet->getCell($kolomNama . $row)->getFormattedValue());
-
-                $nisn = preg_replace('/[^0-9]/', '', $nisnRaw);
-                $nama = preg_replace('/\s+/', ' ', trim($namaRaw));
-
-                if ($nisn === '' || $nama === '') {
-                    $dilewati++;
+                if (!$kolomNisn || !$kolomNama || !$barisHeader) {
+                    $sheetDilewati[] = $jurusan;
                     continue;
                 }
 
-                if (strlen($nisn) < 8) {
-                    $dilewati++;
-                    continue;
+                if ($jurusan !== '') {
+                    $kelasDariExcel[$kelas . '|' . $jurusan] = [
+                        'nama_kelas' => $kelas,
+                        'jurusan' => $jurusan,
+                    ];
                 }
 
-                $dataImport[$nisn] = [
-                    'name' => $nama,
-                    'nomor_identitas' => $nisn,
-                    'kelas' => $kelas,
-                    'jurusan' => $jurusan,
-                    'role' => 'siswa',
-                ];
+                for ($row = $barisHeader + 1; $row <= $highestRow; $row++) {
+                    $nisnRaw = trim((string) $sheet->getCell($kolomNisn . $row)->getFormattedValue());
+                    $namaRaw = trim((string) $sheet->getCell($kolomNama . $row)->getFormattedValue());
+
+                    $nisn = preg_replace('/[^0-9]/', '', $nisnRaw);
+                    $nama = preg_replace('/\s+/', ' ', trim($namaRaw));
+
+                    if ($nisn === '' || $nama === '') {
+                        $dilewati++;
+                        continue;
+                    }
+
+                    if (strlen($nisn) < 8) {
+                        $dilewati++;
+                        continue;
+                    }
+
+                    $dataImport[$nisn] = [
+                        'name' => $nama,
+                        'nomor_identitas' => $nisn,
+                        'kelas' => $kelas,
+                        'jurusan' => $jurusan,
+                        'role' => 'siswa',
+                    ];
+                }
             }
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'File Excel siswa tidak dapat dibaca. Pastikan file .xlsx/.xls tidak rusak dan memiliki sheet data siswa.');
         }
 
         if (count($dataImport) === 0) {
@@ -265,39 +277,47 @@ class UserController extends Controller
         $diupdate = 0;
         $insertData = [];
         $now = now();
-        DB::transaction(function () use ($kelasDariExcel, $dataImport, $now, &$berhasil, &$diupdate, &$insertData) {
-            foreach ($kelasDariExcel as $dataKelas) {
-                Kelas::firstOrCreate([
-                    'nama_kelas' => $dataKelas['nama_kelas'],
-                    'jurusan' => $dataKelas['jurusan'],
-                ]);
-            }
-
-            $nisnList = array_keys($dataImport);
-            $existingUsers = User::whereIn('nomor_identitas', $nisnList)->get()->keyBy('nomor_identitas');
-
-            foreach ($dataImport as $nisn => $data) {
-                if ($existingUsers->has($nisn)) {
-                    DB::table('users')->where('nomor_identitas', $nisn)->update([
-                        'name' => $data['name'], 'kelas' => $data['kelas'], 'jurusan' => $data['jurusan'],
-                        'role' => 'siswa', 'updated_at' => $now,
+        try {
+            DB::transaction(function () use ($kelasDariExcel, $dataImport, $now, &$berhasil, &$diupdate, &$insertData) {
+                foreach ($kelasDariExcel as $dataKelas) {
+                    Kelas::firstOrCreate([
+                        'nama_kelas' => $dataKelas['nama_kelas'],
+                        'jurusan' => $dataKelas['jurusan'],
                     ]);
-                    $diupdate++;
-                } else {
-                    $insertData[] = [
-                        'name' => $data['name'], 'nomor_identitas' => $data['nomor_identitas'],
-                        'kelas' => $data['kelas'], 'jurusan' => $data['jurusan'],
-                        'password' => Hash::make($nisn, ['rounds' => 4]), 'role' => 'siswa',
-                        'created_at' => $now, 'updated_at' => $now,
-                    ];
-                    $berhasil++;
                 }
-            }
 
-            foreach (array_chunk($insertData, 100) as $chunk) {
-                DB::table('users')->insert($chunk);
-            }
-        });
+                $nisnList = array_keys($dataImport);
+                $existingUsers = User::whereIn('nomor_identitas', $nisnList)->get()->keyBy('nomor_identitas');
+
+                foreach ($dataImport as $nisn => $data) {
+                    if ($existingUsers->has($nisn)) {
+                        DB::table('users')->where('nomor_identitas', $nisn)->update([
+                            'name' => $data['name'], 'kelas' => $data['kelas'], 'jurusan' => $data['jurusan'],
+                            'role' => 'siswa', 'updated_at' => $now,
+                        ]);
+                        $diupdate++;
+                    } else {
+                        $insertData[] = [
+                            'name' => $data['name'], 'nomor_identitas' => $data['nomor_identitas'],
+                            'kelas' => $data['kelas'], 'jurusan' => $data['jurusan'],
+                            'password' => Hash::make($nisn, ['rounds' => 4]), 'role' => 'siswa',
+                            'created_at' => $now, 'updated_at' => $now,
+                        ];
+                        $berhasil++;
+                    }
+                }
+
+                foreach (array_chunk($insertData, 100) as $chunk) {
+                    DB::table('users')->insert($chunk);
+                }
+            });
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'Penyimpanan import siswa gagal. Tidak ada perubahan yang disimpan karena transaksi dibatalkan. Periksa log Laravel untuk detailnya.');
+        }
 
         $pesan = "Import selesai. Data baru: {$berhasil}, diupdate: {$diupdate}, dilewati: {$dilewati}.";
 
