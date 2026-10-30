@@ -211,7 +211,6 @@ class PetugasPinjamKelasController extends Controller
             }
 
             PinjamKelas::create([
-                'kategori_pinjam_id' => null,
                 'book_id' => $book->id,
                 'user_id' => $user->id,
                 'kode_buku' => $bookItem->kode_buku,
@@ -239,7 +238,7 @@ class PetugasPinjamKelasController extends Controller
 
     public function kelasPinjam(Request $request)
     {
-        $query = PinjamKelas::with(['user', 'book', 'kategori.kelasData']);
+        $query = PinjamKelas::with(['user', 'book']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -263,20 +262,14 @@ class PetugasPinjamKelasController extends Controller
         }
 
         if ($request->filled('kelas_id')) {
-            $kelas = Kelas::find($request->kelas_id);
+            $kelas = Kelas::find($request->integer('kelas_id'));
 
             if ($kelas) {
-                $query->whereHas('user', function ($q) use ($kelas) {
-                    $q->where('kelas', $kelas->nama_kelas)
+                $query->whereHas('user', function ($userQuery) use ($kelas) {
+                    $userQuery->where('kelas', $kelas->nama_kelas)
                         ->where('jurusan', $kelas->jurusan);
                 });
             }
-        }
-
-        if ($request->filled('jurusan')) {
-            $query->whereHas('user', function ($q) use ($request) {
-                $q->where('jurusan', $request->jurusan);
-            });
         }
 
         if ($request->filled('status')) {
@@ -288,36 +281,41 @@ class PetugasPinjamKelasController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $kelasList = Kelas::orderBy('jurusan')
-            ->orderBy('nama_kelas')
-            ->get();
-
-        $jurusanList = Kelas::whereNotNull('jurusan')
-            ->where('jurusan', '!=', '')
-            ->distinct()
+        $kelasList = Kelas::orderBy('nama_kelas')
             ->orderBy('jurusan')
-            ->pluck('jurusan');
+            ->get();
 
         return view('petugas.pinjamkelas.kelas-pinjam', compact(
             'pinjamKelas',
-            'kelasList',
-            'jurusanList'
+            'kelasList'
         ));
     }
 
     public function approve($id)
     {
-        $pinjam = PinjamKelas::findOrFail($id);
+        try {
+            DB::transaction(function () use ($id) {
+                $pinjam = PinjamKelas::query()->whereKey($id)->lockForUpdate()->firstOrFail();
 
-        if ($pinjam->status !== 'pending') {
-            return redirect()
-                ->back()
-                ->with('error', 'Hanya peminjaman pending yang bisa disetujui.');
+                if ($pinjam->status !== 'pending') {
+                    throw new \RuntimeException('Hanya peminjaman pending yang bisa disetujui.');
+                }
+
+                $bookItem = BookItem::query()
+                    ->where('book_id', $pinjam->book_id)
+                    ->whereRaw('UPPER(kode_buku) = ?', [strtoupper((string) $pinjam->kode_buku)])
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$bookItem || $bookItem->status !== 'borrowed') {
+                    throw new \RuntimeException('Status eksemplar tidak sesuai dengan transaksi peminjaman.');
+                }
+
+                $pinjam->update(['status' => 'disetujui']);
+            }, 3);
+        } catch (\Throwable $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
         }
-
-        $pinjam->update([
-            'status' => 'disetujui',
-        ]);
 
         return redirect()
             ->route('petugas.pinjamkelas.kelas')
@@ -326,21 +324,29 @@ class PetugasPinjamKelasController extends Controller
 
     public function reject($id)
     {
-        $pinjam = PinjamKelas::findOrFail($id);
+        try {
+            DB::transaction(function () use ($id) {
+                $pinjam = PinjamKelas::query()->whereKey($id)->lockForUpdate()->firstOrFail();
 
-        DB::transaction(function () use ($pinjam) {
-            $bookItem = BookItem::where('book_id', $pinjam->book_id)
-                ->whereRaw('UPPER(kode_buku) = ?', [strtoupper($pinjam->kode_buku)])
-                ->first();
+                if ($pinjam->status !== 'pending') {
+                    throw new \RuntimeException('Hanya peminjaman pending yang bisa ditolak.');
+                }
 
-            if ($bookItem) {
-                $bookItem->update([
-                    'status' => 'available',
-                ]);
-            }
+                $bookItem = BookItem::query()
+                    ->where('book_id', $pinjam->book_id)
+                    ->whereRaw('UPPER(kode_buku) = ?', [strtoupper((string) $pinjam->kode_buku)])
+                    ->lockForUpdate()
+                    ->first();
 
-            $pinjam->delete();
-        });
+                if ($bookItem && $bookItem->status === 'borrowed') {
+                    $bookItem->update(['status' => 'available']);
+                }
+
+                $pinjam->update(['status' => 'ditolak']);
+            }, 3);
+        } catch (\Throwable $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
+        }
 
         return redirect()
             ->route('petugas.pinjamkelas.kelas')

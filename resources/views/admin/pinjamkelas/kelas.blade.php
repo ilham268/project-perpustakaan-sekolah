@@ -1,13 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Kelas Pinjam')
-@section('page-title', 'Kelas Pinjam')
+@section('title', 'Daftar Peminjaman Paket')
+@section('page-title', 'Daftar Peminjaman Paket')
 
 @section('content')
 
 @php
     $kelasList = $kelasList ?? collect();
-    $jurusanList = $jurusanList ?? collect();
 @endphp
 
 <div class="space-y-6">
@@ -49,19 +48,19 @@
         <div class="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <p class="catalog-eyebrow font-semibold uppercase text-white/70">
-                    Data&nbsp;Peminjaman&nbsp;Kelas
+                    Data&nbsp;Peminjaman&nbsp;Paket
                 </p>
 
                 <h1 class="font-display mt-3 text-[26px] font-semibold leading-tight tracking-tight text-white sm:text-3xl md:text-[32px]">
-                    Kelas Pinjam
+                    Daftar Peminjaman Paket
                 </h1>
 
                 <p class="mt-3 max-w-xl text-[13.5px] leading-relaxed text-white/80 sm:text-sm">
-                    Pantau peminjaman buku kelas, status persetujuan, pengembalian, dan denda dalam satu halaman.
+                    Pantau peminjaman Buku Paket per siswa, status persetujuan, pengembalian, dan denda dalam satu halaman.
                 </p>
             </div>
 
-            <div class="w-full lg:w-[190px]">
+            <div class="flex w-full flex-col gap-3 lg:w-[220px]">
                 <div class="rounded-2xl border border-white/15 bg-white/10 px-4 py-3.5 backdrop-blur-md">
                     <p class="catalog-eyebrow uppercase text-white/70">
                         Data Pinjam
@@ -82,7 +81,7 @@
         <div class="border-b border-[var(--hairline)] px-5 py-5 md:px-6">
             <div class="flex flex-col gap-1">
                 <h2 class="font-display text-lg font-semibold text-[var(--forest)] md:text-xl">
-                    Daftar Peminjaman Kelas
+                    Daftar Peminjaman Paket per Siswa
                 </h2>
 
                 <p class="text-sm text-[var(--muted)]">
@@ -93,7 +92,7 @@
             {{-- Filter --}}
             <form method="GET" action="{{ url()->current() }}" id="filter-form" class="mt-5">
                 <div class="grid grid-cols-1 gap-3 xl:grid-cols-12">
-                    <div class="relative xl:col-span-4">
+                    <div class="relative xl:col-span-6">
                         <i class="fas fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[var(--muted)]"></i>
 
                         <input
@@ -107,7 +106,7 @@
                         >
                     </div>
 
-                    <div class="xl:col-span-3">
+                    <div class="xl:col-span-4">
                         <select
                             name="kelas_id"
                             id="kelas-select"
@@ -117,23 +116,7 @@
 
                             @foreach($kelasList as $kelas)
                                 <option value="{{ $kelas->id }}" {{ request('kelas_id') == $kelas->id ? 'selected' : '' }}>
-                                    {{ $kelas->jurusan }} {{ $kelas->nama_kelas }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="xl:col-span-3">
-                        <select
-                            name="jurusan"
-                            id="jurusan-select"
-                            class="h-11 w-full rounded-xl border border-[var(--hairline)] bg-[var(--paper)] px-4 text-sm font-medium text-[var(--text)] transition focus:border-[var(--emerald)] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)]"
-                        >
-                            <option value="">Semua Jurusan</option>
-
-                            @foreach($jurusanList as $jurusan)
-                                <option value="{{ $jurusan }}" {{ request('jurusan') == $jurusan ? 'selected' : '' }}>
-                                    {{ $jurusan }}
+                                    {{ \App\Models\Kelas::formatLabel($kelas->nama_kelas, $kelas->jurusan) }}
                                 </option>
                             @endforeach
                         </select>
@@ -158,7 +141,7 @@
                     <div class="xl:col-span-12">
                         <div class="flex justify-start xl:justify-end">
                             <a
-                                href="{{ route('admin.pinjamkelas.kelas.export', request()->only(['search', 'kelas_id', 'jurusan'])) }}"
+                                href="{{ route('admin.pinjamkelas.kelas.export', request()->only(['search', 'kelas_id'])) }}"
                                 class="inline-flex h-10 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--hairline)] bg-white px-4 text-sm font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-[var(--emerald)]/40 hover:bg-[var(--emerald-tint)] hover:text-[var(--emerald-deep)] focus:outline-none focus:ring-4 focus:ring-[var(--emerald-tint)] sm:w-auto"
                             >
                                 Export Excel
@@ -190,10 +173,6 @@
                             Kelas
                         </th>
 
-                        <th class="w-36 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
-                            Jurusan
-                        </th>
-
                         <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                             Judul Buku
                         </th>
@@ -201,6 +180,9 @@
                         <th class="w-32 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                             Kode Buku
                         </th>
+
+                        <th class="w-32 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">Tanggal Pinjam</th>
+                        <th class="w-32 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">Batas Kembali</th>
 
                         <th class="w-36 border border-[var(--hairline)] px-5 py-4 text-center font-semibold">
                             Status
@@ -215,8 +197,7 @@
                 <tbody class="bg-white" id="kelasPinjamTable">
                     @forelse($pinjamKelas as $index => $item)
                         @php
-                            $kelasData = $item->user->kelas ?? '-';
-                            $jurusanData = $item->user->jurusan ?? '-';
+                            $kelasData = \App\Models\Kelas::formatLabel($item->user->kelas ?? null, $item->user->jurusan ?? null);
 
                             $statusDenda = $item->status_denda ?? 'pending';
                             $dendaLunas = $item->status == 'denda' && $statusDenda == 'paid';
@@ -238,11 +219,7 @@
                             </td>
 
                             <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--muted)]">
-                                {{ $kelasData }}
-                            </td>
-
-                            <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--muted)]">
-                                {{ $jurusanData }}
+                                <span class="block">{{ $kelasData ?: '-' }}</span>
                             </td>
 
                             <td class="border border-[var(--hairline)] px-5 py-4">
@@ -255,6 +232,9 @@
                                 {{ $item->kode_buku ?? '-' }}
                             </td>
 
+                            <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--muted)]">{{ $item->tanggal_pinjam?->format('d/m/Y') ?? '-' }}</td>
+                            <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--muted)]">{{ $item->tanggal_kembali?->format('d/m/Y') ?? '-' }}</td>
+
                             <td class="border border-[var(--hairline)] px-5 py-4 text-center">
                                 @if($item->status == 'disetujui')
                                     <span class="font-semibold text-[var(--emerald-deep)]">
@@ -264,6 +244,8 @@
                                     <span class="font-semibold text-[var(--muted)]">
                                         Dikembalikan
                                     </span>
+                                @elseif($item->status == 'ditolak')
+                                    <span class="font-semibold text-red-600">Ditolak</span>
                                 @elseif($dendaLunas)
                                     <span class="font-semibold text-[var(--emerald-deep)]">
                                         Lunas
@@ -306,14 +288,10 @@
                                                 Setujui
                                             </button>
                                         </form>
-
-                                        <a
-                                            href="{{ route('admin.pinjamkelas.kelas.denda', $item->id) }}"
-                                            class="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--hairline)] bg-white px-3 text-xs font-semibold text-[var(--text)]/80 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-4 focus:ring-red-100"
-                                            title="Denda"
-                                        >
-                                            Denda
-                                        </a>
+                                        <form action="{{ route('admin.pinjamkelas.kelas.tolak', $item->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" onclick="return confirm('Tolak peminjaman ini dan kembalikan eksemplar ke stok tersedia?')" class="inline-flex h-9 items-center justify-center rounded-lg border border-red-200 bg-white px-3 text-xs font-semibold text-red-600">Tolak</button>
+                                        </form>
                                     @elseif($item->status == 'disetujui')
                                         <a
                                             href="{{ route('admin.pinjamkelas.kelas.denda', $item->id) }}"
@@ -344,17 +322,17 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="border border-[var(--hairline)] px-6 py-16 text-center">
+                            <td colspan="10" class="border border-[var(--hairline)] px-6 py-16 text-center">
                                 <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--sand)]/60 text-[var(--muted)]">
                                     <i class="fas fa-book-open text-2xl"></i>
                                 </div>
 
                                 <p class="font-display mt-4 text-base font-semibold text-[var(--text)]">
-                                    Belum ada data peminjaman kelas
+                                    Belum ada data peminjaman paket
                                 </p>
 
                                 <p class="mt-1 text-sm text-[var(--muted)]">
-                                    Data akan muncul setelah siswa melakukan peminjaman kelas.
+                                    Data akan muncul setelah peminjaman Buku Paket dicatat.
                                 </p>
                             </td>
                         </tr>
@@ -375,7 +353,6 @@
         var form = document.getElementById('filter-form');
         var searchInput = document.getElementById('search-input');
         var kelasSelect = document.getElementById('kelas-select');
-        var jurusanSelect = document.getElementById('jurusan-select');
         var debounceTimer;
 
         if (!form) {
@@ -397,11 +374,6 @@
             });
         }
 
-        if (jurusanSelect) {
-            jurusanSelect.addEventListener('change', function () {
-                form.submit();
-            });
-        }
     })();
 </script>
 

@@ -24,11 +24,13 @@ Route::get('/', [BookController::class, 'list'])->name('home');
 Route::get('list-buku', [BookController::class, 'list'])
     ->name('peminjam.list-buku');
 
-Route::get('/pinjam-cepat', [LoanController::class, 'quickCreate'])
-    ->name('peminjam.loan.quick-create');
+Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
+    Route::get('/pinjam-cepat', [LoanController::class, 'quickCreate'])
+        ->name('peminjam.loan.quick-create');
 
-Route::post('/pinjam-cepat', [LoanController::class, 'quickStore'])
-    ->name('peminjam.loan.quick-store');
+    Route::post('/pinjam-cepat', [LoanController::class, 'quickStore'])
+        ->name('peminjam.loan.quick-store');
+});
 
 
 // =====================================================
@@ -375,6 +377,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
         Route::post('/kelas/{id}/setujui', [KategoriPinjamController::class, 'setujuiKelas'])
             ->name('admin.pinjamkelas.kelas.setujui');
 
+        Route::post('/kelas/{id}/tolak', [KategoriPinjamController::class, 'tolakKelas'])
+            ->name('admin.pinjamkelas.kelas.tolak');
+
         Route::get('/kelas/{id}/denda', [KategoriPinjamController::class, 'formDendaKelas'])
             ->name('admin.pinjamkelas.kelas.denda');
 
@@ -486,10 +491,10 @@ Route::middleware(['auth', 'role:petugas'])->group(function () {
         Route::get('/kelas', [PetugasPinjamKelasController::class, 'kelasPinjam'])
             ->name('petugas.pinjamkelas.kelas');
 
-        Route::get('/approve/{id}', [PetugasPinjamKelasController::class, 'approve'])
+        Route::post('/approve/{id}', [PetugasPinjamKelasController::class, 'approve'])
             ->name('petugas.pinjamkelas.approve');
 
-        Route::get('/reject/{id}', [PetugasPinjamKelasController::class, 'reject'])
+        Route::post('/reject/{id}', [PetugasPinjamKelasController::class, 'reject'])
             ->name('petugas.pinjamkelas.reject');
     });
 });

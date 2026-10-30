@@ -310,10 +310,6 @@
                             </th>
 
                             <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
-                                Jurusan
-                            </th>
-
-                            <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
                                 Role
                             </th>
 
@@ -354,11 +350,7 @@
                                 </td>
 
                                 <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--muted)]">
-                                    {{ $user->kelas ?? '-' }}
-                                </td>
-
-                                <td class="border border-[var(--hairline)] px-5 py-4 text-[var(--muted)]">
-                                    {{ $user->jurusan ?? '-' }}
+                                    {{ \App\Models\Kelas::formatLabel($user->kelas, $user->jurusan) ?: '-' }}
                                 </td>
 
                                 <td class="border border-[var(--hairline)] px-5 py-4">
@@ -420,7 +412,7 @@
                             </x-modal>
                         @empty
                             <tr>
-                                <td colspan="9" class="border border-[var(--hairline)] px-6 py-16 text-center">
+                                <td colspan="8" class="border border-[var(--hairline)] px-6 py-16 text-center">
                                     <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--sand)]/60 text-[var(--muted)]">
                                         <i class="fas fa-users text-2xl"></i>
                                     </div>
@@ -637,7 +629,7 @@
                                             >
 
                                             <span class="font-medium">
-                                                {{ $rombel->nama_kelas }} - {{ $rombel->jurusan }}
+                                                {{ \App\Models\Kelas::formatLabel($rombel->nama_kelas, $rombel->jurusan) }}
                                             </span>
                                         </label>
                                     @endforeach

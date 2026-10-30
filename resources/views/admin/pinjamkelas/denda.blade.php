@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
-@section('title', 'Denda Peminjaman Kelas')
-@section('page-title', 'Denda Peminjaman Kelas')
+@section('title', 'Denda Peminjaman Paket')
+@section('page-title', 'Denda Peminjaman Paket')
 
 @section('content')
 
@@ -84,11 +84,11 @@
         <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <p class="text-xs font-bold uppercase tracking-wide text-emerald-50">
-                    Peminjaman Kelas
+                    Peminjaman Paket
                 </p>
 
                 <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl">
-                    Denda Peminjaman Kelas
+                    Denda Peminjaman Paket
                 </h1>
 
                 <p class="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50">
@@ -160,7 +160,7 @@
                             </p>
 
                             <p class="mt-1 text-sm font-bold text-slate-900">
-                                {{ $pinjam->user->kelas ?? '-' }}
+                                {{ \App\Models\Kelas::formatLabel($pinjam->user->kelas ?? null, $pinjam->user->jurusan ?? null) ?: '-' }}
                             </p>
                         </div>
 
@@ -170,7 +170,7 @@
                             </p>
 
                             <p class="mt-1 truncate text-sm font-bold text-slate-900">
-                                {{ $pinjam->kategori->nama_kategori ?? '-' }}
+                                {{ $pinjam->book->judul ?? '(Buku tidak ditemukan)' }}
                             </p>
                         </div>
 

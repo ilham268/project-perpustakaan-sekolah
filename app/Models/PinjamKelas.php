@@ -35,4 +35,5 @@ class PinjamKelas extends Model
     {
         return $this->belongsTo(Book::class);
     }
+
 }

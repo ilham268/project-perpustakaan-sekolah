@@ -440,7 +440,7 @@
 
                             <td class="border border-[var(--hairline)] px-4 py-3 text-[var(--muted)]">
                                 @if($return->loan->user->kelas)
-                                    Kelas {{ $return->loan->user->kelas }} - {{ $return->loan->user->jurusan ?? '' }}
+                                    {{ \App\Models\Kelas::formatLabel($return->loan->user->kelas, $return->loan->user->jurusan) }}
                                 @else
                                     -
                                 @endif

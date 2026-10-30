@@ -9,7 +9,7 @@
     $kelasData = $kategori->kelasData ?? null;
 
     $kelasLabel = $kelasData
-        ? trim(($kelasData->jurusan ?? '') . ' ' . ($kelasData->nama_kelas ?? ''))
+        ? \App\Models\Kelas::formatLabel($kelasData->nama_kelas ?? null, $kelasData->jurusan ?? null)
         : $kategori->kelas;
 @endphp
 

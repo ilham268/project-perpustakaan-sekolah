@@ -20,26 +20,26 @@ use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, WithEvents
 {
     protected $search;
-    protected $kelas;
+    protected $kelasId;
     protected $jurusan;
-    protected $kelasJurusanMap;
+    protected $selectedKelas;
 
     protected $prepared = false;
     protected $rows = [];
     protected $bookHeadings = [];
 
-    public function __construct($search = null, $kelas = null, $jurusan = null)
+    public function __construct($search = null, $kelasId = null, $jurusan = null)
     {
         $this->search = $search;
-        $this->kelas = $kelas;
+        $this->kelasId = $kelasId;
         $this->jurusan = $jurusan;
-        $this->kelasJurusanMap = Kelas::pluck('jurusan', 'nama_kelas');
+        $this->selectedKelas = $kelasId ? Kelas::find($kelasId) : null;
     }
 
     protected function getKelasFilter()
     {
-        if ($this->kelas) {
-            return [$this->kelas];
+        if ($this->selectedKelas) {
+            return [$this->selectedKelas->nama_kelas];
         }
 
         if ($this->jurusan) {
@@ -65,6 +65,11 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
         |--------------------------------------------------------------------------
         */
         $siswaQuery = User::where('role', 'siswa');
+
+        if ($this->selectedKelas) {
+            $siswaQuery->where('kelas', $this->selectedKelas->nama_kelas)
+                ->where('jurusan', $this->selectedKelas->jurusan);
+        }
 
         if (!empty($kelasFilter)) {
             $siswaQuery->whereIn('kelas', $kelasFilter);
@@ -92,9 +97,37 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
         */
         $pinjamQuery = PinjamKelas::with(['user', 'book']);
 
-        if (!empty($kelasFilter)) {
-            $pinjamQuery->whereHas('user', function ($q) use ($kelasFilter) {
-                $q->whereIn('kelas', $kelasFilter);
+        if ($this->search) {
+            $search = $this->search;
+            $pinjamQuery->where(function ($q) use ($search) {
+                $q->where('kode_buku', 'like', '%' . $search . '%')
+                    ->orWhere('status', 'like', '%' . $search . '%')
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('name', 'like', '%' . $search . '%')
+                            ->orWhere('nomor_identitas', 'like', '%' . $search . '%')
+                            ->orWhere('kelas', 'like', '%' . $search . '%')
+                            ->orWhere('jurusan', 'like', '%' . $search . '%');
+                    })
+                    ->orWhereHas('book', function ($bookQuery) use ($search) {
+                        $bookQuery->where('judul', 'like', '%' . $search . '%');
+                    });
+            });
+        }
+
+        if ($this->selectedKelas) {
+            $pinjamQuery->whereHas('user', function ($userQuery) {
+                $userQuery->where('kelas', $this->selectedKelas->nama_kelas)
+                    ->where('jurusan', $this->selectedKelas->jurusan);
+            });
+        } elseif (!empty($kelasFilter)) {
+            $pinjamQuery->whereHas('user', function ($userQuery) use ($kelasFilter) {
+                $userQuery->whereIn('kelas', $kelasFilter);
+            });
+        }
+
+        if ($this->jurusan) {
+            $pinjamQuery->whereHas('user', function ($userQuery) {
+                $userQuery->where('jurusan', $this->jurusan);
             });
         }
 
@@ -102,12 +135,28 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
             ->orderBy('id', 'asc')
             ->get();
 
+        $siswas = $siswas->keyBy('id');
+        foreach ($pinjamItems as $item) {
+            if (!$item->user || $siswas->has($item->user->id)) {
+                continue;
+            }
+
+            if ($this->search && stripos($item->user->name . ' ' . $item->user->nomor_identitas, $this->search) === false) {
+                continue;
+            }
+
+            $siswas->put($item->user->id, $item->user);
+        }
+
+        $siswas = $siswas->sortBy(fn ($siswa) => [$siswa->kelas, $siswa->name])->values();
+
         /*
         |--------------------------------------------------------------------------
         | Susun mapping data pinjam & Ambil HANYA buku yang dipinjam
         |--------------------------------------------------------------------------
         */
         $pinjamMap = [];
+        $pinjamMeta = [];
         $tempHeadings = [];
 
         foreach ($pinjamItems as $item) {
@@ -128,6 +177,12 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
             $tempHeadings[$bookName] = true;
 
             $pinjamMap[$userId][$bookName][] = $item->kode_buku ?? '';
+            $pinjamMeta[$userId]['tanggal_pinjam'][] = $item->tanggal_pinjam?->format('d/m/Y') ?? '';
+            $pinjamMeta[$userId]['tanggal_kembali'][] = $item->tanggal_kembali?->format('d/m/Y') ?? '';
+            $status = $item->status === 'denda' && $item->status_denda === 'paid'
+                ? 'Denda lunas'
+                : ucfirst((string) $item->status);
+            $pinjamMeta[$userId]['status'][] = $status;
         }
 
         $this->bookHeadings = array_keys($tempHeadings);
@@ -151,6 +206,9 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 'nisn' => $siswa->nomor_identitas ?? '',
                 'nama_siswa' => $siswa->name ?? '',
                 'books' => $pinjamMap[$siswa->id] ?? [],
+                'tanggal_pinjam' => implode(', ', array_unique(array_filter($pinjamMeta[$siswa->id]['tanggal_pinjam'] ?? []))),
+                'tanggal_kembali' => implode(', ', array_unique(array_filter($pinjamMeta[$siswa->id]['tanggal_kembali'] ?? []))),
+                'status' => implode(', ', array_unique(array_filter($pinjamMeta[$siswa->id]['status'] ?? []))),
             ];
         }
 
@@ -218,9 +276,9 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                 : '';
         }
 
-        $data[] = '';
-        $data[] = '';
-        $data[] = '';
+        $data[] = $row['tanggal_pinjam'];
+        $data[] = $row['tanggal_kembali'];
+        $data[] = $row['status'];
 
         return $data;
     }
@@ -293,11 +351,13 @@ class PinjamKelasExport implements FromCollection, WithMapping, WithHeadings, Wi
                     'font' => ['bold' => true, 'size' => 20],
                 ]);
 
-                $kelasText = $this->kelas ?: 'SEMUA KELAS';
+                $kelasText = $this->selectedKelas
+                    ? Kelas::formatLabel($this->selectedKelas->nama_kelas, $this->selectedKelas->jurusan)
+                    : 'SEMUA KELAS';
                 $jurusanText = $this->jurusan;
 
-                if (!$jurusanText && $this->kelas) {
-                    $jurusanText = $this->kelasJurusanMap->get($this->kelas, '-');
+                if (!$jurusanText && $this->selectedKelas) {
+                    $jurusanText = $this->selectedKelas->jurusan;
                 }
 
                 if (!$jurusanText) {

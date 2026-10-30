@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\GuestBook;
+use App\Models\Kelas;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithEvents;
@@ -17,20 +18,50 @@ class GuestBookExport implements FromCollection, WithMapping, WithEvents
     protected $startDate;
     protected $endDate;
     protected $kelas;
+    protected $jurusan;
 
-    public function __construct($startDate = null, $endDate = null, $kelas = null)
+    public function __construct($startDate = null, $endDate = null, $kelas = null, $jurusan = null)
     {
         $this->startDate = $startDate;
         $this->endDate = $endDate;
         $this->kelas = $kelas;
+        $this->jurusan = $jurusan;
     }
 
     public function collection()
     {
         $query = GuestBook::query();
 
-        if ($this->kelas) {
-            $query->where('kelas', $this->kelas);
+        if ($this->kelas || $this->jurusan) {
+            $classPairs = GuestBook::query()
+                ->whereNotNull('kelas')
+                ->where('kelas', '!=', '')
+                ->select('kelas', 'jurusan')
+                ->distinct()
+                ->get();
+
+            $matchingPairs = $classPairs->filter(function ($pair) {
+                return (!$this->kelas || Kelas::formatLabel($pair->kelas, $pair->jurusan) === $this->kelas)
+                    && (!$this->jurusan || $pair->jurusan === $this->jurusan);
+            });
+
+            if ($matchingPairs->isEmpty()) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->where(function ($classQuery) use ($matchingPairs) {
+                    foreach ($matchingPairs as $pair) {
+                        $classQuery->orWhere(function ($pairQuery) use ($pair) {
+                            $pairQuery->where('kelas', $pair->kelas);
+
+                            if ($pair->jurusan === null) {
+                                $pairQuery->whereNull('jurusan');
+                            } else {
+                                $pairQuery->where('jurusan', $pair->jurusan);
+                            }
+                        });
+                    }
+                });
+            }
         }
 
         if ($this->startDate && $this->endDate) {
@@ -51,7 +82,7 @@ class GuestBookExport implements FromCollection, WithMapping, WithEvents
         return [
             $no,
             $guest->nama,
-            $guest->kelas ?? '-',
+            Kelas::formatLabel($guest->kelas, $guest->jurusan) ?: '-',
             $guest->keperluan,
             Carbon::parse($guest->created_at)->format('d/m/Y'),
             Carbon::parse($guest->created_at)->format('H:i'),
@@ -91,6 +122,10 @@ class GuestBookExport implements FromCollection, WithMapping, WithEvents
 
                 if ($this->kelas) {
                     $periode .= ' | Kelas: ' . $this->kelas;
+                }
+
+                if ($this->jurusan) {
+                    $periode .= ' | Jurusan: ' . $this->jurusan;
                 }
 
                 $sheet->setCellValue('A4', $periode);

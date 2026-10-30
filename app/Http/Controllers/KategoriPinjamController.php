@@ -503,6 +503,7 @@ class KategoriPinjamController extends Controller
                             ->orWhere('kelas', 'like', "%{$search}%")
                             ->orWhere('jurusan', 'like', "%{$search}%");
                     })
+                    ->orWhere('status', 'like', "%{$search}%")
                     ->orWhereHas('book', function ($bookQuery) use ($search) {
                         $bookQuery->where('judul', 'like', "%{$search}%")
                             ->orWhere('penulis', 'like', "%{$search}%")
@@ -513,20 +514,14 @@ class KategoriPinjamController extends Controller
         }
 
         if ($request->filled('kelas_id')) {
-            $kelas = Kelas::find($request->kelas_id);
+            $kelas = Kelas::find($request->integer('kelas_id'));
 
             if ($kelas) {
-                $query->whereHas('user', function ($q) use ($kelas) {
-                    $q->where('kelas', $kelas->nama_kelas)
+                $query->whereHas('user', function ($userQuery) use ($kelas) {
+                    $userQuery->where('kelas', $kelas->nama_kelas)
                         ->where('jurusan', $kelas->jurusan);
                 });
             }
-        }
-
-        if ($request->filled('jurusan')) {
-            $query->whereHas('user', function ($q) use ($request) {
-                $q->where('jurusan', $request->jurusan);
-            });
         }
 
         if ($request->filled('status')) {
@@ -538,20 +533,13 @@ class KategoriPinjamController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $kelasList = Kelas::orderBy('jurusan')
-            ->orderBy('nama_kelas')
-            ->get();
-
-        $jurusanList = Kelas::whereNotNull('jurusan')
-            ->where('jurusan', '!=', '')
-            ->distinct()
+        $kelasList = Kelas::orderBy('nama_kelas')
             ->orderBy('jurusan')
-            ->pluck('jurusan');
+            ->get();
 
         return view('admin.pinjamkelas.kelas', compact(
             'pinjamKelas',
-            'kelasList',
-            'jurusanList'
+            'kelasList'
         ));
     }
 
@@ -560,8 +548,7 @@ class KategoriPinjamController extends Controller
         return Excel::download(
             new PinjamKelasExport(
                 $request->search,
-                $request->kelas_id,
-                $request->jurusan
+                $request->kelas_id
             ),
             'peminjaman-buku-paket-' . now()->format('Y-m-d') . '.xlsx'
         );
@@ -569,21 +556,62 @@ class KategoriPinjamController extends Controller
 
     public function setujuiKelas($id)
     {
-        $pinjam = PinjamKelas::with('book')->findOrFail($id);
+        try {
+            DB::transaction(function () use ($id) {
+                $pinjam = PinjamKelas::query()->whereKey($id)->lockForUpdate()->firstOrFail();
 
-        if ($pinjam->status !== 'pending') {
-            return redirect()
-                ->back()
-                ->with('error', 'Hanya peminjaman pending yang bisa disetujui.');
+                if ($pinjam->status !== 'pending') {
+                    throw new \RuntimeException('Hanya peminjaman pending yang bisa disetujui.');
+                }
+
+                $bookItem = BookItem::query()
+                    ->where('book_id', $pinjam->book_id)
+                    ->whereRaw('UPPER(kode_buku) = ?', [strtoupper((string) $pinjam->kode_buku)])
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$bookItem || $bookItem->status !== 'borrowed') {
+                    throw new \RuntimeException('Status eksemplar tidak sesuai dengan transaksi peminjaman.');
+                }
+
+                $pinjam->update(['status' => 'disetujui']);
+            }, 3);
+        } catch (\Throwable $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
         }
-
-        $pinjam->update([
-            'status' => 'disetujui',
-        ]);
 
         return redirect()
             ->back()
             ->with('success', 'Peminjaman Buku Paket berhasil disetujui.');
+    }
+
+    public function tolakKelas($id)
+    {
+        try {
+            DB::transaction(function () use ($id) {
+                $pinjam = PinjamKelas::query()->whereKey($id)->lockForUpdate()->firstOrFail();
+
+                if ($pinjam->status !== 'pending') {
+                    throw new \RuntimeException('Hanya peminjaman pending yang bisa ditolak.');
+                }
+
+                $bookItem = BookItem::query()
+                    ->where('book_id', $pinjam->book_id)
+                    ->whereRaw('UPPER(kode_buku) = ?', [strtoupper((string) $pinjam->kode_buku)])
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($bookItem && $bookItem->status === 'borrowed') {
+                    $bookItem->update(['status' => 'available']);
+                }
+
+                $pinjam->update(['status' => 'ditolak']);
+            }, 3);
+        } catch (\Throwable $exception) {
+            return redirect()->back()->with('error', $exception->getMessage());
+        }
+
+        return redirect()->back()->with('success', 'Peminjaman kelas ditolak dan eksemplar tersedia kembali.');
     }
 
     public function formDendaKelas($id)
@@ -591,10 +619,10 @@ class KategoriPinjamController extends Controller
         $pinjam = PinjamKelas::with(['user', 'book'])
             ->findOrFail($id);
 
-        if ($pinjam->status === 'dikembalikan') {
+        if ($pinjam->status !== 'disetujui') {
             return redirect()
                 ->route('admin.pinjamkelas.kelas')
-                ->with('error', 'Peminjaman ini sudah dikembalikan.');
+                ->with('error', 'Pengembalian hanya dapat diproses untuk peminjaman yang sudah disetujui.');
         }
 
         return view('admin.pinjamkelas.denda', compact('pinjam'));
@@ -609,14 +637,6 @@ class KategoriPinjamController extends Controller
             'denda_hilang' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        $pinjam = PinjamKelas::findOrFail($id);
-
-        if ($pinjam->status === 'dikembalikan') {
-            return redirect()
-                ->route('admin.pinjamkelas.kelas')
-                ->with('error', 'Peminjaman ini sudah dikembalikan.');
-        }
-
         $totalDenda = 0;
 
         if ($request->kondisi === 'rusak') {
@@ -627,11 +647,28 @@ class KategoriPinjamController extends Controller
             $totalDenda = (int) $request->input('denda_hilang', 100000);
         }
 
-        DB::transaction(function () use ($pinjam, $request, $totalDenda) {
-            if ($request->kondisi === 'baik' || $totalDenda <= 0) {
+        try {
+            DB::transaction(function () use ($id, $request, $totalDenda) {
+            $pinjam = PinjamKelas::query()->whereKey($id)->lockForUpdate()->firstOrFail();
+
+            if ($pinjam->status !== 'disetujui') {
+                throw new \RuntimeException('Hanya peminjaman yang sudah disetujui yang dapat dikembalikan.');
+            }
+
+            $bookItem = BookItem::query()
+                ->where('book_id', $pinjam->book_id)
+                ->whereRaw('UPPER(kode_buku) = ?', [strtoupper((string) $pinjam->kode_buku)])
+                ->lockForUpdate()
+                ->first();
+
+            if (!$bookItem) {
+                throw new \RuntimeException('Eksemplar buku dari transaksi ini tidak ditemukan.');
+            }
+
+            if ($totalDenda <= 0) {
                 $pinjam->update([
                     'status' => 'dikembalikan',
-                    'kondisi' => 'baik',
+                    'kondisi' => $request->kondisi,
                     'denda' => 0,
                     'status_denda' => null,
                 ]);
@@ -644,23 +681,19 @@ class KategoriPinjamController extends Controller
                 ]);
             }
 
-            $bookItem = BookItem::whereRaw('UPPER(kode_buku) = ?', [strtoupper($pinjam->kode_buku)])
-                ->first();
+            $bookItem->update([
+                'status' => match ($request->kondisi) {
+                    'rusak' => 'damaged',
+                    'hilang' => 'lost',
+                    default => 'available',
+                },
+            ]);
+            }, 3);
+        } catch (\Throwable $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
+        }
 
-            if ($bookItem && ($request->kondisi === 'baik' || $request->kondisi === 'rusak')) {
-                $bookItem->update([
-                    'status' => 'available',
-                ]);
-            }
-
-            if ($bookItem && $request->kondisi === 'hilang') {
-                $bookItem->update([
-                    'status' => 'lost',
-                ]);
-            }
-        });
-
-        if ($request->kondisi === 'baik' || $totalDenda <= 0) {
+        if ($totalDenda <= 0) {
             return redirect()
                 ->route('admin.pinjamkelas.kelas')
                 ->with('success', 'Peminjaman Buku Paket berhasil dikembalikan.');

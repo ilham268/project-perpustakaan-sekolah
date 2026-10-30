@@ -345,7 +345,7 @@ class ReturnBookController extends Controller
                 ->all()
         );
 
-        $pinjamKelasQuery = PinjamKelas::with(['user', 'kategori', 'book'])
+        $pinjamKelasQuery = PinjamKelas::with(['user', 'book'])
             ->where('denda', '>', 0);
 
         if ($search) {
@@ -353,9 +353,6 @@ class ReturnBookController extends Controller
                 $q->whereHas('user', function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')
                         ->orWhere('nomor_identitas', 'like', '%' . $search . '%');
-                })
-                ->orWhereHas('kategori', function ($q) use ($search) {
-                    $q->where('nama_kategori', 'like', '%' . $search . '%');
                 })
                 ->orWhereHas('book', function ($q) use ($search) {
                     $q->where('judul', 'like', '%' . $search . '%');
@@ -385,7 +382,8 @@ class ReturnBookController extends Controller
                         'id' => $item->id,
                         'nama_peminjam' => $item->user->name ?? '-',
                         'nomor_identitas' => $item->user->nomor_identitas ?? '-',
-                        'judul' => $item->book->judul ?? $item->kategori->nama_kategori ?? '-',
+                        'judul' => $item->book->judul ?? '(Buku Tidak Diketahui)',
+                        'kelas' => \App\Models\Kelas::formatLabel($item->user->kelas ?? null, $item->user->jurusan ?? null),
                         'kode_buku' => $item->kode_buku ?? '-',
                         'foto' => null,
                         'kondisi' => $item->kondisi ?? '-',
@@ -496,9 +494,9 @@ class ReturnBookController extends Controller
 
     public function downloadInvoiceKelasPetugas($id)
     {
-        $pinjamKelas = PinjamKelas::with(['user', 'kategori', 'book'])->findOrFail($id);
+        $pinjamKelas = PinjamKelas::with(['user', 'book'])->findOrFail($id);
 
-        $judul = $pinjamKelas->book->judul ?? $pinjamKelas->kategori->nama_kategori ?? '-';
+        $judul = $pinjamKelas->book->judul ?? '(Buku Tidak Diketahui)';
 
         $items = [
             [
@@ -621,7 +619,7 @@ class ReturnBookController extends Controller
                 ->all()
         );
 
-        $pinjamKelasQuery = PinjamKelas::with(['user', 'kategori', 'book'])
+        $pinjamKelasQuery = PinjamKelas::with(['user', 'book'])
             ->where('denda', '>', 0);
 
         if ($search) {
@@ -629,9 +627,6 @@ class ReturnBookController extends Controller
                 $q->whereHas('user', function ($q) use ($search) {
                     $q->where('name', 'like', '%' . $search . '%')
                         ->orWhere('nomor_identitas', 'like', '%' . $search . '%');
-                })
-                ->orWhereHas('kategori', function ($q) use ($search) {
-                    $q->where('nama_kategori', 'like', '%' . $search . '%');
                 })
                 ->orWhereHas('book', function ($q) use ($search) {
                     $q->where('judul', 'like', '%' . $search . '%');
@@ -661,7 +656,8 @@ class ReturnBookController extends Controller
                         'id' => $item->id,
                         'nama_peminjam' => $item->user->name ?? '-',
                         'nomor_identitas' => $item->user->nomor_identitas ?? '-',
-                        'judul' => $item->book->judul ?? $item->kategori->nama_kategori ?? '-',
+                        'judul' => $item->book->judul ?? '(Buku Tidak Diketahui)',
+                        'kelas' => \App\Models\Kelas::formatLabel($item->user->kelas ?? null, $item->user->jurusan ?? null),
                         'kode_buku' => $item->kode_buku ?? '-',
                         'kondisi' => $item->kondisi ?? '-',
                         'denda' => $item->denda ?? 0,
@@ -819,9 +815,9 @@ class ReturnBookController extends Controller
 
     public function downloadInvoiceKelasAdmin($id)
     {
-        $pinjamKelas = PinjamKelas::with(['user', 'kategori', 'book'])->findOrFail($id);
+        $pinjamKelas = PinjamKelas::with(['user', 'book'])->findOrFail($id);
 
-        $judul = $pinjamKelas->book->judul ?? $pinjamKelas->kategori->nama_kategori ?? '-';
+        $judul = $pinjamKelas->book->judul ?? '(Buku Tidak Diketahui)';
 
         $items = [
             [
@@ -901,16 +897,13 @@ class ReturnBookController extends Controller
                 ->all()
         );
 
-        $pinjamKelasQuery = PinjamKelas::with(['kategori', 'book'])
+        $pinjamKelasQuery = PinjamKelas::with(['book', 'user'])
             ->where('user_id', $user->id)
             ->where('denda', '>', 0);
 
         if (!empty($search)) {
             $pinjamKelasQuery->where(function ($q) use ($search) {
-                $q->whereHas('kategori', function ($q) use ($search) {
-                    $q->where('nama_kategori', 'like', '%' . $search . '%');
-                })
-                ->orWhereHas('book', function ($q) use ($search) {
+                $q->whereHas('book', function ($q) use ($search) {
                     $q->where('judul', 'like', '%' . $search . '%');
                 })
                 ->orWhere('kode_buku', 'like', '%' . $search . '%');
@@ -924,7 +917,7 @@ class ReturnBookController extends Controller
                 ->map(function ($item) {
                     return (object) [
                         'tipe' => 'kelas',
-                        'judul' => $item->book->judul ?? $item->kategori->nama_kategori ?? '-',
+                        'judul' => $item->book->judul ?? '(Buku Tidak Diketahui)',
                         'kode_buku' => $item->kode_buku ?? '-',
                         'kondisi' => $item->kondisi ?? '-',
                         'denda' => (int) ($item->denda ?? 0),

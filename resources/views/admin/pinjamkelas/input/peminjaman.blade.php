@@ -37,7 +37,7 @@
 
         <div class="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
-                <p class="catalog-eyebrow font-semibold uppercase text-white/70">Peminjaman&nbsp;Kelas</p>
+                <p class="catalog-eyebrow font-semibold uppercase text-white/70">Peminjaman&nbsp;Paket&nbsp;per&nbsp;Siswa</p>
 
                 <h1 class="font-display mt-3 text-[26px] font-semibold leading-tight tracking-tight text-white sm:text-3xl md:text-[32px]">
                     Input Peminjaman Paket
@@ -92,7 +92,7 @@
                                     data-search-input
                                     autocomplete="off"
                                     placeholder="Cari nama atau NISN siswa..."
-                                    value="{{ $selectedSiswa ? $selectedSiswa->name.' - '.($selectedSiswa->nomor_identitas ?? '-') : '' }}"
+                                    value="{{ $selectedSiswa ? $selectedSiswa->name.' - '.($selectedSiswa->nomor_identitas ?? '-').' - '.\App\Models\Kelas::formatLabel($selectedSiswa->kelas, $selectedSiswa->jurusan) : '' }}"
                                     class="h-12 w-full rounded-xl border border-[var(--hairline)] bg-white px-4 pr-10 text-sm font-medium text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition focus:border-[var(--emerald)] focus:ring-4 focus:ring-[var(--emerald-tint)]"
                                 >
                                 <i class="fas fa-magnifying-glass pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-xs text-[var(--muted)]"></i>
@@ -106,12 +106,13 @@
                                         type="button"
                                         data-search-option
                                         data-value="{{ $siswa->id }}"
-                                        data-label="{{ $siswa->name }} - {{ $siswa->nomor_identitas ?? '-' }}"
-                                        data-search="{{ strtolower($siswa->name.' '.($siswa->nomor_identitas ?? '')) }}"
+                                        data-label="{{ $siswa->name }} - {{ $siswa->nomor_identitas ?? '-' }} - {{ \App\Models\Kelas::formatLabel($siswa->kelas, $siswa->jurusan) }}"
+                                        data-search="{{ strtolower($siswa->name.' '.($siswa->nomor_identitas ?? '').' '.\App\Models\Kelas::formatLabel($siswa->kelas, $siswa->jurusan)) }}"
                                         class="flex w-full flex-col rounded-lg px-3 py-2 text-left transition hover:bg-[var(--emerald-tint)] data-[active=true]:bg-[var(--emerald-tint)]"
                                     >
                                         <span class="text-sm font-semibold text-[var(--text)]">{{ $siswa->name }}</span>
                                         <span class="text-xs text-[var(--muted)]">NISN: {{ $siswa->nomor_identitas ?? '-' }}</span>
+                                        <span class="text-xs text-[var(--muted)]">Kelas: {{ \App\Models\Kelas::formatLabel($siswa->kelas, $siswa->jurusan) ?: '-' }}</span>
                                     </button>
                                 @endforeach
 
@@ -218,7 +219,7 @@
                         </p>
 
                         <p class="mt-2 text-sm leading-relaxed text-[var(--emerald-deep)]">
-                            Tidak ada tanggal pinjam/kembali untuk peminjaman paket.
+                            Tanggal peminjaman tercatat otomatis saat disimpan dengan batas pengembalian tujuh hari.
                         </p>
                     </div>
                 </div>

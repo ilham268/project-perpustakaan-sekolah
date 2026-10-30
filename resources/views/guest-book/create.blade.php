@@ -404,11 +404,7 @@
                                     </p>
 
                                     <p class="mt-1 text-xs text-[var(--muted)]">
-                                        {{ $siswa->kelas ?? '-' }}
-
-                                        @if($siswa->jurusan)
-                                            • {{ $siswa->jurusan }}
-                                        @endif
+                                        {{ \App\Models\Kelas::formatLabel($siswa->kelas, $siswa->jurusan) ?: '-' }}
                                     </p>
 
                                 </div>
@@ -553,7 +549,7 @@
                                 <span>
                                     Kelas:
                                     <strong class="text-[var(--text)]">
-                                        {{ auth()->user()->kelas ?? '-' }}
+                                        {{ \App\Models\Kelas::formatLabel(auth()->user()->kelas, auth()->user()->jurusan) ?: '-' }}
                                     </strong>
                                 </span>
 

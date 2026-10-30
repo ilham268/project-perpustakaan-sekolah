@@ -8,18 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-    $table->id();
-    $table->string('name');
-    $table->string('nomor_identitas')->unique();
-    $table->string('kelas')->nullable();
-    $table->string('jurusan')->nullable();
-    $table->string('rfid_uid')->nullable()->unique(); // RFID
-    $table->string('password');
-    $table->enum('role', ['admin', 'petugas', 'siswa'])->default('siswa');
-    $table->rememberToken();
-    $table->timestamps();
-});
+            Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('nomor_identitas')->unique();
+            $table->string('kelas')->nullable();
+            $table->string('jurusan')->nullable();
+            $table->string('rfid_uid')->nullable()->unique(); // RFID
+            $table->string('password');
+            $table->enum('role', ['admin', 'petugas', 'siswa'])->default('siswa');
+            $table->rememberToken();
+            $table->timestamps();
+        });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

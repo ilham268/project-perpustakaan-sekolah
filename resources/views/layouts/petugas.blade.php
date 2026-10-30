@@ -236,7 +236,7 @@
                     >
                         <div class="flex items-center gap-3">
                             <i class="fas fa-chalkboard-user {{ request()->routeIs(['petugas.pinjamkelas.*']) ? 'text-[var(--emerald)]' : 'text-[var(--muted)]' }}"></i>
-                            <span>Peminjaman Kelas</span>
+                            <span>Peminjaman Paket</span>
                         </div>
 
                         <i
@@ -397,4 +397,4 @@
 
     @stack('scripts')
 </body>
-</html>   
+</html>

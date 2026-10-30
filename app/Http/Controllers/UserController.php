@@ -447,7 +447,8 @@ class UserController extends Controller
 
         $duplicateRows += $existingDuplicates;
         $message = 'Import Guru berhasil. Berhasil: ' . $imported . ' guru. Dilewati: '
-            . $skippedMetadataOrBlankRows . ' baris metadata/kosong. Duplikat: ' . $duplicateRows . '.';
+            . $duplicateRows . ' data duplikat. Baris metadata/kosong dilewati: '
+            . $skippedMetadataOrBlankRows . '.';
         if ($namesTooLong > 0) {
             $message .= ' Nama melebihi batas 255 karakter: ' . $namesTooLong . ' baris.';
         }

@@ -144,7 +144,7 @@
 
                 @foreach(($kelasList ?? collect()) as $kelas)
                     <option value="{{ $kelas->id }}">
-                        {{ $kelas->nama_kelas }} - {{ $kelas->jurusan }}
+                        {{ \App\Models\Kelas::formatLabel($kelas->nama_kelas, $kelas->jurusan) }}
                     </option>
                 @endforeach
             </select>

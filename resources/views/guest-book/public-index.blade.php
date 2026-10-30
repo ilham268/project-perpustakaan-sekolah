@@ -199,12 +199,8 @@
                             Nama Siswa
                         </th>
 
-                        <th class="w-28 border border-[var(--hairline)] px-4 py-3.5 text-left font-semibold">
-                            Kelas
-                        </th>
-
-                        <th class="w-40 border border-[var(--hairline)] px-4 py-3.5 text-left font-semibold">
-                            Jurusan
+                        <th class="w-44 border border-[var(--hairline)] px-4 py-3.5 text-left font-semibold">
+                            Kelas / Rombel
                         </th>
 
                         <th class="border border-[var(--hairline)] px-5 py-3.5 text-left font-semibold">
@@ -240,13 +236,7 @@
 
                             <td class="border border-[var(--hairline)] px-4 py-3.5">
                                 <span class="font-medium text-[var(--text)]/80">
-                                    {{ $guest->kelas ?? '-' }}
-                                </span>
-                            </td>
-
-                            <td class="border border-[var(--hairline)] px-4 py-3.5">
-                                <span class="font-medium text-[var(--text)]/80">
-                                    {{ $guest->jurusan ?? '-' }}
+                                    {{ \App\Models\Kelas::formatLabel($guest->kelas, $guest->jurusan) ?: '-' }}
                                 </span>
                             </td>
 
@@ -285,7 +275,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="border border-[var(--hairline)] px-6 py-16 text-center">
+                            <td colspan="7" class="border border-[var(--hairline)] px-6 py-16 text-center">
                                 <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--paper)] text-[var(--muted)] ring-1 ring-[var(--hairline)]">
                                     <i class="fas fa-users-slash text-2xl"></i>
                                 </div>

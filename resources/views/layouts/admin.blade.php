@@ -301,7 +301,7 @@
                     >
                         <div class="flex items-center gap-3">
                             <i class="fas fa-people-group {{ request()->routeIs(['admin.pinjamkelas.*', 'admin.pinjamkelas.kategori', 'admin.pinjamkelas.buku', 'admin.pinjamkelas.kelas']) ? 'text-[var(--emerald)]' : 'text-[var(--muted)]' }}"></i>
-                            <span>Peminjaman Kelas</span>
+                            <span>Peminjaman Paket</span>
                         </div>
 
                         <i
@@ -320,7 +320,7 @@
                             }}"
                         >
                             <i class="fas fa-pen-to-square"></i>
-                            <span>Input Peminjaman Paket</span>
+                            <span>Input Paket (Manual / Excel)</span>
                         </a>
 
                         <a
@@ -331,8 +331,8 @@
                                 : 'text-[var(--muted)] hover:bg-[var(--sand)]/60 hover:text-[var(--emerald-deep)]'
                             }}"
                         >
-                            <i class="fas fa-tag"></i>
-                            <span>Kategori Buku</span>
+                            <i class="fas fa-book-open"></i>
+                            <span>Daftar Buku Paket</span>
                         </a>
 
                         <a
@@ -344,7 +344,7 @@
                             }}"
                         >
                             <i class="fas fa-school"></i>
-                            <span>Kelas Pinjam</span>
+                            <span>Daftar Peminjaman Paket</span>
                         </a>
                     </div>
                 </div>

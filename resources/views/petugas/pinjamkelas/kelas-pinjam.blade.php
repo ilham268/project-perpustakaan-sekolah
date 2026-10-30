@@ -1,13 +1,12 @@
 @extends('layouts.petugas')
 
-@section('title', 'Kelas Pinjam')
-@section('page-title', 'Kelas Pinjam')
+@section('title', 'Daftar Peminjaman Paket')
+@section('page-title', 'Daftar Peminjaman Paket')
 
 @section('content')
 
 @php
     $kelasList = $kelasList ?? collect();
-    $jurusanList = $jurusanList ?? collect();
 @endphp
 
 <div class="space-y-6">
@@ -37,15 +36,15 @@
 
         <div class="relative">
             <p class="text-xs font-bold uppercase tracking-wide text-emerald-50">
-                Data Peminjaman Kelas
+                Data Peminjaman Paket
             </p>
 
             <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl">
-                Kelas Pinjam
+                Daftar Peminjaman Paket
             </h1>
 
             <p class="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50">
-                Pantau data peminjaman buku kelas dalam satu halaman.
+                Pantau peminjaman Buku Paket per siswa dalam satu halaman.
             </p>
         </div>
     </div>
@@ -57,7 +56,7 @@
         <div class="border-b border-slate-100 bg-white px-5 py-5 md:px-6">
             <div class="flex flex-col gap-1">
                 <h2 class="text-lg font-bold text-slate-900 md:text-xl">
-                    Daftar Peminjaman Kelas
+                    Daftar Peminjaman Paket per Siswa
                 </h2>
 
                 <p class="text-sm text-slate-500">
@@ -68,7 +67,7 @@
             {{-- Filter --}}
             <form method="GET" action="{{ url()->current() }}" id="filter-form" class="mt-5">
                 <div class="grid grid-cols-1 gap-3 xl:grid-cols-12">
-                    <div class="relative xl:col-span-4">
+                    <div class="relative xl:col-span-6">
                         <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-sm text-slate-400"></i>
 
                         <input
@@ -82,7 +81,7 @@
                         >
                     </div>
 
-                    <div class="xl:col-span-3">
+                    <div class="xl:col-span-4">
                         <select
                             name="kelas_id"
                             id="kelas-select"
@@ -92,23 +91,7 @@
 
                             @foreach($kelasList as $kelas)
                                 <option value="{{ $kelas->id }}" {{ request('kelas_id') == $kelas->id ? 'selected' : '' }}>
-                                    {{ $kelas->jurusan }} {{ $kelas->nama_kelas }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="xl:col-span-3">
-                        <select
-                            name="jurusan"
-                            id="jurusan-select"
-                            class="h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 transition focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100"
-                        >
-                            <option value="">Semua Jurusan</option>
-
-                            @foreach($jurusanList as $jurusan)
-                                <option value="{{ $jurusan }}" {{ request('jurusan') == $jurusan ? 'selected' : '' }}>
-                                    {{ $jurusan }}
+                                    {{ \App\Models\Kelas::formatLabel($kelas->nama_kelas, $kelas->jurusan) }}
                                 </option>
                             @endforeach
                         </select>
@@ -154,10 +137,6 @@
                             Kelas
                         </th>
 
-                        <th class="w-36 border border-slate-200 px-5 py-4 text-left">
-                            Jurusan
-                        </th>
-
                         <th class="border border-slate-200 px-5 py-4 text-left">
                             Judul Buku
                         </th>
@@ -165,19 +144,19 @@
                         <th class="w-32 border border-slate-200 px-5 py-4 text-left">
                             Kode Buku
                         </th>
+
+                        <th class="w-32 border border-slate-200 px-5 py-4 text-left">Tanggal Pinjam</th>
+                        <th class="w-32 border border-slate-200 px-5 py-4 text-left">Batas Kembali</th>
+
+                        <th class="w-32 border border-slate-200 px-5 py-4 text-center">Status</th>
+                        <th class="w-40 border border-slate-200 px-5 py-4 text-center">Aksi</th>
                     </tr>
                 </thead>
 
                 <tbody class="bg-white" id="kelasPinjamTable">
                     @forelse($pinjamKelas as $index => $item)
                         @php
-                            $kelasData = $item->user->kelas
-                                ?? optional($item->kategori)->kelas
-                                ?? '-';
-
-                            $jurusanData = $item->user->jurusan
-                                ?? optional(optional($item->kategori)->kelasData)->jurusan
-                                ?? '-';
+                            $kelasData = \App\Models\Kelas::formatLabel($item->user->kelas ?? null, $item->user->jurusan ?? null);
                         @endphp
 
                         <tr class="transition-colors hover:bg-slate-50">
@@ -196,26 +175,40 @@
                             </td>
 
                             <td class="border border-slate-200 px-5 py-4 text-slate-500">
-                                {{ $kelasData }}
-                            </td>
-
-                            <td class="border border-slate-200 px-5 py-4 text-slate-500">
-                                {{ $jurusanData }}
+                                <span>{{ $kelasData ?: '-' }}</span>
                             </td>
 
                             <td class="border border-slate-200 px-5 py-4">
                                 <span class="block max-w-[280px] truncate font-semibold text-slate-800">
-                                    {{ $item->kategori->nama_kategori ?? '-' }}
+                                    {{ $item->book->judul ?? '(Buku tidak ditemukan)' }}
                                 </span>
                             </td>
 
                             <td class="border border-slate-200 px-5 py-4 text-slate-500">
                                 {{ $item->kode_buku ?? '-' }}
                             </td>
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">{{ $item->tanggal_pinjam?->format('d/m/Y') ?? '-' }}</td>
+                            <td class="border border-slate-200 px-5 py-4 text-slate-500">{{ $item->tanggal_kembali?->format('d/m/Y') ?? '-' }}</td>
+                            <td class="border border-slate-200 px-5 py-4 text-center">
+                                {{ ucfirst($item->status) }}
+                                @if($item->denda > 0)
+                                    <span class="mt-1 block text-xs">Rp {{ number_format($item->denda, 0, ',', '.') }}</span>
+                                @endif
+                            </td>
+                            <td class="border border-slate-200 px-5 py-4">
+                                @if($item->status === 'pending')
+                                    <div class="flex justify-center gap-2">
+                                        <form method="POST" action="{{ route('petugas.pinjamkelas.approve', $item->id) }}">@csrf<button type="submit" class="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white">Setujui</button></form>
+                                        <form method="POST" action="{{ route('petugas.pinjamkelas.reject', $item->id) }}">@csrf<button type="submit" onclick="return confirm('Tolak pinjaman dan kembalikan stok?')" class="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600">Tolak</button></form>
+                                    </div>
+                                @else
+                                    <span class="block text-center text-xs text-slate-400">—</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="border border-slate-200 px-6 py-16 text-center">
+                            <td colspan="10" class="border border-slate-200 px-6 py-16 text-center">
                                 <p class="text-sm font-bold text-slate-700">
                                     Belum ada data peminjaman kelas
                                 </p>
@@ -295,7 +288,6 @@
         var form = document.getElementById('filter-form');
         var searchInput = document.getElementById('search-input');
         var kelasSelect = document.getElementById('kelas-select');
-        var jurusanSelect = document.getElementById('jurusan-select');
         if (searchInput) {
             searchInput.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
@@ -310,11 +302,6 @@
             });
         }
 
-        if (jurusanSelect) {
-            jurusanSelect.addEventListener('change', function () {
-                form.submit();
-            });
-        }
     })();
 </script>
 

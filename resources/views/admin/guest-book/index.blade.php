@@ -249,12 +249,8 @@
                             Nama
                         </th>
 
-                        <th class="w-28 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
-                            Kelas
-                        </th>
-
-                        <th class="w-36 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
-                            Jurusan
+                        <th class="w-44 border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
+                            Kelas / Rombel
                         </th>
 
                         <th class="border border-[var(--hairline)] px-5 py-4 text-left font-semibold">
@@ -290,13 +286,7 @@
 
                             <td class="border border-[var(--hairline)] px-5 py-4">
                                 <span class="font-medium text-[var(--text)]/80">
-                                    {{ $guest->kelas ?? '-' }}
-                                </span>
-                            </td>
-
-                            <td class="border border-[var(--hairline)] px-5 py-4">
-                                <span class="font-medium text-[var(--text)]/80">
-                                    {{ $guest->jurusan ?? '-' }}
+                                    {{ \App\Models\Kelas::formatLabel($guest->kelas, $guest->jurusan) ?: '-' }}
                                 </span>
                             </td>
 
@@ -329,7 +319,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="border border-[var(--hairline)] px-6 py-16 text-center">
+                            <td colspan="7" class="border border-[var(--hairline)] px-6 py-16 text-center">
                                 <p class="text-sm font-semibold text-[var(--text)]">
                                     Tidak ada data buku tamu
                                 </p>

@@ -117,8 +117,8 @@
             <td class="value">: {{ $user->nomor_identitas ?? '-' }}</td>
         </tr>
         <tr>
-            <td class="label">Kategori</td>
-            <td class="value">: {{ $pinjamKelas->kategori->nama_kategori ?? '-' }}</td>
+            <td class="label">Buku</td>
+            <td class="value">: {{ $pinjamKelas->book->judul ?? '(Buku Tidak Diketahui)' }}</td>
         </tr>
         <tr>
             <td class="label">Kode</td>

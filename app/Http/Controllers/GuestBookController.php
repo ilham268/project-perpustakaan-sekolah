@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\GuestBook;
+use App\Models\Kelas;
 use App\Models\User;
 use App\Exports\GuestBookExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -408,6 +409,12 @@ class GuestBookController extends Controller
     public function adminIndex(Request $request)
     {
         $query = GuestBook::query();
+        $classPairs = GuestBook::query()
+            ->whereNotNull('kelas')
+            ->where('kelas', '!=', '')
+            ->select('kelas', 'jurusan')
+            ->distinct()
+            ->get();
 
         // Pencarian
         if ($request->filled('search')) {
@@ -423,7 +430,27 @@ class GuestBookController extends Controller
 
         // Filter kelas
         if ($request->filled('kelas')) {
-            $query->where('kelas', $request->kelas);
+            $matchingClassPairs = $classPairs->filter(function ($pair) use ($request) {
+                return Kelas::formatLabel($pair->kelas, $pair->jurusan) === $request->kelas;
+            });
+
+            if ($matchingClassPairs->isEmpty()) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $query->where(function ($classQuery) use ($matchingClassPairs) {
+                    foreach ($matchingClassPairs as $pair) {
+                        $classQuery->orWhere(function ($pairQuery) use ($pair) {
+                            $pairQuery->where('kelas', $pair->kelas);
+
+                            if ($pair->jurusan === null) {
+                                $pairQuery->whereNull('jurusan');
+                            } else {
+                                $pairQuery->where('jurusan', $pair->jurusan);
+                            }
+                        });
+                    }
+                });
+            }
         }
 
         // Filter jurusan
@@ -445,19 +472,19 @@ class GuestBookController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        // Daftar kelas
-        $listKelas = User::whereNotNull('kelas')
-            ->where('kelas', '!=', '')
-            ->distinct()
-            ->orderBy('kelas', 'asc')
-            ->pluck('kelas');
+        $listKelas = $classPairs
+            ->map(fn ($pair) => Kelas::formatLabel($pair->kelas, $pair->jurusan))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
 
-        // Daftar jurusan
-        $listJurusan = User::whereNotNull('jurusan')
-            ->where('jurusan', '!=', '')
-            ->distinct()
-            ->orderBy('jurusan', 'asc')
-            ->pluck('jurusan');
+        $listJurusan = $classPairs
+            ->pluck('jurusan')
+            ->filter(fn ($jurusan) => trim((string) $jurusan) !== '')
+            ->unique()
+            ->sort()
+            ->values();
 
         // Statistik
         $totalKunjungan = GuestBook::count();

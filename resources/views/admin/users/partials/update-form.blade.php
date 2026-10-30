@@ -107,7 +107,7 @@
                     value="{{ $kelas->id }}"
                     {{ old('kelas_id') == $kelas->id || (!old('kelas_id') && $user->kelas == $kelas->nama_kelas) ? 'selected' : '' }}
                 >
-                    {{ $kelas->nama_kelas }} - {{ $kelas->jurusan }}
+                    {{ \App\Models\Kelas::formatLabel($kelas->nama_kelas, $kelas->jurusan) }}
                 </option>
             @endforeach
         </select>
@@ -126,7 +126,7 @@
         @if($user->kelas)
             <div class="mt-2 inline-flex items-center gap-2 rounded-xl bg-[var(--sand)]/60 px-3 py-2 text-xs font-medium text-[var(--text)]/70">
                 <i class="fas fa-circle-info text-[var(--muted)]"></i>
-                Kelas saat ini: {{ $user->kelas }}{{ $user->jurusan ? ' - ' . $user->jurusan : '' }}
+                Kelas saat ini: {{ \App\Models\Kelas::formatLabel($user->kelas, $user->jurusan) }}
             </div>
         @endif
     </div>

@@ -1,16 +1,12 @@
 @extends('layouts.petugas')
 
-@section('title', 'Input Peminjaman Kelas - ' . $kategori->nama_kategori)
-@section('page-title', 'Input Peminjaman Kelas: ' . $kategori->nama_kategori)
+@section('title', 'Input Peminjaman Paket - ' . $book->judul)
+@section('page-title', 'Input Peminjaman Paket: ' . $book->judul)
 
 @section('content')
 
 @php
-    $kelasData = $kategori->kelasData ?? null;
-
-    $kelasLabel = $kelasData
-        ? trim(($kelasData->jurusan ?? '') . ' ' . ($kelasData->nama_kelas ?? ''))
-        : $kategori->kelas;
+    $kelasLabel = 'Peminjaman Paket';
 @endphp
 
 <div class="space-y-6">
@@ -23,11 +19,11 @@
         <div class="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <p class="text-xs font-bold uppercase tracking-wide text-emerald-50">
-                    Peminjaman Kelas
+                    Peminjaman Paket
                 </p>
 
                 <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-white md:text-3xl">
-                    Input Peminjaman Kelas
+                    Input Peminjaman Paket per Siswa
                 </h1>
 
                 <p class="mt-2 max-w-xl text-sm leading-relaxed text-emerald-50">
@@ -38,7 +34,7 @@
             <div class="grid w-full grid-cols-2 gap-3 lg:w-[360px]">
                 <div class="rounded-2xl bg-white/15 px-4 py-3 ring-1 ring-white/20 backdrop-blur-md">
                     <p class="text-xs font-semibold text-emerald-50">
-                        Kelas
+                    Buku Paket
                     </p>
 
                     <p class="mt-1 truncate text-xl font-extrabold tracking-tight text-white">
@@ -66,13 +62,13 @@
             <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div class="border-b border-slate-100 bg-white px-5 py-5 md:px-6">
                     <h2 class="text-lg font-bold text-slate-900 md:text-xl">
-                        Form Peminjaman Kelas
+                        Form Peminjaman Paket per Siswa
                     </h2>
 
                     <p class="mt-1 text-sm text-slate-500">
                         Kategori:
                         <span class="font-semibold text-emerald-700">
-                            {{ $kategori->nama_kategori }}
+                            {{ $book->judul }}
                         </span>
                     </p>
                 </div>
@@ -81,7 +77,7 @@
                     <form action="{{ route('petugas.pinjamkelas.store') }}" method="POST" class="space-y-6">
                         @csrf
 
-                        <input type="hidden" name="kategori_id" value="{{ $kategori->id }}">
+                        <input type="hidden" name="book_id" value="{{ $book->id }}">
 
                         <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                             <p class="text-sm font-bold text-slate-800">

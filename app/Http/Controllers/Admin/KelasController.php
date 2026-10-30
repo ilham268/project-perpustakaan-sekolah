@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Kelas;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class KelasController extends Controller
@@ -68,10 +70,27 @@ class KelasController extends Controller
             'jurusan.required' => 'Jurusan wajib diisi.',
         ]);
 
-        $kelas->update([
-            'nama_kelas' => $request->nama_kelas,
-            'jurusan' => $request->jurusan,
-        ]);
+        DB::transaction(function () use ($kelas, $request) {
+            $oldNamaKelas = $kelas->nama_kelas;
+            $oldJurusan = $kelas->jurusan;
+            $newNamaKelas = $request->nama_kelas;
+            $newJurusan = $request->jurusan;
+
+            $kelas->update([
+                'nama_kelas' => $newNamaKelas,
+                'jurusan' => $newJurusan,
+            ]);
+
+            User::query()
+                ->where('role', 'siswa')
+                ->where('kelas', $oldNamaKelas)
+                ->where('jurusan', $oldJurusan)
+                ->update([
+                    'kelas' => $newNamaKelas,
+                    'jurusan' => $newJurusan,
+                    'updated_at' => now(),
+                ]);
+        });
 
         return redirect()
             ->route('users.index')
@@ -80,6 +99,16 @@ class KelasController extends Controller
 
     public function destroy(Kelas $kelas)
     {
+        if (User::query()
+            ->where('role', 'siswa')
+            ->where('kelas', $kelas->nama_kelas)
+            ->where('jurusan', $kelas->jurusan)
+            ->exists()) {
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'Kelas tidak dapat dihapus karena masih digunakan oleh data siswa. Pindahkan siswa ke kelas lain terlebih dahulu.');
+        }
+
         $kelas->delete();
 
         return redirect()

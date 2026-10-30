@@ -172,7 +172,7 @@
 
                                 <td class="border border-[var(--hairline)] px-5 py-4">
                                     <span class="block max-w-[320px] truncate font-semibold text-[var(--text)]">
-                                        {{ $item->kategori->nama_kategori ?? '-' }}
+                                        {{ $item->book->judul ?? '(Buku tidak ditemukan)' }}
                                     </span>
                                 </td>
 

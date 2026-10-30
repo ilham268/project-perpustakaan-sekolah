@@ -76,10 +76,11 @@ class PinjamKelasImport implements ToCollection, WithHeadingRow
                 }
 
                 PinjamKelas::create([
-                    'kategori_pinjam_id' => null,
                     'book_id' => $bookItem->book_id,
                     'user_id' => $user->id,
                     'kode_buku' => $bookItem->kode_buku,
+                    'tanggal_pinjam' => now(),
+                    'tanggal_kembali' => now()->addDays(7),
                     'status' => 'pending',
                 ]);
 
